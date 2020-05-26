@@ -1,0 +1,7 @@
+<select name="{{ name }}" class="form-control" id="{{ name }}">
+	{% for whse in warehouses %}
+		<option value="{{ whse.id }}" {{ whse.id == value ? 'selected' : ''}}>
+			{{ whse.id }} - {{ whse.name }}
+		</option>
+	{% endfor %}
+</select>

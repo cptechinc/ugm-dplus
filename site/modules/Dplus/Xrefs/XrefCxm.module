@@ -1,0 +1,94 @@
+<?php namespace ProcessWire;
+
+include_once(__DIR__.'/XrefResponse.php');
+
+use Purl\Url;
+
+use ItemMasterItemQuery, ItemMasterItem;
+use ItemXrefCustomerQuery, ItemXrefCustomer;
+use ConfigSysQuery, ConfigSys;
+
+/**
+ * Module that handles the editing of the VXM item Xref
+ */
+class XrefCxm extends WireData implements Module {
+	const MODEL              = 'ItemXrefCustomer';
+	const MODEL_KEY          = 'code';
+	const DESCRIPTION        = 'Item CXM';
+	const DESCRIPTION_RECORD = 'Item CXM';
+
+	public function __construct() {
+		$this->description = self::DESCRIPTION;
+	}
+
+	/**
+	 * Return the CXM Item that has the short itemid
+	 * @param  string $itemID Item ID / Our Item ID
+	 * @return ItemXrefCustomer
+	 */
+	public function get_cxm_shortitem($itemID) {
+		$q = $this->get_query();
+		$custID = ConfigSysQuery::create()->findOne()->custid;
+		$q->filterByCustid($custID);
+		$q->filterByItemid($itemID);
+		return $q->findOne();
+	}
+
+	/**
+	 * Return If there IS a CXM record with the short item ID
+	 * @param  string $itemID Item ID / Our Item ID
+	 * @return bool
+	 */
+	public function cxm_shortitem_exists($itemID) {
+		$q = $this->get_query();
+		$custID = ConfigSysQuery::create()->findOne()->custid;
+		$q->filterByCustid($custID);
+		$q->filterByItemid($itemID);
+		return boolval($q->count());
+	}
+
+
+	/**
+	 * Return ItemXrefCustomer
+	 * @param  string $custID     Cust ID
+	 * @param  string $custitemID Cust's Item ID'
+	 * @return ItemXrefCustomer
+	 */
+	public function get_cxm_item($custID, $custitemID) {
+		$q = $this->get_query();
+		$q->filterByCustid($custID);
+		$q->filterByCustitemid($custitemID);
+		return $q->findOne();
+	}
+
+	/**
+	 * Returns if Cust Item ID exists
+	 * @param  string $custID     Customer ID
+	 * @param  string $custitemID Customer's Item ID'
+	 * @return bool
+	 */
+	public function cxm_item_exists($custID, $custitemID) {
+		$q = $this->get_query();
+		$q->filterByCustid($custID);
+		$q->filterByCustitemid($custitemID);
+		return boolval($q->count());
+	}
+
+	/**
+	 * Return Query
+	 * @return ItemXrefCustomerQuery
+	 */
+	public function get_query() {
+		return ItemXrefCustomerQuery::create();
+	}
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus VXM CRUD Manager',
+			'version' => 101,
+			'summary' => 'Module for CRUD Methods for VXM',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+}

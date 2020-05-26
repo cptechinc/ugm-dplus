@@ -1,0 +1,370 @@
+<?php namespace ProcessWire;
+
+use Purl\Url;
+
+/**
+ * class Dpages
+ *
+ * Installs fields, templates, pages, hooks necessary for Top Menus
+ * NOTE: Also installs the basic fields, templates, to build the rest of the Application
+ */
+class DpagesMin extends Dpages implements Module {
+	const FIELDS = array();
+
+	const TEMPLATES = array(
+		'min-code-table' => array(
+			'name'   => 'min-code-table',
+			'fields' => array()
+		),
+		'min-code-table-iwhm' => array(
+			'name'   => 'min-code-table-iwhm',
+			'fields' => array()
+		),
+		'min-code-table-igm' => array(
+			'name'   => 'min-code-table-igm',
+			'fields' => array()
+		),
+		'min-code-table-tarm' => array(
+			'name'   => 'min-code-table-tarm',
+			'fields' => array()
+		),
+		'min-code-table-ioptm' => array(
+			'name'   => 'min-code-table-ioptm',
+			'fields' => array()
+		),
+		'upcx' => array(
+			'name'   => 'upcx',
+			'fields' => array()
+		),
+		'itm' => array(
+			'name'   => 'itm',
+			'fields' => array()
+		),
+		'itm-pricing' => array(
+			'name'   => 'itm-pricing',
+			'fields' => array()
+		),
+		'itm-whse' => array(
+			'name'   => 'itm-whse',
+			'fields' => array()
+		),
+		'itm-costing' => array(
+			'name'   => 'itm-costing',
+			'fields' => array()
+		),
+		'itm-xrefs' => array(
+			'name'   => 'itm-xrefs',
+			'fields' => array()
+		),
+		'itm-upcx' => array(
+			'name'   => 'itm-upcx',
+			'fields' => array()
+		),
+		'itm-vxm' => array(
+			'name'   => 'itm-vxm',
+			'fields' => array()
+		),
+		'itm-json' => array(
+			'name'   => 'itm-json',
+			'fields' => array()
+		),
+	);
+
+	const PAGES = array(
+		'min' => array(
+			'template'       => 'dplus-menu',
+			'name'           => 'min',
+			'title'          => 'Inventory',
+			'summary'        => 'Inventory Menu',
+			'parent'         => '/',
+			'dplus_function' => 'min'
+		),
+		'inmain' => array(
+			'template'       => 'dplus-menu',
+			'name'           => 'inmain',
+			'title'          => 'Maintenance',
+			'summary'        => 'Inventory Maintenance',
+			'parent'         => '/min/',
+			'dplus_function' => 'inmain'
+		),
+		'min-iwhm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'iwhm',
+			'title'          => 'Warehouses',
+			'summary'        => 'View / Edit Warehouses',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'iwhm'
+		),
+		'min-iplm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'iplm',
+			'title'          => 'Product Line',
+			'summary'        => 'View / Edit Product Line',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'iplm'
+		),
+		'min-stcm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'stcm',
+			'title'          => 'Stock',
+			'summary'        => 'View / Edit Stock',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'stcm'
+		),
+		'min-spit' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'spit',
+			'title'          => 'Special Item',
+			'summary'        => 'View / Edit Special Item',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'spit'
+		),
+		'min-csccm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'csccm',
+			'title'          => 'Customer Stocking Cell',
+			'summary'        => 'View / Edit Customer Stocking Cell',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'csccm'
+		),
+		'min-iasm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'iasm',
+			'title'          => 'Item Assortment',
+			'summary'        => 'View / Edit Item Assortment',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'iasm'
+		),
+		'min-umm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'umm',
+			'title'          => 'Unit of Measure',
+			'summary'        => 'View / Edit Unit of Measure',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'umm'
+		),
+		'min-msdsm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'msdsm',
+			'title'          => 'Material Safety Data Sheet',
+			'summary'        => 'View / Edit Material Safety Data Sheet',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'msdsm'
+		),
+		'min-igpm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'igpm',
+			'title'          => 'Item Price',
+			'summary'        => 'View / Edit Item Price',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'igpm'
+		),
+		'min-igcm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'igcm',
+			'title'          => 'Item Commission',
+			'summary'        => 'View / Edit Item Price',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'igcm'
+		),
+		'min-tarm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'tarm',
+			'title'          => 'Tariff Class',
+			'summary'        => 'View / Edit Tariff Class',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'tarm'
+		),
+		'min-igm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'igm',
+			'title'          => 'Item Group',
+			'summary'        => 'View / Edit Item Group',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'igm'
+		),
+		'min-upcx' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'upcx',
+			'name'           => 'upcx',
+			'title'          => 'UPC X-ref',
+			'summary'        => 'View / Edit UPCs',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'upcx'
+		),
+		'min-iarn' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'iarn',
+			'title'          => 'Inventory Adjustment Reason',
+			'summary'        => 'View / Edit Inventory Adjustment Reason',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'iarn'
+		),
+		'min-ioptm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'min-code-table',
+			'name'           => 'ioptm',
+			'title'          => 'Inventory Optional Codes',
+			'summary'        => 'View / Edit Inventory Optional Codes',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'ioptm'
+		),
+		'itm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'itm',
+			'name'           => 'itm',
+			'title'          => 'ITM',
+			'summary'        => 'View / Edit Item',
+			'parent'         => '/min/inmain/',
+			'dplus_function' => 'itm'
+		),
+		'itm-pricing' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'itm-pricing',
+			'name'           => 'pricing',
+			'title'          => 'Pricing',
+			'summary'        => 'View / Edit Item Pricing',
+			'parent'         => '/min/inmain/itm/',
+			'dplus_function' => ''
+		),
+		'itm-warehouse' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'itm-whse',
+			'name'           => 'warehouses',
+			'title'          => 'Warehouses',
+			'summary'        => 'View / Edit Item Warehouses',
+			'parent'         => '/min/inmain/itm/',
+			'dplus_function' => ''
+		),
+		'itm-costing' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'itm-costing',
+			'name'           => 'costing',
+			'title'          => 'Costing',
+			'summary'        => 'View / Edit Item Costing',
+			'parent'         => '/min/inmain/itm/',
+			'dplus_function' => ''
+		),
+		'itm-xrefs' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'itm-xrefs',
+			'name'           => 'xrefs',
+			'title'          => 'XRefs',
+			'summary'        => 'View / Edit Item Cross References',
+			'parent'         => '/min/inmain/itm/',
+			'dplus_function' => ''
+		),
+		'itm-json' => array(
+			'template'       => 'dplus-json',
+			'pw_template'    => 'itm-json',
+			'name'           => 'itm',
+			'title'          => 'ITM',
+			'summary'        => 'View / Edit Item',
+			'parent'         => '/min/inmain/itm/',
+			'dplus_function' => ''
+		),
+	);
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public function init() {
+		/**
+		 * Returns Sales Order Page URL
+		 */
+		$this->addHook('Page(pw_template=min-code-table-menu|min-code-table)::get_codetable_viewURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_viewURL($table, $code);
+		});
+
+		$this->addHook('Page(pw_template=min-code-table)::get_codetable_code_deleteURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_code_deleteURL($table, $code);
+		});
+
+		$this->addHook('Page(pw_template=min-code-table)::get_codetable_code_editURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_code_editURL($table, $code);
+		});
+
+		$this->addHook('Page(pw_template=min-code-table)::get_codetable_listURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_listURL($table, $code);
+		});
+
+		$this->addHookProperty('Page(pw_template=min-code-table)::codetable', function($event) {
+			$page = $event->object;
+			$event->return = $page->name;
+		});
+	}
+
+	public function get_codetable_viewURL($table, $code = false) {
+		$url = new Url($this->wire('pages')->get("pw_template=min-code-table, name=$table")->url);
+
+		if ($table == 'ioptm') {
+			$url->query->set('sysop', $code);
+		} else {
+			$url->query->set('code', $code);
+		}
+		return $url->getUrl();
+	}
+
+	public function get_codetable_listURL($table, $code = false) {
+		$url = new Url($this->wire('pages')->get("pw_template=min-code-table, name=$table")->url);
+		$code = str_replace(' ', '-', $code);
+		if ($table == 'ioptm') {
+			$url->query->set('sysop', $code);
+		} else {
+			$url->query->set('focus', $code);
+		}
+		return $url->getUrl();
+	}
+
+	public function get_codetable_code_deleteURL($table, $code) {
+		$url = new Url($this->wire('pages')->get("pw_template=min-code-table, name=$table")->url);
+		$url->query->set('action', 'remove-code');
+		$url->query->set('table', $table);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+	public function get_codetable_code_editURL($table, $code) {
+		$url = new Url($this->wire('pages')->get("pw_template=min-code-table, name=$table")->url);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+	/**
+	 * ProcessWire Module Info
+	 *
+	 * @return void
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus MIN Pages Modules',
+			'version' => 101,
+			'summary' => 'Installs and creates MIN Pages',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('DplusPwPages', 'Dpages'),
+			'installs' => array(),
+		);
+	}
+}

@@ -1,0 +1,34 @@
+<div class="modal fade" id="notes-modal" tabindex="-1" role="dialog" aria-labelledby="notes-modal-label" aria-hidden="true">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="notes-modal-label">Editing <span class="desc"></span> Notes for {{ code.code }}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<form action="{{ page.url }}" method="post" id="notes-form">
+					<input type="hidden" name="code" value="{{ code.code }}">
+					<input type="hidden" name="notes-type" value="">
+					<div class="form-group d-flex justify-content-between align-items-center">
+						<textarea name="note" id="note" class="form-control w-auto qnotes" rows="10" cols="" {{ recordlocker.function_locked_by_user(page.codetable, code.code) ? '' : 'readonly' }}></textarea>
+					</div>
+					<div class="d-flex justify-content-between align-items-center">
+						{% if recordlocker.function_locked_by_user(page.codetable, code.code) %}
+							<button type="submit" name="action" value="update-notes" class="btn btn-success">
+								<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
+							</button>
+							<button type="submit" name="action" value="delete-notes" class="btn btn-danger">
+								<i class="fa fa-trash-o" aria-hidden="true"></i> Delete
+							</button>
+						{% endif %}
+						<button type="button" class="btn btn-warning pull-right" data-dismiss="modal">
+							Close
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

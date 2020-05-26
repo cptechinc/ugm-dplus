@@ -1,0 +1,21 @@
+{% if json['data'] %}
+	{% for id, warehouse in json['data'] %}
+		<h4>
+			<a data-toggle="collapse" href="#{{ id|attrJS }}" class="link" role="button" aria-expanded="false" aria-controls="{{ id|attrJS }}">{{ warehouse['Whse Name'] }}</a>
+		</h4>
+		<div class="collapse show" id="{{ id|attrJS }}">
+			<table class="table table-striped table-sm">
+				<thead>
+					{% include 'util/screen-formatter/tr-labels.twig' with {'section': 'detail'} %}
+				</thead>
+				<tbody>
+					{% include 'items/ii/purchase-history/table/tr-details.twig' %}
+				</tbody>
+				<tfoot>
+					{% include 'items/ii/purchase-history/table/tr-totals.twig' %}
+				</tfoot>
+			</table>
+		</div>
+		<hr>
+	{% endfor %}
+{% endif %}

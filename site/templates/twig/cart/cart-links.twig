@@ -1,0 +1,25 @@
+<div class="form-group">
+	<div class="row">
+		<div class="col">
+			{% if cart.has_shiptoid() %}
+				<a href="{{ page.ci_customershiptoURL(shipto.custidid, shipto.shiptoid) }}" class="btn btn-primary">
+					<i class="fa fa-user" aria-hidden="true"></i> View Shipto {{ shipto.name }}
+				</a>
+			{% else %}
+				<a href="{{ page.ci_customerURL(customer.id) }}" class="btn btn-primary">
+					<i class="fa fa-user" aria-hidden="true"></i> View {{ customer.name }}
+				</a>
+			{% endif %}
+
+			&nbsp; &nbsp;
+			<a href="{{ page.empty_cartURL() }}" class="btn btn-danger">
+				<i class="fa fa-eraser" aria-hidden="true"></i> Clear Cart
+			</a>
+		</div>
+		<div class="col text-right">
+			<a href="#notes" class="{{ cart.count_notes() ? 'text-success' : 'text-muted'}}" title="View Notes" aria-label="View Notes">
+				<i class="fa fa-sticky-note-o fa-2x" aria-hidden="true"></i>
+			</a>
+		</div>
+	</div>
+</div>

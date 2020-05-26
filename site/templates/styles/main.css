@@ -1,0 +1,200 @@
+/**************************************
+	General Styles
+**************************************/
+html {
+	position: relative;
+	height: 100%;
+}
+
+body { height: 100%;}
+
+footer {
+	width: 100%;
+	padding-top: 15px;
+}
+
+/**************************************
+	Bootstrap Styles
+**************************************/
+.breadcrumb .breadcrumb-item::before {color: white;}
+.breadcrumb-item+.breadcrumb-item::before {
+	display: inline-block;
+	padding-right: 0.5rem;
+	color: #6c757d;
+	content: "/"
+ }
+
+.breadcrumb-item.active {
+	color: #FF304F;
+}
+
+.toolbar-sidebar > .nav > li > a {
+	display: block;
+	padding: .25rem 1.5rem;
+	font-size: 90%;
+	color: rgba(0,0,0,.65);
+}
+
+.bg-gray {
+	background-color: #c8bfc7 !important;
+}
+
+.form-group label {
+	font-weight: bold;
+}
+
+/*==============================================================
+	FUELUX Styles
+==============================================================*/
+.fuelux .datepicker-calendar-days td button, .fuelux .datepicker-calendar-header .title {
+	cursor: pointer;
+}
+
+.fuelux .datepicker-calendar-days td.selected.current-day b,
+.fuelux .datepicker-calendar-days td.selected.current-day button {
+	color: #fff;
+}
+
+.fuelux .datepicker-calendar-days td.current-day span {
+	background: #007bff;
+}
+.fuelux .datepicker-calendar-days td.current-day button {
+	color: #fff;
+}
+
+
+/*==============================================================
+	Bootstrap Notify Styles
+==============================================================*/
+[data-notify="progressbar"] {
+	margin-bottom: 0px;
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	height: 5px;
+}
+
+/*==============================================================
+	Application Styles
+==============================================================*/
+.jumbotron.page-banner {
+	padding: 1rem 1rem;
+}
+
+.container.page {
+	min-height: 100%;
+	height: 100%;
+	height: auto;
+	padding-bottom:200px;
+}
+
+
+.highlight {background: #efcc00; }
+a .highlight {color: #000;}
+.highlight a {color: #0f7864; }
+
+#back-to-top {
+	position: fixed;
+	bottom: 20px;
+	right: 20px;
+	z-index: 12;
+	display: none;
+}
+
+.fa-1-2x {
+	font-size: 1.2em;
+}
+
+a.link {
+	text-decoration: none;
+	background-color: transparent;
+	border-bottom: 3px solid #bcdcef;
+	-webkit-transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	-o-transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	-webkit-box-shadow: inset 0 -4px 0 #bcdcef;
+	box-shadow: inset 0 -4px 0 #bcdcef;
+}
+
+a.link:hover {
+	background-color: #bcdcef;
+}
+
+.text-white a.link {
+	color: white;
+}
+
+a.image-link {
+	text-decoration: none;
+	background-color: transparent;
+	border: 5px solid #bcdcef;
+	-webkit-transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	-o-transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	-webkit-box-shadow: inset 0 -4px 0 #bcdcef;
+	box-shadow: inset 0 -4px 0 #bcdcef;
+	display: inline-block;
+}
+
+a.image-link:hover {
+	border-color: #8ba2b0;
+}
+
+
+/************************************** Navbar **************************************/
+#yt-menu {
+	width: 300px;
+	border: 1px solid #ccc;
+	z-index: 13;
+	position: absolute;
+	box-shadow: 5px 10px 15px 5px rgba(0,0,0,.1);
+	margin-top: 0px;
+	display: none;
+}
+
+#yt-menu .nav-item:hover {
+	background: #ccc;
+}
+
+/************************************** Login **************************************/
+.login-form {
+	width: 100%;
+	max-width: 500px;
+	padding: 15px;
+	margin: auto
+}
+
+/************************************** Login **************************************/
+#user-actions-list {
+	overflow-y: scroll;
+	max-height: 500px;
+}
+
+/************************************** Table Styles *******************************/
+.first-txn-row {border-top: 2px solid black;}
+
+/************************************** Dashboard **************************************/
+#top-selling-list {
+	max-height: 500px;
+	overflow-y: scroll;
+}
+
+/************************************** Custom **************************************/
+.scroll-500 {
+	overflow-y: scroll;
+	max-height: 500px;
+}
+
+.scroll-300 {
+	overflow-y: scroll;
+	max-height: 300px;
+}
+
+.highlight {
+	background: #FADA5E;
+}
+
+textarea.qnotes {
+	font-family: monospace;
+}

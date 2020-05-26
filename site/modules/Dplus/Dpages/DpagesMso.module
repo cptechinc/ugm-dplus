@@ -1,0 +1,447 @@
+<?php namespace ProcessWire;
+
+use Purl\Url;
+use SalesOrder, SalesOrderQuery;
+use SalesHistory, SalesHistoryQuery;
+
+/**
+ * class DpagesMso
+ *
+ * Installs fields, templates, pages, hooks necessary for Mso Pages
+ * Adds Hooks for getting URLs to Mso pages
+ * Adds Hooks for Sales Order Editing Access
+ */
+class DpagesMso extends Dpages implements Module {
+	const FIELDS = array();
+
+	const TEMPLATES = array(
+		'sales-orders' => array(
+			'name'   => 'sales-orders',
+			'fields' => array()
+		),
+		'sales-history-orders' => array(
+			'name'   => 'sales-history-orders',
+			'fields' => array()
+		),
+		'sales-orders-customer' => array(
+			'name'   => 'sales-orders-customer',
+			'fields' => array()
+		),
+		'sales-history-orders-customer' => array(
+			'name'   => 'sales-history-orders-customer',
+			'fields' => array()
+		),
+		'sales-order-view' => array(
+			'name'   => 'sales-order-view',
+			'fields' => array()
+		),
+		'sales-order-print' => array(
+			'name'   => 'sales-order-print',
+			'fields' => array()
+		),
+		'sales-order-edit' => array(
+			'name'   => 'sales-order-edit',
+			'fields' => array()
+		),
+		'sales-order-documents' => array(
+			'name'   => 'sales-order-documents',
+			'fields' => array()
+		),
+		'sales-order-notes' => array(
+			'name'   => 'sales-order-notes',
+			'fields' => array()
+		),
+		'so-code-table' => array(
+			'name'   => 'so-code-table',
+			'fields' => array()
+		),
+		'so-code-table-soptm' => array(
+			'name'   => 'so-code-table-soptm',
+			'fields' => array()
+		),
+		'so-code-table-code' => array(
+			'name'   => 'so-code-table-code',
+			'fields' => array()
+		),
+	);
+
+	const PAGES = array(
+		'mso' => array(
+			'template'       => 'dplus-menu',
+			'name'           => 'mso',
+			'title'          => 'Sales Orders',
+			'summary'        => 'Sales Order Menu',
+			'parent'         => '/',
+			'dplus_function' => 'mso'
+		),
+		'somain' => array(
+			'template'       => 'dplus-menu',
+			'name'           => 'somain',
+			'title'          => 'Maintenance',
+			'summary'        => 'Sales Order Maintenance',
+			'parent'         => '/mso/',
+			'dplus_function' => 'somain'
+		),
+		'so-lsm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'so-code-table',
+			'name'           => 'lsm',
+			'title'          => 'Lost Sales Reason Code',
+			'summary'        => 'View / Edit Lost Sales Reason Code',
+			'parent'         => '/mso/somain/',
+			'dplus_function' => 'lsm'
+		),
+		'so-mfcm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'so-code-table',
+			'name'           => 'mfcm',
+			'title'          => 'Motor Freight Code',
+			'summary'        => 'View / Edit Motor Freight Code',
+			'parent'         => '/mso/somain/',
+			'dplus_function' => 'mfcm'
+		),
+		'so-rgarc' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'so-code-table',
+			'name'           => 'rgarc',
+			'title'          => 'RGA/Return Reason Code',
+			'summary'        => 'View / Edit RGA/Return Reason Code',
+			'parent'         => '/mso/somain/',
+			'dplus_function' => 'rgarc'
+		),
+		'so-rgasc' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'so-code-table',
+			'name'           => 'rgasc',
+			'title'          => 'RGA/Return Ship Via Code',
+			'summary'        => 'View / Edit RGA/Return Ship Via Code',
+			'parent'         => '/mso/somain/',
+			'dplus_function' => 'rgasc'
+		),
+		'so-soptm' => array(
+			'template'       => 'dplus-function',
+			'pw_template'    => 'so-code-table',
+			'name'           => 'soptm',
+			'title'          => 'Sales Order Optional Code',
+			'summary'        => 'View / Edit Sales Order Optional Code',
+			'parent'         => '/mso/somain/',
+			'dplus_function' => 'soptm'
+		),
+		'sales-orders' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'sales-orders',
+			'title'          => 'Sales Orders',
+			'summary'        => 'View / Search through Open Orders',
+			'parent'         => '/mso/',
+			'dplus_function' => 'mso',
+			'pw_template'    => 'sales-orders'
+		),
+		'sales-orders-customer' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'customer',
+			'title'          => 'Customer Sales Orders',
+			'summary'        => 'View / Search through Open Orders for a Customer',
+			'parent'         => '/mso/sales-orders/',
+			'dplus_function' => 'mso',
+			'pw_template'    => 'sales-orders-customer'
+		),
+		'sales-order' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'sales-order',
+			'title'          => 'Sales Order',
+			'summary'        => 'View Sales Order',
+			'parent'         => '/mso/',
+			'dplus_function' => 'mso',
+			'pw_template'    => 'sales-order-view'
+		),
+		'sales-order-print' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'print',
+			'title'          => 'Print Sales Order',
+			'summary'        => 'Print Sales Order',
+			'parent'         => '/mso/sales-order/',
+			'dplus_function' => '',
+			'pw_template'    => 'sales-order-print'
+		),
+		'sales-order-edit' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'edit',
+			'title'          => 'Edit Sales Order',
+			'summary'        => 'Edit Sales Order',
+			'parent'         => '/mso/sales-order/',
+			'dplus_function' => 'eso',
+			'pw_template'    => 'sales-order-edit'
+		),
+		'sales-order-documents' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'documents',
+			'title'          => 'Sales Order Documents',
+			'summary'        => 'View Sales Order Documents',
+			'parent'         => '/mso/sales-order/',
+			'dplus_function' => 'mso',
+			'pw_template'    => 'sales-order-documents'
+		),
+		'sales-order-notes' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'notes',
+			'title'          => 'Sales Order Notes',
+			'summary'        => 'View Sales Order Notes',
+			'parent'         => '/mso/sales-order/',
+			'dplus_function' => 'mso',
+			'pw_template'    => 'sales-order-notes'
+		),
+		'sales-history' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'sales-history',
+			'title'          => 'Sales History',
+			'summary'        => 'View Sales History Orders',
+			'parent'         => '/mso/',
+			'dplus_function' => '',
+			'pw_template'    => 'sales-history-orders'
+		),
+		'sales-history-customer' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'customer',
+			'title'          => 'Customer Sales History',
+			'summary'        => 'View Sales History Orders for a Customer',
+			'parent'         => '/mso/sales-history/',
+			'dplus_function' => '',
+			'pw_template'    => 'sales-history-orders-customer'
+		),
+	);
+
+	const USERPERM_SALESORDERS_EDIT = 'eso';
+
+	public function init() {
+		/**
+		 * Returns Sales Order Page URL
+		 */
+		$this->addHook('Page(pw_template=so-code-table-menu|so-code-table)::get_codetable_viewURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_viewURL($table, $code);
+		});
+
+		$this->addHook('Page(pw_template=so-code-table)::get_codetable_code_deleteURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_code_deleteURL($table, $code);
+		});
+
+		$this->addHook('Page(pw_template=so-code-table)::get_codetable_code_editURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_code_editURL($table, $code);
+		});
+
+		$this->addHook('Page(pw_template=so-code-table)::get_codetable_listURL', function($event) {
+			$table = $event->arguments(0);
+			$code = $event->arguments(1);
+			$event->return = $this->get_codetable_listURL($table, $code);
+		});
+
+		$this->addHookProperty('Page(pw_template=so-code-table)::codetable', function($event) {
+			$page = $event->object;
+			$event->return = $page->name;
+		});
+	}
+
+	public function init_salesorder_hooks() {
+		/**
+		 * Adds self::can_user_editorder() as User hook
+		 * @uses self::can_user_editorder()
+		 */
+		$this->addHook('User::can_editorder', function($event) {
+			$user = $event->object;
+			$order = $event->arguments(0);
+			$event->return = $this->can_user_editorder($user, $order);
+		});
+
+		/**
+		 * Adds self::is_user_editingorder() as User hook
+		 * @uses self::is_user_editingorder()
+		 */
+		$this->addHook('User::is_editingorder', function($event) {
+			$user = $event->object;
+			$order = $event->arguments(0);
+			$event->return = $this->is_user_editingorder($user, $order);
+		});
+
+		/**
+		 * Adds self::is_user_editingorder() as User hook
+		 * @uses self::is_user_editingorder()
+		 */
+		$this->addHook('Page::remove_itemURL', function($event) {
+			$p = $event->object;
+			$ordn = $event->arguments(0);
+			$linenbr = $event->arguments(1);
+			$url = new Url($this->wire('pages')->get('template=dplus-menu,name=mso')->child('template=redir')->url);
+			$url->query->set('action', 'remove-line');
+			$url->query->set('ordn', $ordn);
+			$url->query->set('linenbr', $linenbr);
+			$event->return = $url->getUrl();
+		});
+
+		/**
+		 * Returns Edit Sales Order Page URL
+		 */
+		$this->addHook('Page::view_notesURL', function($event) {
+			$p = $event->object;
+			$ordn = $event->arguments(0);
+			$linenbr = $event->arguments(1);
+			$url = new Url($this->wire('pages')->get('pw_template=sales-order-notes')->url);
+			$url->query->set('ordn', $ordn);
+			$hash = $linenbr > 0 ? "#line-$linenbr" : '';
+			$event->return = $url->getUrl()."$hash";
+		});
+
+		/**
+		 * Returns Edit Sales Order Page URL
+		 */
+		$this->addHook('Page::edit_orderURL', function($event) {
+			$p = $event->object;
+			$ordn = $event->arguments(0);
+			$url = new Url($this->wire('pages')->get('template=dplus-menu,name=mso')->child('template=redir')->url);
+			$url->query->set('action', 'get-order-edit');
+			$url->query->set('ordn', $ordn);
+			$event->return = $url->getUrl();
+		});
+
+		/**
+		 * Returns Sales Order Page URL
+		 */
+		$this->addHook('Page::view_orderURL', function($event) {
+			$ordn = $event->arguments(0);
+			$event->return = $this->get_salesorder_viewURL($ordn);
+		});
+
+		/**
+		 * Returns Sales Order Page URL
+		 */
+		$this->addHook('Page::unlock_orderURL', function($event) {
+			$ordn = $event->arguments(0);
+			$url = new Url($this->wire('pages')->get('template=dplus-menu,name=mso')->child('template=redir')->url);
+			$url->query->set('action', 'unlock-order');
+			$url->query->set('ordn', $ordn);
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page::ii_itemURL', function($event) {
+			$p = $event->object;
+			$itemID = $event->arguments(0);
+			$event->return = $this->wire('modules')->get('DpagesMii')->get_ii_itemURL($itemID);
+		});
+
+		$this->addHook('Page::ci_customerURL', function($event) {
+			$p = $event->object;
+			$custID = $event->arguments(0);
+			$event->return = $this->wire('modules')->get('DpagesMci')->get_ci_customerURL($custID);
+		});
+
+		$this->addHook('Page::ci_customershiptoURL', function($event) {
+			$p = $event->object;
+			$custID = $event->arguments(0);
+			$shiptoID = $event->arguments(1);
+			$event->return = $this->wire('modules')->get('DpagesMci')->get_ci_customershiptoURL($custID, $shiptoID);
+		});
+	}
+
+	/**
+	 * Returns URL to view Sales Order
+	 * @param  string $ordn Sales Order Number
+	 * @return string
+	 */
+	public function get_salesorder_viewURL($ordn) {
+		$url = new Url($this->wire('pages')->get('pw_template=sales-order-view')->url);
+		$url->query->set('ordn', $ordn);
+		return $url->getUrl();
+	}
+
+	/**
+	 * Return if User can edit Sales Order
+	 * @param  User              $user  User
+	 * @param  SalesOrder|string $order Sales Order
+	 * @return bool                     Can User Edit Sales Order?
+	 */
+	public function can_user_editorder(User $user, $order) {
+		if (gettype($order) != 'object') {
+			$lookup_order = $this->wire('modules')->get('LookupSalesOrder');
+
+			if ($lookup_order->lookup_salesorder($order)) {
+				$order = SalesOrderQuery::create()->findOneByOrdernumber($order);
+			} else {
+				$order = SalesHistoryQuery::create()->findOneByOrdernumber($order);
+			}
+		}
+
+		$config_orders = $this->wire('modules')->get('ConfigsSalesOrders');
+		$canedit = false;
+
+		if ($config_orders->allow_salesorderedit) {
+			if ($order->is_editable() && $order->status == SalesOrder::STATUS_NEW && $user->has_function(self::USERPERM_SALESORDERS_EDIT)) {
+				$canedit = true;
+			}
+		}
+		return $canedit;
+	}
+
+	/**
+	 * Return if User is editing Sales Order
+	 * @param  User       $user  User
+	 * @param  SalesOrder|string $order Sales Order
+	 * @return bool              IS User is editing Sales Order?
+	 */
+	public function is_user_editingorder(User $user, $order) {
+		if (gettype($order) != 'object') {
+			$order = SalesOrderQuery::create()->findOneByOrdernumber($order);
+		}
+		return $order->heldby == $user->loginid;
+	}
+
+	public function get_codetable_viewURL($table, $code = false) {
+		$url = new Url($this->wire('pages')->get("pw_template=so-code-table, name=$table")->url);
+
+		if ($table == 'soptm') {
+			$url->query->set('sysop', $code);
+		} else {
+			$url->query->set('code', $code);
+		}
+		return $url->getUrl();
+	}
+
+	public function get_codetable_listURL($table, $code = false) {
+		$url = new Url($this->wire('pages')->get("pw_template=so-code-table, name=$table")->url);
+		$code = str_replace(' ', '-', $code);
+		if ($table == 'soptm') {
+			$url->query->set('sysop', $code);
+		} else {
+			$url->query->set('socus', $code);
+		}
+		return $url->getUrl();
+	}
+
+	public function get_codetable_code_deleteURL($table, $code) {
+		$url = new Url($this->wire('pages')->get("pw_template=so-code-table, name=$table")->url);
+		$url->query->set('action', 'remove-code');
+		$url->query->set('table', $table);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+	public function get_codetable_code_editURL($table, $code) {
+		$url = new Url($this->wire('pages')->get("pw_template=so-code-table, name=$table")->url);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dpluso Sales Order Pages',
+			'version' => 101,
+			'summary' => 'Installs and creates Dpluso Sales Order Pages',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('DplusPwPages', 'Dpages'),
+		);
+	}
+}

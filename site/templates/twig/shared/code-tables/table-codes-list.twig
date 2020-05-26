@@ -1,0 +1,27 @@
+<div class="mb-3">
+
+</div>
+<div class="list-group">
+	<div class="list-group-item bg-dark text-white">
+		<div class="row align-items-center">
+			<div class="col-3">
+				Code
+			</div>
+			<div class="col-9">
+				Description
+			</div>
+		</div>
+	</div>
+	{% for code in codes %}
+		<div class="list-group-item">
+			<div class="row align-items-center">
+				<div class="col-3" data-code="{{ code.code }}">
+					{{ code.code }}
+				</div>
+				<div class="col-9" data-desc="{{ code.desc }}">
+					{{ code.description }}
+				</div>
+			</div>
+		</div>
+	{% endfor %}
+</div>

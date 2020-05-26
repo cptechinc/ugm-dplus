@@ -1,0 +1,87 @@
+<?php namespace ProcessWire;
+
+class Filters extends WireData implements Module {
+
+	const MODULE_ALIASES = array(
+		'salesorder' => 'FilterSalesOrders',
+		'sales-order' => 'FilterSalesOrders',
+		'saleshistory' => 'FilterSalesHistory',
+		'sales-history' => 'FilterSalesHistory',
+		'quote' => 'FilterQuotes',
+		'purchaseorder'  => 'FilterPurchaseOrder',
+		'purchase-order' => 'FilterPurchaseOrder',
+		'purchasehistory'  => 'FilterApInvoices',
+		'purchase-history' => 'FilterApInvoices',
+		'bookings' => 'FilterBookings',
+		'vendors'  => 'FilterVendors'
+	);
+
+	/**
+	 * Returns Filter Module
+	 * @param  string $module Filter Module Name
+	 * @return Module
+	 */
+	public function get_filter($module) {
+		$modules = $this->wire('modules');
+		$filter = self::MODULE_ALIASES[strtolower($module)];
+		return $modules->get($filter);
+	}
+
+	/**
+	 * ProcessWire Installer Function
+	 * NOTE: Runs when installed through ProcessWire
+	 * @return void
+	 */
+	public function ___install() {
+
+	}
+
+	/**
+	 * ProcessWire removal Function
+	 * NOTE: Runs when removed through ProcessWire
+	 * @return void
+	 */
+	public function ___uninstall() {
+
+	}
+
+	public function update() {
+		$info = self::getModuleInfo();
+		$modules = $this->wire('modules');
+
+		foreach ($info['installs'] as $module_name) {
+			$modules->install($module_name);
+		}
+	}
+
+
+	/* =============================================================
+		ProcessWire Module Functions
+	============================================================= */
+	/**
+	 * ProcessWire Module Info
+	 *
+	 * @return void
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Filters Module',
+			'version' => 101,
+			'summary' => 'Handles Loading of Filters Modules',
+			'singular' => true,
+			'autoload' => true,
+			'installs' => array(
+				'FilterSalesOrders',
+				'FilterSalesHistory',
+				'FilterQuotes',
+				'FilterPurchaseOrder',
+				'FilterApInvoices',
+				'FilterBookings',
+				'FilterVendors',
+				'FilterItemXrefUpc',
+				'FilterItemMaster',
+				'FilterItemXrefVxm',
+			)
+		);
+	}
+}
