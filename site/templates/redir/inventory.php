@@ -216,6 +216,35 @@
 			$url->query->set('scan', $scan);
 			$session->loc = $url->getUrl();
 			break;
+		case 'create-receiving-po':
+			// Requests PO to receive
+			// Response: po_tran_det & po_tran_lot_det records are loaded with detail information
+			$vendorID = $input->$requestmethod->text('vendorID');
+			$data = array("DBNAME=$dplusdb", 'CREATERECEIVEPO', "VENDORID=$vendorID");
+
+			if ($input->$requestmethod->page) {
+				$url = new Purl\Url($input->$requestmethod->text('page'));
+				//$url->query->set('ponbr', $ponbr);
+			} else {
+				$url = new Purl\Url($page->url);
+				$url->query->set('action', 'receive-created-po');
+			}
+			$session->loc = $url->getUrl();
+			break;
+		case 'receive-created-po':
+			// Requests PO to receive
+			// Response: po_tran_det & po_tran_lot_det records are loaded with detail information
+			$ponbr = $user->get_lockedID();
+
+			if ($input->$requestmethod->page) {
+				$url = new Purl\Url($input->$requestmethod->text('page'));
+				$url->query->set('ponbr', $ponbr);
+			} else {
+				$url = new Purl\Url($pages->get('pw_template=whse-receiving')->url);
+				$url->query->set('ponbr', $ponbr);
+			}
+			$session->loc = $url->getUrl();
+			break;
 		case 'init-receive':
 			// Requests PO to receive
 			// Response: po_tran_det & po_tran_lot_det records are loaded with detail information
@@ -312,10 +341,7 @@
 			$query_phys = WhseitemphysicalcountQuery::create();
 			$query_phys->filterBySessionid(session_id());
 			$query_phys->filterByScan($scan);
-
-			echo $scan;
 			$query_phys->findOne();
-			echo "<br /> " . $dpluso->getLastExecutedQuery();
 
 			$item = $query_phys->findOne();
 
