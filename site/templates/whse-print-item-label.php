@@ -4,6 +4,7 @@
 	$page->print = false;
 	$binID = $input->get->text('binID');
 	$page->show_masterpack = $modules->get("ConfigsWarehouseLabelPrinting")->show_masterpack;
+	$m_print = $modules->get('PrintLabelItem');
 
 	$page->addHook('Page::print_itemlabelURL', function($event) {
 		$p = $event->object;
@@ -43,8 +44,6 @@
 		}
 
 		if ($resultscount == 1) {
-			$thermal_labels = ThermalLabelFormatQuery::create();
-			$whse_printers = WhsePrinterQuery::create();
 
 			if (LabelPrintSessionQuery::create()->filterBySessionid(session_id())->count()) {
 				$labelsession = LabelPrintSessionQuery::create()->findOneBySessionid(session_id());
@@ -57,9 +56,9 @@
 				$labelsession->setWhse($whsesession->whseid);
 			}
 			$page->formurl = $page->parent->child('template=redir')->url;
-			$page->body    =  $config->twig->render('warehouse/inventory/print-item-label/label-form.twig', ['page' => $page, 'label' => $labelsession, 'thermal_labels' => $thermal_labels, 'printers' => $whse_printers]);
-			$page->body    .= $config->twig->render('warehouse/inventory/print-item-label/labels-modal.twig', ['formats' => $thermal_labels->get_formats(), 'item' => $item]);
-			$page->body    .= $config->twig->render('warehouse/inventory/print-item-label/printers-modal.twig', ['printers' => $whse_printers->find()]);
+			$page->body    =  $config->twig->render('warehouse/inventory/print-item-label/label-form.twig', ['page' => $page, 'labelsession' => $labelsession, 'm_print' => $m_print]);
+			$page->body .= $config->twig->render('warehouse/inventory/print-item-label/labels-modal.twig', ['formats' => $m_print->get_labelformats()]);
+			$page->body .= $config->twig->render('warehouse/inventory/print-item-label/printers-modal.twig', ['printers' => $m_print->get_printers()]);
 		} else {
 			$inventory = InvsearchQuery::create();
 			$resultscount = InvsearchQuery::create()->countDistinctItemid(session_id());

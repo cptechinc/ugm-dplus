@@ -214,5 +214,34 @@ class ReceivingUgm extends WireData implements Module {
 			$url->query->set('ponbr', $ponbr);
 			$event->return = $url->getUrl();
 		});
+
+		$this->addHook('Page(pw_template=whse-receiving)::delete_received_itemURL', function($event) {
+			$url = new Url($this->wire('pages')->get('template=redir, redir_file=inventory')->url);
+			$item     = $event->arguments(0); // Instance of PurchaseOrderDetailLotReceiving
+			$url->query->set('action', 'remove-received-item');
+			$url->query->set('ponbr', $item->ponbr);
+			$url->query->set('linenbr', $item->linenbr);
+			$url->query->set('lotserial', $item->lotserial);
+			$url->query->set('binID', $item->bin);
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page(pw_template=whse-receiving)::print_receiveditemURL', function($event) {
+			$url = new Url($this->wire('pages')->get('pw_template=whse-print-received-item-label')->url);
+			$item     = $event->arguments(0); // Instance of PurchaseOrderDetailLotReceiving
+			$url->query->set('ponbr', $item->ponbr);
+			$url->query->set('linenbr', $item->linenbr);
+			$url->query->set('lotserial', $item->lotserial);
+			$url->query->set('binID', $item->bin);
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page(pw_template=whse-receiving)::print_receivedlineURL', function($event) {
+			$url = new Url($this->wire('pages')->get('pw_template=whse-print-received-item-label')->url);
+			$item     = $event->arguments(0); // Instance of PurchaseOrderDetailReceiving
+			$url->query->set('ponbr', $item->ponbr);
+			$url->query->set('linenbr', $item->linenbr);
+			$event->return = $url->getUrl();
+		});
 	}
 }
