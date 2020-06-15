@@ -83,7 +83,7 @@
 							$session->redirect($page->fullURL->getUrl());
 						} else {
 							$physicalitems = $query_phys->find();
-							$page->body = $config->twig->render('warehouse/inventory/physical-count/item-list.twig', ['page' => $page, 'items' => $physicalitems]);
+							$page->body .= $config->twig->render('warehouse/inventory/physical-count/item-list.twig', ['page' => $page, 'items' => $physicalitems]);
 						}
 					} else {
 						if ($input->get->q) {
@@ -140,7 +140,7 @@
 				$jsconfig = array('warehouse' => array('id' => $whsesession->whseid, 'binarrangement' => $warehouse->get_binarrangementdescription(), 'bins' => $bins), 'items' => $warehouse_receiving->get_purchaseorder_recevingdetails_js(), 'config_receive' => $warehouse_receiving->get_jsconfig());
 				$page->body .= $config->twig->render('util/js-variables.twig', ['variables' => $jsconfig]);
 				$config->scripts->append(hash_templatefile('scripts/lib/jquery-validate.js'));
-				$config->scripts->append(hash_templatefile('scripts/warehouse/receiving.js'));
+				$page->js .= $config->twig->render('warehouse/inventory/receiving/js.twig', ['ponbr' => $ponbr, 'linenbr' => $session->removefromline]);
 
 				if ($session->removefromline) {
 					$page->js .= $config->twig->render('warehouse/inventory/receiving/remove-line.js.twig', ['ponbr' => $ponbr, 'linenbr' => $session->removefromline]);
@@ -149,7 +149,7 @@
 			}
 		} else {
 			$page->title = "PO # $ponbr Does Not Exist";
-			$page->body = $config->twig->render('util/alert.twig', ['type' => 'danger', 'title' => $page->title, 'iconclass' => 'fa fa-warning fa-2x', 'message' => "Check the Purchase Order Number and try again"]);
+			$page->body .= $config->twig->render('util/alert.twig', ['type' => 'danger', 'title' => $page->title, 'iconclass' => 'fa fa-warning fa-2x', 'message' => "Check the Purchase Order Number and try again"]);
 			$page->body .= $html->div('class=mb-3');
 			$page->formurl = $pages->get('template=redir, redir_file=inventory')->url;
 			$page->body .= $config->twig->render('warehouse/inventory/receiving/po-form.twig', ['page' => $page]);

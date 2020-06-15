@@ -22,9 +22,11 @@
 
 		if ($warehouse_receiving->purchaseorder_exists()) {
 			$purchaseorder = $warehouse_receiving->get_purchaseorder();
+			$page->body .= $config->twig->render('warehouse/inventory/receiving/po-header.twig', ['page' => $page, 'purchaseorder' => $purchaseorder]);
 
 			if ($input->get->scan) {
 				$scan = $input->get->text('scan');
+				$page->scan = $scan;
 				$page->formurl = $pages->get('template=redir, redir_file=inventory')->url;
 				$query_phys = WhseitemphysicalcountQuery::create();
 				$query_phys->filterBySessionid(session_id());
@@ -33,9 +35,7 @@
 				if ($query_phys->count() == 1) {
 					$physicalitem = $query_phys->findOne();
 					$page->body .= $html->div('class=mb-3');
-
 					if ($physicalitem->has_error()) {
-
 						if (!$physicalitem->is_on_po()) {
 							$physicalitem->setItemid('');
 							$physicalitem->setLotserial('');
@@ -57,17 +57,19 @@
 						$page->body .= $config->twig->render('util/js-variables.twig', ['variables' => array('warehouse' => $jsconfig)]);
 					}
 
-					if ($physicalitem->get_error() == 'invalid item id') {
-
+					if (trim($physicalitem->get_error()) == 'invalid item id') {
+						$page->searchitemsURL = $pages->get('pw_template=itm-search')->httpUrl;
+						$page->body .= $config->twig->render('warehouse/inventory/receiving/ugm/create-ilookup-item-form.twig', ['page' => $page, 'item' => $physicalitem, 'm_receiving' => $warehouse_receiving]);
+						$page->js   .= $config->twig->render('warehouse/inventory/receiving/ugm/ilookup.js.twig', ['page' => $page]);
 					} else {
-						$page->body .= $config->twig->render('warehouse/inventory/receiving/po-item-receive-form.twig', ['page' => $page, 'item' => $physicalitem, 'm_receiving' => $warehouse_receiving]);
+						$page->body .= $config->twig->render('warehouse/inventory/receiving/po-item-receive-form.twig', ['page' => $page, 'item' => $physicalitem, 'm_receiving' => $warehouse_receiving, 'config' => $config]);
 					}
 				}
 			} else {
 				$page->formurl = $pages->get('template=redir, redir_file=inventory')->url;
 				$page->body .= $html->div('class=mb-3');
 				$page->body .= $html->h3('', 'Scan item to add');
-				$page->body .= $config->twig->render('warehouse/inventory/receiving/po-item-form.twig', ['page' => $page, 'ponbr' => $ponbr]);
+				$page->body .= $config->twig->render('warehouse/inventory/receiving/po-item-form.twig', ['page' => $page, 'ponbr' => $ponbr, 'config' => $config]);
 			}
 
 			if (file_exists($config->paths->templates."twig/warehouse/inventory/receiving/$config->company/po-items.twig")) {
@@ -76,9 +78,11 @@
 				$page->body .= $config->twig->render('warehouse/inventory/receiving/po-items.twig', ['page' => $page, 'ponbr' => $ponbr, 'items' => $purchaseorder->get_receivingitems()]);
 			}
 
+			$page->body .= $config->twig->render('warehouse/inventory/receiving/item-edit-modal.twig', ['page' => $page, 'config' => $config]);
+
 			if (!$input->get->scan) {
-				$href = $page->submit_receiptURL($ponbr);
-				$page->body .= $html->a("href=$href|class=btn btn-success", $html->icon('fa fa-floppy-o') . " Post");
+				$page->body .= $config->twig->render('warehouse/inventory/receiving/po-actions.twig', ['page' => $page, 'ponbr' => $ponbr]);
+
 			}
 
 			$page->body .= $config->twig->render('warehouse/inventory/bins-modal.twig', ['warehouse' => $warehouse]);
@@ -86,8 +90,12 @@
 			$jsconfig = array('warehouse' => array('id' => $whsesession->whseid, 'binarrangement' => $warehouse->get_binarrangementdescription(), 'bins' => $bins), 'items' => $warehouse_receiving->get_purchaseorder_recevingdetails_js(), 'config_receive' => $warehouse_receiving->get_jsconfig());
 			$page->body .= $config->twig->render('util/js-variables.twig', ['variables' => $jsconfig]);
 			$config->scripts->append(hash_templatefile('scripts/lib/jquery-validate.js'));
-			$config->scripts->append(hash_templatefile('scripts/warehouse/receiving.js'));
+			$page->js .= $config->twig->render('warehouse/inventory/receiving/js.twig', ['page' => $page, 'config' => $config]);
 
+			if ($session->removefromline) {
+				$page->js .= $config->twig->render('warehouse/inventory/receiving/remove-line.js.twig', ['ponbr' => $ponbr, 'linenbr' => $session->removefromline]);
+				$session->remove('removefromline');
+			}
 		} else {
 			$page->title = "PO # $ponbr Does Not Exist";
 			$page->body = $config->twig->render('util/alert.twig', ['type' => 'danger', 'title' => $page->title, 'iconclass' => 'fa fa-warning fa-2x', 'message' => "Check the Purchase Order Number and try again"]);
