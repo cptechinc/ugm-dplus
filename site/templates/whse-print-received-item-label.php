@@ -17,6 +17,7 @@
 
 			if ($session->response_print) {
 				$page->body .= $config->twig->render('code-tables/code-table-response.twig', ['response' => $session->response_print]);
+				$session->remove('response_print');
 			}
 
 			$receiving->set_ponbr($ponbr);
@@ -28,7 +29,7 @@
 				$linenbr = $values->int('linenbr');
 				$po_line = $po->get_receivingitem($linenbr);
 				$lotreceived = $receiving->get_receiving_item($linenbr, $values->text('lotserial'), $values->text('binID'));
-
+				echo $db_dplusdata->getLastExecutedQuery();
 				if (!$values->lotserial || $values->text('lotserial') == 'all') {
 					$lotreceived->setLotserial('all');
 				}
@@ -55,14 +56,14 @@
 				$page->body .= $config->twig->render('warehouse/inventory/print-item-label/labels-modal.twig', ['formats' => $m_print->get_labelformats()]);
 				$page->body .= $config->twig->render('warehouse/inventory/print-item-label/printers-modal.twig', ['printers' => $m_print->get_printers()]);
 			} else {
-				// TODO CHOOSE LINE  / LOTS
+				$page->body .= $config->twig->render('warehouse/inventory/print-item-label/receiving/po-items.twig', ['page' => $page, 'ponbr' => $ponbr, 'items' => $po->get_receivingitems()]);
 			}
 		} else {
 			$page->headline = "PO #$ponbr could not be found";
 			$page->body = $config->twig->render('util/alert.twig', ['type' => 'danger', 'title' => "Error! PO Number $ponbr not found", 'iconclass' => 'fa fa-warning fa-2x', 'message' => "Check if the Order Number is correct"]);
 		}
 	} else {
-
+		$page->body = $config->twig->render('purchase-orders/purchase-order-lookup.twig', ['page' => $page]);
 	}
 
 	// Add JS

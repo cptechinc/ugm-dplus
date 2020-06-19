@@ -38,11 +38,13 @@ class PrintLabelItemReceiving extends PrintLabelItem implements Module {
 
 		if ($labelsession->isNew()) {
 			$labelsession->setSessionid(session_id());
-			$labelsession->setItemid($values->text('itemID'));
-			$labelsession->setLotserial($values->text('lotserial'));
-			$labelsession->setBin($values->text('binID'));
-			$labelsession->setWhse($values->text('whseID'));
 		}
+
+		$labelsession->setItemid($values->text('itemID'));
+		$labelsession->setLotserial($values->text('lotserial'));
+		$labelsession->setBin($values->text('binID'));
+		$labelsession->setWhse($values->text('whseID'));
+
 		$labelsession->setLabelBox($values->text('box-label'));
 		$labelsession->setPrinterBox($values->text('box-printer'));
 		$labelsession->setQtyBox($values->int('box-qty'));
@@ -122,6 +124,26 @@ class PrintLabelItemReceiving extends PrintLabelItem implements Module {
 			$url = new Url($this->wire('pages')->get('pw_template=whse-receiving')->url);
 			$ponbr    = $event->arguments(0);
 			$url->query->set('ponbr', $ponbr);
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page(pw_template=whse-print-received-item-label)::print_receiveditemURL', function($event) {
+			$p = $event->object;
+			$url = new Url($p->url);
+			$item     = $event->arguments(0); // Instance of PurchaseOrderDetailLotReceiving
+			$url->query->set('ponbr', $item->ponbr);
+			$url->query->set('linenbr', $item->linenbr);
+			$url->query->set('lotserial', $item->lotserial);
+			$url->query->set('binID', $item->bin);
+			$event->return = $url->getUrl();
+		});
+
+		$this->addHook('Page(pw_template=whse-print-received-item-label)::print_receivedlineURL', function($event) {
+			$p = $event->object;
+			$url = new Url($p->url);
+			$item     = $event->arguments(0); // Instance of PurchaseOrderDetailReceiving
+			$url->query->set('ponbr', $item->ponbr);
+			$url->query->set('linenbr', $item->linenbr);
 			$event->return = $url->getUrl();
 		});
 	}
