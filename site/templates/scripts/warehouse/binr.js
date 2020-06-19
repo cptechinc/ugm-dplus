@@ -127,8 +127,8 @@ $(function() {
 		var html = false;
 		var lowercase_frombin = input_frombin.val();
 		input_frombin.val(lowercase_frombin.toUpperCase());
-
-		if (input_frombin.val() == '') {
+		console.log(validfrombins);
+		if (input_frombin.val() == '' && validfrombins[input_frombin.val()] === undefined) {
 			error = true;
 			title = 'Error';
 			msg = 'Please Fill in the From Bin';
