@@ -180,6 +180,7 @@
 			$data = array("DBNAME=$dplusdb", 'PICKITEMREMOVE', "ORDERNBR=$whsesession->ordernbr", "LINENBR=$whseitempick->linenbr", "ITEMID=$whseitempick->itemid");
 			$data[] = "BIN=$whseitempick->bin|LOTSERIAL=$whseitempick->lotserial|QTY=$whseitempick->qty";
 			$session->loc = $input->$requestmethod->text('page');
+			$session->removefromline = $whseitempick->linenbr;
 			break;
 		case 'finish-item':
 			$whsesession = WhsesessionQuery::create()->findOneBySessionid($sessionID);
@@ -202,7 +203,7 @@
 				} else {
 					$barcodes = $pickitem->get_userpickedtotalsbybin();
 
-					foreach ($barcodes as $barcodse) {
+					foreach ($barcodes as $barcode) {
 						$binID     = str_pad($barcode['bin'], 8, ' ');
 						$lotserial = str_pad('', 20, ' ');
 						$qty       = $barcode['qty'];
