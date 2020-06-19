@@ -23,9 +23,13 @@
 		<div class="list-group-item first-txn-row">
 			<div class="form-row">
 				<div class="col">
-					<button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ (item.linenbr ~ '-lotserial')|attrJS }}" aria-expanded="false" aria-controls="{{ (item.linenbr ~ '-lotserial')|attrJS }}">
-						{{ item.linenbr }}
-					</button>
+					{% if item.qty_received > 0 %}
+						<button type="button" class="btn btn-sm btn-primary" data-toggle="collapse" data-target="#{{ (item.linenbr ~ '-lotserial')|attrJS }}" aria-expanded="false" aria-controls="{{ (item.linenbr ~ '-lotserial')|attrJS }}">
+							{{ item.linenbr }}
+						</button>
+					{% else %}
+						<span class="btn">{{ item.linenbr }}</span>
+					{% endif %}
 				</div>
 				<div class="col">
 					<b>{{ item.itemid }}</b> <br>
@@ -37,9 +41,11 @@
 				<div class="col text-right">{{ item.cost|number_format(4) }}</div>
 				<div class="col text-right">{{ item.cost_total|number_format(2) }}</div>
 				<div class="col text-center">
-					<a href="{{ page.print_receivedlineURL(item) }}" class="btn btn-info btn-sm">
-						<i class="fa fa-print" aria-hidden="true"></i> Print
-					</a>
+					{% if item.qty_received > 0 %}
+						<a href="{{ page.print_receivedlineURL(item) }}" class="btn btn-info btn-sm">
+							<i class="fa fa-print" aria-hidden="true"></i> Print
+						</a>
+					{% endif %}
 				</div>
 			</div>
 		</div>

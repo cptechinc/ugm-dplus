@@ -138,13 +138,14 @@ class Receiving extends WireData implements Module {
 	public function get_receiving_item($linenbr, $lotserial = '', $binID = null) {
 		$q = PurchaseOrderDetailLotReceivingQuery::create();
 		$q->filterByPonbr($this->ponbr);
+		$q->filterByLinenbr($linenbr);
 
 		if ($lotserial)  {
 			if ($lotserial != 'all') {
 				$q->filterByLotserial($lotserial);
 			}
 		}
-		
+
 		if ($binID) {
 			if ($lotserial != 'all') {
 				$q->filterByBin($binID);

@@ -82,7 +82,6 @@
 
 			if (!$input->get->scan) {
 				$page->body .= $config->twig->render('warehouse/inventory/receiving/po-actions.twig', ['page' => $page, 'ponbr' => $ponbr]);
-
 			}
 
 			$page->body .= $config->twig->render('warehouse/inventory/bins-modal.twig', ['warehouse' => $warehouse]);
