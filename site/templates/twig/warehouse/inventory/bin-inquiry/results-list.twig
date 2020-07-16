@@ -29,6 +29,9 @@
 											<strong>Lot Ref:</strong> {{ lotserial.lotreference }}
 										</div>
 										<div class="col">
+											<strong>Expire Date:</strong> {{ lotserial.expirationdate ? lotserial.expirationdate|convertdate : '' }}
+										</div>
+										<div class="col">
 											<strong>Qty:</strong> {{ lotserial.qty }}
 										</div>
 										<div class="col">

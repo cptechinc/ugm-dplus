@@ -32,10 +32,15 @@
 	<div class="form-group">
 		<label for="scan">Scan Barcode, UPC, Item ID, or  Lot / Serial #</label>
 		<div class="input-group">
+			<span class="input-group-prepend">
+				<button type="button" class="btn btn-secondary" data-toggle="modal" data-search="items" data-target="#ajax-modal" data-input="#scan" title="Search Item Master" aria-label="Search Item Master">
+					<span class="fa fa-list" aria-hidden="true"></span> <span class="sr-only">Search Item Master</span>
+				</button>
+			</span>
 			<input type="text" class="form-control" name="scan" id="scan" placeholder="Barcode, UPC, Item ID, Lot / Serial #" {{ page.force_bin_itemlookup == false ? 'autofocus' : ''}}>
 			<span class="input-group-append">
 				<button type="submit" class="btn btn-primary">
-					<i class="fa fa-search" aria-hidden="true"></i> Submit
+					<i class="fa fa-search" aria-hidden="true"></i> <span class="sr-only">Search</span>
 				</button>
 			</span>
 		</div>

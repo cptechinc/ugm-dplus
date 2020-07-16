@@ -9,8 +9,6 @@
 	use ItemMasterItemQuery, ItemMasterItem;
 
 	class Cart extends WireData implements Module {
-
-
 		public function init() {
 
 			/**
