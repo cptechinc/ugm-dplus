@@ -27,7 +27,6 @@
 		}
 	],
 	"require": {
-		"php": "7.0.0",
 		"ext-gd": "*",
 		"jwage/purl": "dev-cptechinc",
 		"twig/twig": "^2.0",
