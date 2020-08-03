@@ -28,7 +28,6 @@
 			$receiving->set_ponbr($ponbr);
 			$po = $receiving->get_purchaseorder();
 			$thermal_labels = ThermalLabelFormatQuery::create();
-			$whse_printers = WhsePrinterQuery::create();
 
 			if ($values->linenbr) {
 				$linenbr = $values->int('linenbr');
