@@ -344,7 +344,7 @@ class Picking extends WireData implements Module {
 		$item->setLotserialref($values->text('lotserialref'));
 		$item->setLotserial($values->text('lotserial'));
 
-		if ($orderitem->is_item_serialized()) {
+		if ($this->inventory->is_item_serialized($orderitem->itemnbr)) {
 			$item->setQty(1);
 		} else {
 			// QTY could be float
@@ -369,9 +369,7 @@ class Picking extends WireData implements Module {
 	 */
 	public function send_finishline_request($linenbr, $debug = false) {
 		$orderitem = $this->items->get_picksalesorderdetail_linenbr($linenbr);
-
 		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
-
 		$data = array("DBNAME=$dplusdb", 'ACCEPTITEM', "ORDERNBR=$this->ordn", "LINENBR=$linenbr", "ITEMID=$orderitem->itemnbr");
 		$data = $this->write_acceptitem_data($data, $orderitem);
 
@@ -382,6 +380,12 @@ class Picking extends WireData implements Module {
 		}
 	}
 
+	/**
+	 * Appends Picked Line Item data to array
+	 * @param  array                $data      Dplus Request array
+	 * @param  PickSalesOrderDetail $orderitem Sales Order Item
+	 * @return array
+	 */
 	public function write_acceptitem_data(array $data, PickSalesOrderDetail $orderitem) {
 		if ($this->inventory->is_item_lotserialized($orderitem->itemnbr)) {
 			$barcodes = $orderitem->get_userpickedtotalsbylotserial();
@@ -393,15 +397,30 @@ class Picking extends WireData implements Module {
 			$barcodes = $orderitem->get_userpickedtotalsbybin();
 
 			foreach ($barcodes as $barcode) {
+				$qty = $this->get_picked_sum($orderitem)
 				$binID     = str_pad($barcode['bin'], 8, ' ');
 				$lotserial = str_pad('', 20, ' ');
-				$qty       = $barcode['qty'];
 				$data[]    = "BIN=$binID|LOTSERIAL=$lotserial|QTY=$qty";
 			}
 		}
 		return $data;
 	}
 
+	/**
+	 * Get picked sum for Line, Subline
+	 * @param  PickSalesOrderDetail $orderitem Sales Order Item
+	 * @return float
+	 */
+	protected function get_picked_sum(PickSalesOrderDetail $orderitem) {
+		$q = WhseitempickQuery::create();
+		$q->withColumn('SUM(qty)', 'qty');
+		$q->select('qty');
+		$q->filterBySessionid($orderitem->sessionID);
+		$q->filterByOrdn($orderitem->ordernbr);
+		$q->filterByLinenbr($orderitem->linenbr);
+		$q->filterBySublinenbr($orderitem->sublinenbr);
+		return $q->findOne();
+	}
 
 	/**
 	 * Sends Dplus Request to Remove Picked Line Items
