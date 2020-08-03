@@ -3,9 +3,9 @@
 		<div class="row">
 			<div class="col-sm-1">Line</div>
 			<div class="col-sm-4">Item ID / Description</div>
-			<div class="col-sm-1">Ordered</div>
-			<div class="col-sm-1">Pulled</div>
-			<div class="col-sm-1">Remaining</div>
+			<div class="col-sm-1 text-right">Ordered</div>
+			<div class="col-sm-1 text-right">Pulled</div>
+			<div class="col-sm-1 text-right">Remaining</div>
 			<div class="col-sm-3"></div>
 		</div>
 	</div>
@@ -27,15 +27,16 @@
 						<br>
 						<small>{{ item.description }}</small>
 					{% endif %}
-
+					{% set imitem = m_picking.inventory.get_master_item(item.itemid) %}
+					<br> <small class="text-muted">UoM: {{ imitem.uom_sale }}</small>
 					{% if item.count_pickeditems() > item.qtyordered %}
 						<br>
 						<small> You are Picking more qty than what was ordered </small>
 					{% endif %}
 				</div>
-				<div class="col-sm-1">{{ item.qtyordered }}</div>
-				<div class="col-sm-1">{{ item.qtypulled }}</div>
-				<div class="col-sm-1">{{ item.qtyremaining }}</div>
+				<div class="col-sm-1 text-right">{{ item.qtyordered }}</div>
+				<div class="col-sm-1 text-right">{{ item.qtypulled }}</div>
+				<div class="col-sm-1 text-right">{{ item.qtyremaining }}</div>
 				<div class="col-sm-3 text-right">
 					{% if pickingsession.is_subline_being_picked(item) %}
 						{% if pickingsession.is_currentuser_picking(item) %}
@@ -55,7 +56,8 @@
 					<div class="col-sm-1">Bin</div>
 					<div class="col-sm-2">Lotserial</div>
 					<div class="col-sm-2">Lot Reference</div>
-					<div class="col-sm-2">Qty</div>
+					<div class="col-sm-1 text-right">Qty</div>
+					<div class="col-sm-1 text-right">Qty</div>
 					<div class="col-sm-2">Actions</div>
 				</div>
 			</div>
@@ -67,7 +69,8 @@
 						<div class="col-sm-1">{{ lotserial.bin }}</div>
 						<div class="col-sm-2">{{ lotserial.lotserial }}</div>
 						<div class="col-sm-2">{{ lotserial.lotserialref }}</div>
-						<div class="col-sm-2">{{ lotserial.qty }}</div>
+						<div class="col-sm-1 text-right">{{ lotserial.qty }}</div>
+						<div class="col-sm-1 text-right">{{ lotserial.qty }}</div>
 						<div class="col-sm-2">
 							<form action="{{ page.fullURL.getUrl() }}" method="post">
 								<input type="hidden" name="action" value="remove-lotserial">
