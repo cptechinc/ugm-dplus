@@ -137,7 +137,7 @@ $(function() {
 			showCancelButton: true,
 			confirmButtonText: 'Yes!'
 		}).then(function (result) {
-			if (result) {
+			if (result.value) {
 				window.location.href = button.attr('href');
 			}
 		});
