@@ -394,10 +394,10 @@ class Picking extends WireData implements Module {
 				$data[] = "BIN=$barcode->bin|LOTSERIAL=$barcode->lotserial|QTY=$barcode->qty";
 			}
 		} else {
-			$barcodes = $orderitem->get_userpickedtotalsbybin();
+			$barcodes = $this->get_picked_sum_by_bin($orderitem);
 
 			foreach ($barcodes as $barcode) {
-				$qty = $this->get_picked_sum($orderitem)
+				$qty = $barcode['qty'];
 				$binID     = str_pad($barcode['bin'], 8, ' ');
 				$lotserial = str_pad('', 20, ' ');
 				$data[]    = "BIN=$binID|LOTSERIAL=$lotserial|QTY=$qty";
@@ -420,6 +420,18 @@ class Picking extends WireData implements Module {
 		$q->filterByLinenbr($orderitem->linenbr);
 		$q->filterBySublinenbr($orderitem->sublinenbr);
 		return $q->findOne();
+	}
+
+	protected function get_picked_sum_by_bin(PickSalesOrderDetail $orderitem) {
+		$q = WhseitempickQuery::create();
+		$q->withColumn('SUM(qty)', 'qty');
+		$q->select(array('qty', 'bin'));
+		$q->filterBySessionid($orderitem->sessionID);
+		$q->filterByOrdn($orderitem->ordernbr);
+		$q->filterByLinenbr($orderitem->linenbr);
+		$q->filterBySublinenbr($orderitem->sublinenbr);
+		$q->groupBy('bin');
+		return $q->find();
 	}
 
 	/**
