@@ -72,8 +72,10 @@ $(function() {
 	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
 		e.preventDefault();
 		var href = $(this).attr('href');
-		modal_ajax.find('.modal-body').load(href);
+		console.log(href);
+		modal_ajax.find('.modal-body').loadin(href, function() {});
 	});
+
 /* =============================================================
 	Edit Item Modal Methods
 ============================================================= */
