@@ -12,4 +12,10 @@ $(function () {
 		input_itemID.closest('.item-col').find('.description').text(description);
 		modal_ajax.modal('hide');
 	});
+
+	$("body").on('click', '.page-link', function(e) {
+		e.preventDefault();
+		var href = $(this).attr('href');
+		modal_ajax.find('.modal-body').load(href);
+	});
 });
