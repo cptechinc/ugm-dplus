@@ -9,6 +9,7 @@ use WhsesessionQuery, Whsesession;
 
 use WarehouseQuery, Warehouse;
 use ItemXrefUpcQuery, ItemXrefUpc;
+use ConfigSalesOrderQuery, ConfigSalesOrder;
 
 /**
  * Picking
@@ -42,6 +43,10 @@ class Picking extends WireData implements Module {
 	 * @var WireData
 	 */
 	protected $config;
+
+	public function decimal_places() {
+		return ConfigSalesOrderQuery::create()->findOne()->decimal_places;
+	}
 
 /* =============================================================
 	ProcessWire Module Functions

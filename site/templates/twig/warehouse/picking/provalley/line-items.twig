@@ -40,9 +40,9 @@
 						<small> You are Picking more boxes than what was ordered </small>
 					{% endif %}
 				</div>
-				<div class="col-sm-1">{{ item.qtyordered }}</div>
-				<div class="col-sm-1">{{ item.qtypulled }}</div>
-				<div class="col-sm-1">{{ item.qtyremaining }}</div>
+				<div class="col-sm-1">{{ item.qtyordered|number_format(m_picking.decimal_places()) }}</div>
+				<div class="col-sm-1">{{ item.qtypulled|number_format(m_picking.decimal_places()) }}</div>
+				<div class="col-sm-1">{{ item.qtyremaining|number_format(m_picking.decimal_places()) }}</div>
 				<div class="col-sm-3 text-right">
 					{% if pickingsession.is_subline_being_picked(item) %}
 						{% if pickingsession.is_currentuser_picking(item) %}
@@ -74,7 +74,7 @@
 						<div class="col-sm-1">{{ lotserial.bin }}</div>
 						<div class="col-sm-2">{{ lotserial.lotserial }}</div>
 						<div class="col-sm-2">{{ lotserial.lotserialref }}</div>
-						<div class="col-sm-2">{{ lotserial.qty|number_format(2, '.', ',') }}</div>
+						<div class="col-sm-2">{{ lotserial.qty|number_format(m_picking.decimal_places()) }}</div>
 						<div class="col-sm-2">
 							<form action="{{ page.fullURL.getUrl() }}" method="post">
 								<input type="hidden" name="action" value="remove-lotserial">

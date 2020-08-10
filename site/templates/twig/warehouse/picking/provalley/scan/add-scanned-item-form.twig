@@ -32,7 +32,7 @@
 		<div class="col-sm-6">
 			<div class="form-group">
 				<label for="qty">Weight</label>
-				<input type="text" class="form-control-plaintext" name="qty" id="qty" value="{{ item.qty }}" readonly>
+				<input type="text" class="form-control-plaintext" name="qty" id="qty" value="{{ item.qty|number_format(m_picking.decimal_places()) }}" readonly>
 			</div>
 		</div>
 	</div>

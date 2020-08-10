@@ -20,7 +20,6 @@
 	if ($whsesession->is_orderfinished()) {
 		$page->body .= $config->twig->render('warehouse/picking/finished-order.twig', ['page' => $page, 'ordn' => $ordn]);
 	} elseif ($lines_query->count() > 0) {
-
 		if ($input->requestMethod('POST')) {
 			$pickingsession->handle_action($input);
 			$session->redirect($page->fullURL->getUrl());
@@ -48,7 +47,7 @@
 				$query_pickeditems->find();
 
 				if ($query_pickeditems->count()) {
-					$page->body .= $config->twig->render('warehouse/picking/unguided/scan/verify-whseitempick-lotserials.twig', ['page' => $page, 'scan' => $scan, 'items' => $query_pickeditems->find()]);
+					$page->body .= $config->twig->render('warehouse/picking/unguided/scan/verify-whseitempick-lotserials.twig', ['page' => $page, 'scan' => $scan, 'm_picking' => $pickingsession, 'items' => $query_pickeditems->find()]);
 				} else {
 					$session->remove('verify_whseitempick_items');
 					$page->body .= $html->div('class=mb-3');
@@ -92,14 +91,13 @@
 		}
 
 		if ($pickingsession->items->has_sublines()) {
-			$page->body .= $config->twig->render('warehouse/picking/unguided/order-items-sublined.twig', ['page' => $page, 'lineitems' => $lines_query->find()]);
+			$page->body .= $config->twig->render('warehouse/picking/unguided/order-items-sublined.twig', ['page' => $page, 'lineitems' => $lines_query->find() , 'm_picking' => $pickingsession]);
 		} else {
 			if ($config->twigloader->exists("warehouse/picking/unguided/$config->company/order-items.twig")) {
 				$page->body .= $config->twig->render("warehouse/picking/unguided/$config->company/order-items.twig", ['page' => $page, 'lineitems' => $lines_query->find(), 'm_picking' => $pickingsession]);
 			} else {
 				$page->body .= $config->twig->render('warehouse/picking/unguided/order-items.twig', ['page' => $page, 'lineitems' => $lines_query->find(), 'm_picking' => $pickingsession]);
 			}
-
 		}
 
 		$page->body .= $html->div('class=mb-3');
