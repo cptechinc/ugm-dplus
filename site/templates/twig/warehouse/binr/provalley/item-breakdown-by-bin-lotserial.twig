@@ -13,7 +13,7 @@
 						<strong>Lot #:</strong> {{ lotserial.get_itemidentifier() }}
 					</div>
 					<div class="col">
-						<strong>Weight:</strong> {{ lotserial.qty }}
+						<strong>Weight:</strong> {{ lotserial.qty|number_format(config.decimal_places()) }}
 					</div>
 					<div class="col">
 						<strong>Prod Date:</strong> {{ lotserial.expirationdate|convertdate }}

@@ -32,7 +32,7 @@
 									<p class="list-group-item-text">{{ (item.is_lotted() or item.is_serialized()) ? bin.lotserial : '' }}</p>
 								</div>
 								<div class="col-4">
-									<p class="list-group-item-text text-right">{{ bin.qty }}</p>
+									<p class="list-group-item-text text-right">{{ bin.qty|number_format(config.decimal_places())  }}</p>
 								</div>
 							</div>
 						</a>

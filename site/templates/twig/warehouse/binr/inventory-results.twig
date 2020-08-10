@@ -35,7 +35,7 @@
 												</div>
 											</div>
 											<p class="list-group-item-text bg-light">
-												<strong>Bin:</strong> {{ lotserial.bin }} <strong>Qty:</strong> {{ lotserial.qty }}
+												<strong>Bin:</strong> {{ lotserial.bin }} <strong>Qty:</strong> {{ lotserial.qty|number_format(config.decimal_places()) }}
 											</p>
 										</a>
 									{% endfor %}
@@ -43,7 +43,7 @@
 							</div>
 						{% else %}
 							<p class="list-group-item-text bg-light">
-								<strong>Bin:</strong> {{ item.bin }} <strong>Qty:</strong> {{ item.qty }}
+								<strong>Bin:</strong> {{ item.bin }} <strong>Qty:</strong> {{ item.qty|number_format(config.decimal_places()) }}
 							</p>
 							{% if (not warehouse.validate_bin(item.bin)) %}
 								<span class="badge badge-danger pull-right">Invalid Bin</span>
