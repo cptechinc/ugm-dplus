@@ -26,7 +26,7 @@
 							{% include 'warehouse/inventory/find-item/item-breakdown-by-' ~ config.show_inventoryresults ~ '.twig' %}
 						{% else %}
 							<p class="list-group-item-text bg-light">
-								<strong>Bin:</strong> {{ item.bin }} <strong>Qty:</strong> {{ item.qty }}
+								<strong>Bin:</strong> {{ item.bin }} <strong>Qty:</strong> {{ item.qty|number_format(config.decimal_places()) }}
 							</p>
 							{% if (not warehouse.validate_bin(item.bin)) %}
 								<span class="badge badge-danger pull-right">Invalid Bin</span>

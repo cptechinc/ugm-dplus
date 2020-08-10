@@ -2,7 +2,7 @@
 	$page->print = ($page->template == 'print');
 	$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
 	$warehouse = WarehouseQuery::create()->findOneByWhseid($whsesession->whseid);
-	$config->inventory = $modules->get('WarehouseInventoryConfig');
+	$config->inventory = $modules->get('ConfigsWarehouseInventory');
 
 	if ($input->get->binID) {
 		$binID = $input->get->text('binID');
