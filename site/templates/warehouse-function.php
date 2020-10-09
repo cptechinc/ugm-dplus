@@ -14,5 +14,5 @@
 	} else {
 		$url = $page->get_loginURL();
 		$modules->get('DplusRequest')->self_request($url);
-		$session->redirect($page->url);
+		$session->redirect($page->url, $http301 = false);
 	}
