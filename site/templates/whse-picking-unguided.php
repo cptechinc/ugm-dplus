@@ -22,7 +22,7 @@
 	} elseif ($lines_query->count() > 0) {
 		if ($input->requestMethod('POST')) {
 			$pickingsession->handle_action($input);
-			$session->redirect($page->fullURL->getUrl());
+			$session->redirect($page->fullURL->getUrl(), $http301 = false);
 		}
 
 		if ($session->pickingerror) {
@@ -30,9 +30,10 @@
 			$session->remove('pickingerror');
 		}
 
-		if ($whsesession->has_message()) {
+		if ($whsesession->has_warning()) {
+			$page->body .= $html->div('class=mb-3', $config->twig->render('util/alert.twig', ['type' => 'warning', 'title' => 'Warning!', 'iconclass' => 'fa fa-warning fa-2x', 'message' => $whsesession->status]));
+		} elseif ($whsesession->has_message()) {
 			$page->body .= $html->div('class=mb-3', $config->twig->render('util/alert.twig', ['type' => 'danger', 'title' => 'Error!', 'iconclass' => 'fa fa-warning fa-2x', 'message' => $whsesession->status]));
-			$session->remove('pickingerror');
 		}
 
 		$page->body .= $config->twig->render('warehouse/picking/order-info.twig', ['page' => $page, 'order' => $order, 'whsesession' => $whsesession]);
@@ -85,9 +86,8 @@
 			}
 			$page->body .= $html->div('class=mb-3');
 		} else {
-			$page->formurl  = $pages->get('template=redir,redir_file=inventory')->url;
 			$page->body .= $html->h3('', 'Scan item to pick');
-			$page->body .= $config->twig->render('warehouse/picking/unguided/scan-form.twig', ['page' => $page]);
+			$page->body .= $config->twig->render('warehouse/picking/unguided/scan/scan-form.twig', ['page' => $page]);
 		}
 
 		if ($pickingsession->items->has_sublines()) {
