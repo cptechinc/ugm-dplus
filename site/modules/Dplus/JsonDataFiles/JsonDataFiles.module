@@ -183,7 +183,10 @@
 			$basefile = $this->get_filename($jsoncode);
 			$filepath = $this->wire('config')->jsonfilepath;
 			$jsonfile = $filepath."$sessionID-$basefile.json";
-			return filemtime($jsonfile);
+			if (file_exists($jsonfile)) {
+				return filemtime($jsonfile);
+			}
+			return 0;
 		}
 
 		/**
