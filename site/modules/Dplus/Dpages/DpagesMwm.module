@@ -128,15 +128,6 @@ class DpagesMwm extends Dpages implements Module {
 			'dplus_function' => 'pbnrt',
 			'pw_template'    => 'whse-binr-to'
 		),
-		'whse-binr-from' => array(
-			'template'       => 'warehouse-function',
-			'name'           => 'move-from',
-			'title'          => 'Move From',
-			'summary'        => 'Move Single items from the same bin',
-			'parent'         => '/warehouse/binr/',
-			'dplus_function' => 'pbnrf',
-			'pw_template'    => 'whse-binr-from'
-		),
 		'whse-binr-contents' => array(
 			'template'       => 'warehouse-function',
 			'name'           => 'binr-contents',
