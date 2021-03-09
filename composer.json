@@ -29,8 +29,8 @@
 	"require": {
 		"ext-gd": "*",
 		"jwage/purl": "dev-cptechinc",
-		"twig/twig": "^2.0",
-		"propel/propel": "~2.0@dev",
+		"twig/twig": "2.x-dev#f4aacffcbb556d443a15c4e49d62070903c05270",
+		"propel/propel": "dev-master#3087361bd27f3598f3ecd70e9fd272a5c2575b88",
 		"cptechinc/dplus-model": "dev-master",
 		"cptechinc/dpluso-model": "dev-master",
 		"mikehaertl/phpwkhtmltopdf": "dev-master",
