@@ -35,7 +35,7 @@
 					{% endif %}
 				</div>
 				<div class="col-sm-1 text-right">{{ item.qtyordered|number_format(m_picking.decimal_places()) }}</div>
-				<div class="col-sm-1 text-right">{{ item.qtypulled|number_format(m_picking.decimal_places()) }}</div>
+				<div class="col-sm-1 text-right">{{ item.count_pickeditems()|number_format(m_picking.decimal_places()) }}</div>
 				<div class="col-sm-1 text-right">{{ item.qtyremaining|number_format(m_picking.decimal_places()) }}</div>
 				<div class="col-sm-3 text-right">
 					{% if pickingsession.is_subline_being_picked(item) %}

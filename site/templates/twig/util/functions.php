@@ -40,7 +40,9 @@
 	$config->twig->addFilter($filter);
 
 	$filter = new Twig_Filter('attrJS', function ($string, $jsprepend = true) {
-		$string = str_replace(' ', '-', $string);
+		$replace = [' ', '&'];
+		$replacewith = ['-', 'amp'];
+		$string = str_replace($replace, $replacewith, $string);
 		return $jsprepend ? "js-$string" : $string;
 	});
 	$config->twig->addFilter($filter);
