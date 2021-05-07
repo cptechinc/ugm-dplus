@@ -176,6 +176,16 @@ class DplusConnectDatabase extends Process implements ConfigurableModule {
 		return Propel::getWriteConnection($this::CONNECTION_NAME_PROPEL);
 	}
 
+	/**
+	 * Return Connection Interface for this Connection Name
+	 * @return ConnectionInterface
+	 */
+	public function getDebugConnection() {
+		$con = $this->get_propel_write_connection();
+		$con->useDebug(true);
+		return $con;
+	}
+
 	/* =============================================================
 		ProcessWire Module Functions
 	============================================================= */

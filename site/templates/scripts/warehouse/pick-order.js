@@ -126,6 +126,25 @@ $(function() {
 		}
 	});
 
+
+
+	$("body").on("click", ".finish-picking", function(e) {
+		e.preventDefault();
+		var button = $(this);
+
+		swal2.fire({
+			title: 'Finish Picking',
+			text: "Are you done Picking this Order?",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes!'
+		}).then(function (result) {
+			if (result.value) {
+				window.location.href = button.attr('href');
+			}
+		});
+	});
+
 	$("body").on("click", ".exit-order", function(e) {
 		e.preventDefault();
 		var button = $(this);
@@ -151,6 +170,27 @@ $(function() {
 		form.find('input[name=ordn]').focus();
 	});
 
+
+	$("body").on("click", "a:not([href^=#],.picking-link)", function(e) {
+		e.preventDefault();
+		var a = $(this);
+
+		swal2.fire({
+			title: 'Exiting',
+			text: "Are you sure you want to exit Picking?",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		}).then(function (result) {
+			if (result.value) {
+				var exiturl = $('.exit-order').attr('href');
+				$.get(exiturl, function() {
+					window.location.href = a.attr('href');
+				});
+			}
+		});
+	});
 });
 
 function swal_changebin() {

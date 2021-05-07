@@ -127,7 +127,7 @@ $(function() {
 		var html = false;
 		var lowercase_frombin = input_frombin.val();
 		input_frombin.val(lowercase_frombin.toUpperCase());
-		console.log(validfrombins);
+
 		if (input_frombin.val() == '' && validfrombins[input_frombin.val()] === undefined) {
 			error = true;
 			title = 'Error';
@@ -166,7 +166,7 @@ $(function() {
 			error = true;
 			title = 'Error';
 			msg = 'Please Fill in the To Bin';
-		} else if (warehouse.binarrangement == 'list' && warehouse.bins[input_tobin.val()] === undefined) {
+		} else if (warehouse.binarrangement == 'list' && warehouse.bins.contains(input_tobin.val()) === false) {
 			error = true;
 			title = 'Invalid Bin ID';
 			msg = 'Please use a valid To bin';

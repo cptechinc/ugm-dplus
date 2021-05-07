@@ -41,6 +41,9 @@
 				$lastsold = false;
 			}
 
+			echo $module_edit->canDeleteLines();
+			echo $db_dplusdata->getLastExecutedQuery();
+
 			if ($config->twigloader->exists("sales-orders/sales-order/edit/$config->company/order-items.twig")) {
 				$page->body .= $config->twig->render("sales-orders/sales-order/edit/$config->company/order-items.twig", ['page' => $page, 'order' => $order, 'module_edit' => $module_edit, 'user' => $user]);
 			} else {

@@ -345,12 +345,12 @@ class Picking extends WireData implements Module {
 	protected function get_picked_sum_by_bin(PickSalesOrderDetail $orderitem) {
 		$q = WhseitempickQuery::create();
 		$q->withColumn('SUM(qty)', 'qty');
-		$q->select(array('qty', 'bin'));
+		$q->select(['qty', 'bin', 'lotserial']);
 		$q->filterBySessionid($orderitem->sessionID);
 		$q->filterByOrdn($orderitem->ordernbr);
 		$q->filterByLinenbr($orderitem->linenbr);
 		$q->filterBySublinenbr($orderitem->sublinenbr);
-		$q->groupBy('bin');
+		$q->groupBy(['bin', 'lotserial']);
 		return $q->find();
 	}
 
@@ -453,11 +453,15 @@ class Picking extends WireData implements Module {
 		} else {
 			$barcodes = $this->get_picked_sum_by_bin($orderitem);
 
+				foreach ($barcodes as $barcode) {
+					$qty = $barcode['qty'];
+					$binID     = str_pad($barcode['bin'], 8, ' ');
+					$lotserial = str_pad('', 20, ' ');
+					$data[]    = "BIN=$binID|LOTSERIAL=$lotserial|QTY=$qty";
+				}
+			$barcodes = $orderitem->get_userpickedtotalsbylotserial();
 			foreach ($barcodes as $barcode) {
-				$qty = $barcode['qty'];
-				$binID     = str_pad($barcode['bin'], 8, ' ');
-				$lotserial = str_pad('', 20, ' ');
-				$data[]    = "BIN=$binID|LOTSERIAL=$lotserial|QTY=$qty";
+				$data[] = "BIN=$barcode->bin|LOTSERIAL=$barcode->lotserial|QTY=$barcode->qty";
 			}
 		}
 		return $data;
