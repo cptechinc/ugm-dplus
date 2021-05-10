@@ -345,12 +345,12 @@ class Picking extends WireData implements Module {
 	protected function get_picked_sum_by_bin(PickSalesOrderDetail $orderitem) {
 		$q = WhseitempickQuery::create();
 		$q->withColumn('SUM(qty)', 'qty');
-		$q->select(['qty', 'bin', 'lotserial']);
+		$q->select(array('qty', 'bin'));
 		$q->filterBySessionid($orderitem->sessionID);
 		$q->filterByOrdn($orderitem->ordernbr);
 		$q->filterByLinenbr($orderitem->linenbr);
 		$q->filterBySublinenbr($orderitem->sublinenbr);
-		$q->groupBy(['bin', 'lotserial']);
+		$q->groupBy('bin');
 		return $q->find();
 	}
 
