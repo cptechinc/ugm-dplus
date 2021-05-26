@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/cptechinc/dplus-model.git",
-                "reference": "f191aca99c34b4a13d473d769d0a3262d05eb0c4"
+                "reference": "668c874561b22d657c203cf03f7eefdedd58e48e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cptechinc/dplus-model/zipball/f191aca99c34b4a13d473d769d0a3262d05eb0c4",
-                "reference": "f191aca99c34b4a13d473d769d0a3262d05eb0c4",
+                "url": "https://api.github.com/repos/cptechinc/dplus-model/zipball/668c874561b22d657c203cf03f7eefdedd58e48e",
+                "reference": "668c874561b22d657c203cf03f7eefdedd58e48e",
                 "shasum": ""
             },
             "require": {
@@ -43,7 +43,7 @@
                 "issues": "https://github.com/cptechinc/dplus-model/issues",
                 "source": "https://github.com/cptechinc/dplus-model/tree/master"
             },
-            "time": "2021-02-09T20:39:12+00:00"
+            "time": "2021-05-26T13:13:44+00:00"
         },
         {
             "name": "cptechinc/dpluso-model",
@@ -51,12 +51,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/cptechinc/dpluso-model.git",
-                "reference": "815a8eb47a9d9f9b33dd285a4904a8f7b611dbce"
+                "reference": "b13a3bf963a59447cde88aa8472aaf8f951fe72d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cptechinc/dpluso-model/zipball/815a8eb47a9d9f9b33dd285a4904a8f7b611dbce",
-                "reference": "815a8eb47a9d9f9b33dd285a4904a8f7b611dbce",
+                "url": "https://api.github.com/repos/cptechinc/dpluso-model/zipball/b13a3bf963a59447cde88aa8472aaf8f951fe72d",
+                "reference": "b13a3bf963a59447cde88aa8472aaf8f951fe72d",
                 "shasum": ""
             },
             "default-branch": true,
@@ -83,7 +83,7 @@
                 "issues": "https://github.com/cptechinc/dpluso-model/issues",
                 "source": "https://github.com/cptechinc/dpluso-model/tree/master"
             },
-            "time": "2020-10-20T18:33:27+00:00"
+            "time": "2021-05-26T13:11:20+00:00"
         },
         {
             "name": "jwage/purl",
