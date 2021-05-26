@@ -111,7 +111,7 @@
 				$page->body = $config->twig->render('warehouse/binr/binr-result.twig', ['session' => $session, 'page' => $page, 'whsesession' => $whsesession, 'item' => $item, 'nexturl' => $nexturl]);
 				$session->remove('binr');
 			} else { // Prepare Binr Form
-				$inventory = InvsearchQuery::create();
+				$inventory   = InvsearchQuery::create();
 				$currentbins = BininfoQuery::create()->filterByItem(session_id(), $item)->select_bin_qty()->find();
 
 				// 1. Binr form
@@ -133,7 +133,7 @@
 		} else { // Show Inventory Search Results
 			$items = InvsearchQuery::create()->findBySessionid(session_id());
 			$inventory = InvsearchQuery::create();
-			$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory]);
+			$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
 		}
 	} else { // Show Item Form
 		$page->formurl = $page->parent('template=warehouse-menu')->child('template=redir')->url;
