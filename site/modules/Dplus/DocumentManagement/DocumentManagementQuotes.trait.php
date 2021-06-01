@@ -2,8 +2,8 @@
 
 use Purl\Url;
 
-use DocumentFoldersQuery, DocumentFolders;
-use DocumentsQuery, Documents;
+use DocumentFolderQuery, DocumentFolder;
+use DocumentQuery, Document;
 
 trait DocumentManagementQuotes {
 	public function mqo_init() {
@@ -46,7 +46,7 @@ trait DocumentManagementQuotes {
 	 * @return Documents[]|ObjectCollection
 	 */
 	public function get_quotedocuments($qnbr) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_QUOTE);
 		$documents_master->filterByReference1($qnbr);
 		return $documents_master->find();
@@ -59,7 +59,7 @@ trait DocumentManagementQuotes {
 	 * @return int          Number of Sales Order Documents found
 	 */
 	public function count_quotedocuments($qnbr) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_QUOTE);
 		$documents_master->filterByReference1($qnbr);
 		return $documents_master->count();

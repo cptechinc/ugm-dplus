@@ -3,8 +3,8 @@
 use Propel\Runtime\ActiveQuery\Criteria;
 use Purl\Url;
 
-use DocumentFoldersQuery, DocumentFolders;
-use DocumentsQuery, Documents;
+use DocumentFolderQuery, DocumentFolder;
+use DocumentQuery, Document;
 use SalesHistoryQuery, SalesHistory;
 use SalesOrderQuery, SalesOrder;
 use PurchaseOrderQuery, PurchaseOrder;
@@ -147,7 +147,7 @@ trait DocumentManagementIi {
 	 * @return Documents[]|ObjectCollection
 	 */
 	public function get_itemdocuments($itemID) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_ITEM);
 		$documents_master->filterByReference1($itemID);
 		return $documents_master->find();
@@ -160,7 +160,7 @@ trait DocumentManagementIi {
 	 * @return int
 	 */
 	public function count_itemdocuments($itemID) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_ITEM);
 		$documents_master->filterByReference1($itemID);
 		return $documents_master->count();
@@ -174,7 +174,7 @@ trait DocumentManagementIi {
 	 * @return Documents[]|ObjectCollection
 	 */
 	public function get_itemactivitydocuments($type, $reference) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$this->filter_itemactivitydocuments($documents_master, $type, $reference);
 		return $documents_master->find();
 	}
@@ -187,19 +187,19 @@ trait DocumentManagementIi {
 	 * @return string
 	 */
 	public function count_itemactivitydocuments($type, $reference) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$this->filter_itemactivitydocuments($documents_master, $type, $reference);
 		return $documents_master->count();
 	}
 
 	/**
 	 * Add Filter Conditions for Item Activity
-	 * @param  DocumentsQuery $documents_master Query to apply filters to
+	 * @param  DocumentQuery $documents_master Query to apply filters to
 	 * @param  string         $type             Activity Type (e.g. receipt)
 	 * @param  string         $reference        Activity Reference (e.g. Po No. 1072)
 	 * @return void
 	 */
-	protected function filter_itemactivitydocuments(DocumentsQuery $documents_master, $type, $reference) {
+	protected function filter_itemactivitydocuments(DocumentQuery $documents_master, $type, $reference) {
 		$type = strtolower($type);
 
 		if (in_array($type, $this->ACTIVITY_TYPES_SO)) {
@@ -236,18 +236,18 @@ trait DocumentManagementIi {
 	 * Returns Documents Query
 	 * filtered for Item Images
 	 * @param  string $itemID Item ID
-	 * @return DocumentsQuery
+	 * @return DocumentQuery
 	 */
 	public function get_filter_query_itemimage($itemID) {
 		$wildcards = array();
 		$like = array();
 
 		foreach (self::EXTENSIONS_IMAGES as $ext) {
-			$like[] = 'Documents.Docifilename LIKE ?';
+			$like[] = 'Document.Docifilename LIKE ?';
 			$wildcards[] = "%.$ext";
 
 		}
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_ITEM);
 		$documents_master->filterByReference1($itemID);
 		$documents_master->where(implode(' OR ', $like), $wildcards);
