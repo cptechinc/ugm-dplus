@@ -40,8 +40,8 @@
 	$config->twig->addFilter($filter);
 
 	$filter = new Twig_Filter('attrJS', function ($string, $jsprepend = true) {
-		$replace = [' ', '&', '+'];
-		$replacewith = ['-', 'amp', 'plus'];
+		$replace = [' ', '&', '+', "'"];
+		$replacewith = ['-', 'amp', 'plus', 'apos'];
 		$string = str_replace($replace, $replacewith, $string);
 		return $jsprepend ? "js-$string" : $string;
 	});
