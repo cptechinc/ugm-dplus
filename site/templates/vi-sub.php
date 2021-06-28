@@ -13,7 +13,7 @@
 			$itemID = $input->get->text('itemID');
 
 			if ($module_json->file_exists(session_id(), $page->jsoncode)) {
-				if ($json['itemid'] != $itemID) {
+				if (stripslashes($json['itemid']) != $itemID) {
 					$module_json->remove_file(session_id(), $page->jsoncode);
 					$session->redirect($page->get_visubURL($vendorID, $itemID));
 				}
