@@ -65,4 +65,8 @@
 		$page->body .= $config->twig->render('util/paginator.twig', ['page' => $page, 'resultscount'=> $items->getNbResults()]);
 	}
 
-	include __DIR__ . "/basic-page.php";
+	if ($page->print) {
+		include __DIR__ . "/blank-page.php";
+	} else {
+		include __DIR__ . "/basic-page.php";
+	}
