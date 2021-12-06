@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInitfdd038617226e94faa44d44a195565f1
 {
     public static $classMap = array (
+        'Dplus\\DocManagement\\Config' => __DIR__ . '/../..' . '/src/Config.php',
+        'Dplus\\DocManagement\\Config\\Config' => __DIR__ . '/../..' . '/src/config/Config.php',
+        'Dplus\\DocManagement\\Config\\Folder' => __DIR__ . '/../..' . '/src/config/Folder.php',
+        'Dplus\\DocManagement\\Config\\Viewer' => __DIR__ . '/../..' . '/src/config/Viewer.php',
         'Dplus\\DocManagement\\Copier' => __DIR__ . '/../..' . '/src/Copier.php',
         'Dplus\\DocManagement\\Finders\\ApInvoice' => __DIR__ . '/../..' . '/src/finder/sub/Mpo/ApInvoice.php',
         'Dplus\\DocManagement\\Finders\\Ar' => __DIR__ . '/../..' . '/src/finder/sub/Ar.php',
