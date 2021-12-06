@@ -15,13 +15,13 @@ abstract class Config extends PwConfig {
 	public static function getInstance($json = []) {
 		if (empty(static::$instance)) {
 			$instance = new static();
-			$instance->init($json);
+			$instance->initJson($json);
 			static::$instance = $instance;
 		}
 		return static::$instance;
 	}
 
-	public function init($json = []) {
+	public function initJson($json = []) {
 		$this->initConfig($json);
 	}
 

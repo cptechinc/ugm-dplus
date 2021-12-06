@@ -18,12 +18,12 @@ class Config extends WireData {
 	}
 
 	public static function getInstance() {
-		if (empty(static::$instance)) {
-			$instance = new static();
+		if (empty(self::$instance)) {
+			$instance = new self();
 			$instance->init();
-			static::$instance = $instance;
+			self::$instance = $instance;
 		}
-		return static::$instance;
+		return self::$instance;
 	}
 
 	public function init() {
@@ -37,7 +37,7 @@ class Config extends WireData {
 	}
 
 	public function getConfigFilePath() {
-		return $this->wire('config')->paths->siteModules . 'Dplus/DocumentManagement/config/' . static::CONFIGFILE;
+		return $this->wire('config')->paths->siteModules . 'Dplus/DocumentManagement/config/' . self::CONFIGFILE;
 	}
 
 	public function getConfigJson() {

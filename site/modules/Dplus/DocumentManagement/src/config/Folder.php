@@ -3,8 +3,6 @@
 use Purl\Url as Purl;
 // ProcessWire
 use ProcessWire\WireData;
-// Dplus Document Management
-use Dplus\DocManagement\Viewer\Config;
 
 
 /**
@@ -14,12 +12,12 @@ class Folder extends Config {
 	protected static $instance;
 
 	public static function getInstance($json = []) {
-		if (empty(static::$instance)) {
-			$instance = new static();
-			$instance->init($json);
-			static::$instance = $instance;
+		if (empty(self::$instance)) {
+			$instance = new self();
+			$instance->initJson($json);
+			self::$instance = $instance;
 		}
-		return static::$instance;
+		return self::$instance;
 	}
 
 	public function __construct() {
