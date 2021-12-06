@@ -1,0 +1,18 @@
+{% extends 'util/form/_form.twig' %}
+{% set small = small ? small : false %}
+{% set class_input = small ? 'form-control form-control-sm' : 'form-control' %}
+{% set value = q %}
+
+{% block form %}
+	<div class="form-group">
+		{% if label %}
+			<label for="{{ id }}">{{ label }}</label>
+		{% endif %}
+		<div class="input-group {{ small ? 'input-group+sm' : ''}}">
+			{% include 'util/form/input.twig' %}
+			<div class="input-group-append">
+				<button type="submit" class="btn btn-light"> <i class="fa fa-search"></i> <span class="sr-only">Search</span> </button>
+			</div>
+		</div>
+	</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-<form action="{{ page.formurl }}" class="pt-3 px-3 detail-line-form allow-enterkey-submit" method="post">
+<form action="{{ input.url() }}" class="pt-3 px-3 detail-line-form allow-enterkey-submit" method="post">
 	<input type="hidden" name="action" value="quick-update-line">
 	<input type="hidden" name="qnbr" value="{{ quote.quotenumber }}">
 	<input type="hidden" name="linenbr" value="{{ detail.linenbr }}">

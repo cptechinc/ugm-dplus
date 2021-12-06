@@ -89,14 +89,6 @@ class DpagesRedir extends DplusPwPages implements Module {
 			'parent'     => '/mii/',
 			'redir_file' => 'ii'
 		),
-		'ci-redir' => array(
-			'template'   => 'redir',
-			'name'       => 'redir',
-			'title'      => 'redir',
-			'summary'    => 'Customer Information Redirects',
-			'parent'     => '/mci/',
-			'redir_file' => 'ci'
-		),
 		'cart-redir' => array(
 			'template'   => 'redir',
 			'name'       => 'redir',
@@ -112,6 +104,14 @@ class DpagesRedir extends DplusPwPages implements Module {
 			'summary'    => 'Vendor Information Redirects',
 			'parent'     => '/mvi/',
 			'redir_file' => 'vi'
+		),
+		'quote-redir' => array(
+			'template'   => 'redir',
+			'name'       => 'redir',
+			'title'      => 'redir',
+			'summary'    => 'Quote Redirects',
+			'parent'     => '/mqo/',
+			'redir_file' => 'quote'
 		),
 	);
 

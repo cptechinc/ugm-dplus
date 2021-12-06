@@ -1,0 +1,91 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	po                     EditPoHead
+	epo                    PurchaseOrderEdit
+#}
+<div class="row">
+	<div class="col-sm-6 form-group">
+		<label>PO Nbr</label>
+		<input type="text" class="form-control-plaintext form-control-lg" value="{{ po.ponbr }}" readonly>
+	</div>
+	<div class="col-sm-6 form-group">
+		<label for="releasenbr">Release Number</label>
+		<input type="text" class="form-control form-control-sm" name="releasenbr" id="releasenbr" value="{{ po.releasenbr }}">
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-sm-6">
+		<div class="form-group">
+			<label for="vendorID">Vendor ID</label>
+			{% include 'util/bootstrap/form/input-group.twig' with {
+					'inputgroup': {
+						'type': 'prepend',
+						'size': 'sm',
+						'input': {
+							'name': 'vendorID',
+							'value': po.vendorid,
+							'attributes': {
+								'placeholder': 'Vendor ID',
+								'aria-label':  'Vendor ID',
+							}
+						},
+						'button': {
+							'colorclass': 'btn-secondary',
+							'text': 'fa fa-search'|icon,
+							'attributes': {
+								'title': 'Search Vendors',
+								'data-toggle': 'modal',
+								'data-target': '#ajax-modal',
+								'data-lookupurl': page.search_lookupURL('vendors/'),
+								'data-search': 'vendors'
+							}
+						}
+					}
+				}
+			%}
+			<address class="small mt-1 vendor-address">
+				{% set vendor = epo.get_vendor(po.vendorid) %}
+				<span class="name">{{ vendor.name }}</span> <br>
+				<span class="address">{{ vendor.address }}</span> <br>
+				<span class="address2 {{ vendor.address2 ? 'collapse show': 'collapse' }}"> {{ vendor.address2 }} <br> </span>
+				<span class="city">{{ vendor.city }}</span>, <span class="state">{{ vendor.state }}</span> <span class="zip"> {{ vendor.zip}}</span>
+			</address>
+		</div>
+	</div>
+	<div class="col-sm-6">
+		<div class="form-group">
+			<label for="shipfromID">Ship-From</label>
+			{% include 'util/bootstrap/form/input-group.twig' with {
+					'inputgroup': {
+						'type': 'prepend',
+						'attributes': {},
+						'input': {
+							'name': 'shipfromID',
+							'value': po.shipfromid,
+							'attributes': {
+								'placeholder': '',
+								'aria-label':  'Ship-from ID'
+							}
+						},
+						'button': {
+							'colorclass': 'btn-secondary',
+							'text': 'fa fa-search'|icon,
+							'attributes': {
+								'title': 'Search / Select Vendor Ship-From',
+								'data-toggle': 'modal',
+								'data-target': '#ajax-modal',
+								'data-lookupurl': page.searchLookupUrl('vendor/ship-from/', {'vendorID': po.vendorid}),
+								'data-input': '#vendorID'
+							}
+						}
+					}
+				}
+			%}
+		</div>
+	</div>
+</div>
+{% include 'purchase-orders/purchase-order/edit/header/shipto.twig' %}
+{% include 'purchase-orders/purchase-order/edit/header/contact.twig' %}

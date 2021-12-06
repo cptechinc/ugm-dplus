@@ -1,0 +1,650 @@
+<?php namespace ProcessWire;
+
+use Propel\Runtime\ActiveQuery\Criteria;
+use Purl\Url;
+
+use Dplus\CodeValidators\Map    as MapValidator;
+use Dplus\CodeValidators\Mpo    as MpoValidator;
+use Dplus\CodeValidators\Mpo\Po as PoValidator;
+
+use PurchaseOrderQuery, PurchaseOrder;
+use WarehouseQuery, Warehouse;
+use VendorQuery, Vendor;
+use ShipviaQuery, Shipvia;
+use ApTermsCodeQuery, ApTermsCode;
+use CountryCodesQuery, CountryCodes;
+use ItemMasterItemQuery, ItemMasterItem;
+
+use EditPoHeadQuery, EditPoHead;
+use StatesQuery, States;
+use LogpermQuery, Logperm;
+
+include_once(__DIR__.'/MpoResponse.php');
+
+
+/**
+ * PurchaseOrderEdit
+ *
+ * Handles Editing of PO
+ * @property string                 $sessionID  Session ID
+ * @property PurchaseOrderEditItems $items      Module for Purchase Order Items
+ */
+class PurchaseOrderEdit extends WireData implements Module {
+	const PERMISSION_DPLUS = 'epo';
+
+	/**
+	 * Returns Query for Purchase Order Header Edit
+	 * @param  string $ponbr Purchase Order Number
+	 * @return EditPoHeadQuery
+	 */
+	public function get_query_header($ponbr = '') {
+		$q = EditPoHeadQuery::create();
+		$q->filterBySessionid($this->sessionID);
+		if ($ponbr) {
+			$q->filterByPonbr($ponbr);
+		}
+		return $q;
+	}
+
+	/**
+	 * Return if Header and Details are available to Edit
+	 * @param  string $ponbr Purchase Order Number
+	 * @return bool
+	 */
+	public function exists_editable($ponbr) {
+		return $this->exists_editable_header($ponbr);
+	}
+
+	/**
+	 * Return if PO header is available for editing
+	 * @param  string $ponbr Purchase Order Number
+	 * @return bool
+	 */
+	public function exists_editable_header($ponbr) {
+		$q = $this->get_query_header($ponbr);
+		return boolval($q->count());
+	}
+
+	/**
+	 * Delete Header(s) for session
+	 * @return bool
+	 */
+	public function delete_editable_header() {
+		$q = $this->get_query_header();
+		return $q->delete();
+	}
+
+	/**
+	 * Return Editable PO Header
+	 * @param  string $ponbr Purchase Order Number
+	 * @return EditPoHead
+	 */
+	public function get_editable_header($ponbr) {
+		$q = $this->get_query_header($ponbr);
+		return $q->findOne();
+	}
+
+/* =============================================================
+	CRUD Processing Functions
+============================================================= */
+	/**
+	 * Process Input Data and act on upon action
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function process_input(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		switch ($values->text('action')) {
+			case 'update-header':
+				$this->input_update_header($input);
+				break;
+			case 'update-header-payto':
+				$this->input_update_header_payto($input);
+				break;
+			case 'update-header-phone':
+				$this->input_update_header_phone($input);
+				break;
+			case 'create-po':
+				$this->input_create_po($input);
+				break;
+			case 'add-item':
+			case 'update-item':
+			case 'delete-item':
+				$this->items->process_input($input);
+				break;
+			case 'update-notes':
+			case 'delete-notes':
+				$qnotes = $this->wire('modules')->get('QnotesPo');
+				$qnotes->process_input($input);
+				break;
+			case 'exit':
+				$ponbr = $values->text('ponbr');
+				$this->request_po_exit($ponbr);
+				break;
+		}
+	}
+
+	/**
+	 * Update / Edit Purchase Order Header
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function input_update_header(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$ponbr = $values->text('ponbr');
+		$po = $this->get_editable_header($ponbr);
+		$invalidfields = $this->update_header($po, $input);
+
+		$saved = $po->save();
+
+		if ($invalidfields) {
+			$response = MpoResponse::response_error($values->text('ponbr'), "PO # $ponbr header was not updated");
+			$response->set_fields($invalidfields);
+		} elseif ($saved) {
+			$this->request_update_header($ponbr);
+			$response = MpoResponse::response_success($values->text('ponbr'), "PO # $ponbr header was updated");
+		} else {
+			$response = MpoResponse::response_error($values->text('ponbr'), "PO # $ponbr header was not updated");
+		}
+		$this->wire('session')->setFor('response', 'epo', $response);
+	}
+
+	/**
+	 * Create Purchase Order
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function input_create_po(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$vendorID = $values->text('vendorID');
+		$validate = new MapValidator();
+
+		if ($vendorID == '' || $validate->vendorid($vendorID)) {
+			$this->request_create_po($vendorID);
+		} else {
+			$response = MpoResponse::response_error('NEW', "Vendor $vendorID not found");
+			$this->wire('session')->setFor('response', 'epo', $response);
+		}
+	}
+
+	/**
+	 * Verify if PO has been created, redirect if needed.
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function input_verify_created_po(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$vendorID = $values->text('vendorID');
+		$logperm = $this->get_logperm();
+
+		if (strlen($logperm->ordernbr) != PurchaseOrder::LENGTH) {
+			$response = MpoResponse::response_error('NEW', "Purchase Order for $vendorID not created");
+			$this->wire('session')->setFor('response', 'epo', $response);
+		}
+	}
+
+	/**
+	 * Verify That a Po Was Created
+	 * @param  string $vendorID Vendor ID
+	 * @return bool
+	 */
+	public function verifyCreatedPo($vendorID) {
+		$logperm = $this->get_logperm();
+
+		if (strlen($logperm->ordernbr) != PurchaseOrder::LENGTH) {
+			$response = MpoResponse::response_error('NEW', "Purchase Order for $vendorID not created");
+			$this->wire('session')->setFor('response', 'epo', $response);
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Update Payto fields Purchase Order Header
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function input_update_header_payto(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$ponbr = $values->text('ponbr');
+		$po = $this->get_editable_header($ponbr);
+		$invalidfields = $this->update_header_payto($po, $input);
+
+		$saved = $po->save();
+
+		if ($saved) {
+			$this->request_update_header($ponbr);
+			$response = MpoResponse::response_success($values->text('ponbr'), "PO # $ponbr header was updated");
+		} else {
+			$response = MpoResponse::response_error($values->text('ponbr'), "PO # $ponbr header was not updated");
+		}
+		$this->wire('session')->setFor('response', 'epo', $response);
+	}
+
+	/**
+	 * Update Phone, Email fields Purchase Order Header
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function input_update_header_phone(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$ponbr = $values->text('ponbr');
+		$po = $this->get_editable_header($ponbr);
+		$invalidfields = $this->update_header_phone($po, $input);
+		$saved = $po->save();
+
+		if ($saved) {
+			$this->request_update_header($ponbr);
+			$response = MpoResponse::response_success($values->text('ponbr'), "PO # $ponbr header was updated");
+		} else {
+			$response = MpoResponse::response_error($values->text('ponbr'), "PO # $ponbr header was not updated");
+		}
+		$this->wire('session')->setFor('response', 'epo', $response);
+	}
+
+	/**
+	 * Updates EditPoHead Record
+	 * @param  EditPoHead  $item  Purchase Order
+	 * @param  WireInput   $input Input Data
+	 * @return array              Invalid Input Field Names
+	 */
+	protected function update_header(EditPoHead $po, WireInput $input) {
+		$this->init_configs();
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$invalid = array();
+
+		$this->update_header_shipto($po, $input);
+		$this->update_header_dates($po, $input);
+
+		$po->setContact($values->text('contact'));
+		$po->setTax_exempt($values->yn('tax_exempt'));
+		$po->setFuturebuy($values->yn('futurebuy'));
+		$po->setLandedcost($values->float('landedcost', ['precision' => $this->configs->decimal_places_cost()]));
+		$po->setReleasenbr($values->text('releasenbr'));
+		$po->setReference($values->text('reference'));
+		$po->setExchange_rate($values->float('exchange_rate', ['precision' => $this->configs->decimal_places_cost()]));
+
+		$invalid = $this->update_header_validated($po, $input);
+		return $invalid;
+	}
+
+	/**
+	 * Updates Oayto fields on the EditPoHead Record
+	 * @param  EditPoHead  $item  Purchase Order
+	 * @param  WireInput   $input Input Data
+	 * @return void
+	 */
+	protected function update_header_payto(EditPoHead $po, WireInput $input) {
+		//$this->init_configs();
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$base = 'payto_';
+		$fields = ['name', 'address', 'address2', 'address3', 'city', 'state', 'zip'];
+
+		foreach ($fields as $field) {
+			$property = $base.$field;
+			$setProperty = 'set'.ucfirst($property);
+			$po->$setProperty($values->text($property));
+		}
+	}
+
+	/**
+	 * Update PO Header Shipto fields
+	 * @param  EditPoHead $po    Purchase Order
+	 * @param  WireInput  $input Input Data
+	 * @return void
+	 */
+	protected function update_header_shipto(EditPoHead $po, WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		$po->setShipto_name($values->text('shipto_name'));
+		$po->setShipto_address($values->text('shipto_address'));
+		$po->setShipto_address2($values->text('shipto_address2'));
+		$po->setShipto_address3($values->text('shipto_address3'));
+		$po->setShipto_city($values->text('shipto_city'));
+		$po->setShipto_state($values->text('shipto_state'));
+		$po->setShipto_zip($values->text('shipto_zip'));
+	}
+
+	/**
+	 * Update PO Header contact fields
+	 * @param  EditPoHead $po    Purchase Order
+	 * @param  WireInput  $input Input Data
+	 * @return void
+	 */
+	protected function update_header_phone(EditPoHead $po, WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		$po->setPhone_intl($values->yn('phone_intl'));
+		if ($po->phone_intl == 'N') {
+			$po->setPhone(str_replace('-', '', $values->text('phone_office_us')));
+		} else {
+			// TODO INTL
+		}
+
+		$po->setPhone_extension($values->text('phone_extension'));
+		$po->setFax(str_replace('-', '', $values->text('fax')));
+		$po->setEmail($values->text('email'));
+	}
+
+	/**
+	 * Update PO Header Date fields
+	 * @param  EditPoHead $po    Purchase Order
+	 * @param  WireInput  $input Input Data
+	 * @return void
+	 */
+	protected function update_header_dates(EditPoHead $po, WireInput $input) {
+		$format = PurchaseOrder::FORMAT_DATE;
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		$po->setDate_ordered(date($format, strtotime($values->text('date_ordered'))));
+
+		if (!$this->configs->po->edit_date_shipped_detail()) {
+			$po->setDate_shipped(date($format, strtotime($values->text('date_shipped'))));
+		}
+
+		if (!$this->configs->po->edit_date_acknowledged_detail()) {
+			$po->setDate_acknowledged(date($format, strtotime($values->text('date_acknowledged'))));
+		}
+
+		if (!$this->configs->po->edit_date_cancel_detail()) {
+			$po->setDate_cancel(date($format, strtotime($values->text('date_cancel'))));
+		}
+	}
+
+	/**
+	 * Update PO Header fields that need external validation
+	 * @param  EditPoHead $po    Purchase Order
+	 * @param  WireInput  $input Input Data
+	 * @return array             Array of Invalid input fieldnames
+	 */
+	protected function update_header_validated(EditPoHead $po, WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$invalid = array();
+
+		$validate = new PoValidator();
+		$fields = array(
+			'vendorid' => array(
+				'description'  => 'Vendor ID',
+				'input'        => 'vendorID'
+			),
+			'shipvia' => array(
+				'description'  => 'Shipvia',
+				'input'        => 'shipvia'
+			),
+			'termscode' => array(
+				'description'  => 'Terms Code',
+				'input'        => 'termscode'
+			),
+			'freightpaidby' => array(
+				'description'  => 'Freight Paid By',
+				'input'        => 'freightpaidby'
+			),
+			'fob' => array(
+				'description'  => 'FOB',
+				'input'        => 'fob'
+			),
+			'exchange_country' => array(
+				'description'  => 'Currency Country Code',
+				'input'        => 'exchange_country',
+				'allow_blank'  => true,
+			),
+		);
+
+		foreach ($fields as $property => $field) {
+			if ($validate->$property($values->text($field['input']))) {
+				$setProperty = "set".ucfirst($property);
+				$po->$setProperty($values->text($field['input']));
+			} elseif (array_key_exists('allow_blank', $field) === false || $field['allow_blank'] === false) {
+				$invalid[$property] = $field['description'];
+			}
+		}
+
+		if (strlen($values->text('shipfromID'))) {
+			if ($validate->shipfromid($values->text('vendorID'), $values->text('shipfromID'))) {
+				$po->setShipfromid($values->text('shipfromID'));
+			} else {
+				$invalid['shipfromID'] = 'Ship-From ID';
+			}
+		}
+		return $invalid;
+	}
+
+/* =============================================================
+	Dplus Request Functions
+============================================================= */
+	/**
+	 * Send Request to Dplus
+	 * @param  array  $data
+	 * @return void
+	 */
+	private function request_dplus(array $data) {
+		$config = $this->wire('config');
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array_merge(["DBNAME=$dplusdb"], $data);
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, $this->sessionID);
+		$requestor->cgi_request($config->cgis['default'], $this->sessionID);
+	}
+
+	/**
+	 * Send PO Edit Request
+	 * @param  string $ponbr Purchase Order Number
+	 * @return void
+	 */
+	public function request_po_edit($ponbr) {
+		$data = array('EDITPURCHASEORDER', "PONBR=$ponbr");
+		$this->request_dplus($data);
+	}
+
+	/**
+	 * Send PO Update Header
+	 * @param  string $ponbr   Purchase Order Number
+	 * @return void
+	 */
+	private function request_update_header($ponbr) {
+		$data = array('SAVEPURCHASEORDERHEADER', "PONBR=$ponbr");
+		$this->request_dplus($data);
+	}
+
+	/**
+	 * Send Create PO request
+	 * TODO: get command in 600p (default) cgi
+	 * @param  string $vendorID  Vendor ID
+	 * @return void
+	 */
+	private function request_create_po($vendorID) {
+		$data = array('CREATERECEIVEPO', "VENDORID=$vendorID");
+		$config = $this->wire('config');
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array_merge(["DBNAME=$dplusdb"], $data);
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, $this->sessionID);
+		$requestor->cgi_request($config->cgis['warehouse'], $this->sessionID);
+		return true;
+	}
+
+	/**
+	 * Sends HTTP GET request to send Dplus Item Search Request
+	 * @param  string $q Query or Item ID
+	 * @return void
+	 */
+	public function request_itemsearch($q) {
+		$data = array("ITNOSRCH=$q", "CUSTID=$config->default_webcustomer");
+		$this->request_dplus($data);
+	}
+
+	/**
+	 * Send PO Header Update Request
+	 * @param  string $ponbr Purchase Order Number
+	 * @return void
+	 */
+	private function request_po_exit($ponbr) {
+		$data = array('EXITPURCHASEORDER', "PONBR=$ponbr");
+		$this->request_dplus($data);
+	}
+
+/* =============================================================
+	Supplemental Functions
+============================================================= */
+	/**
+	 * Loads configs needed into $configs property
+	 * @return void
+	 */
+	public function init_configs() {
+		$this->configs->init_configs();
+	}
+
+	/**
+	 * Return Static / Readonly PO
+	 * @param  string $ponbr PO Number
+	 * @return PurchaseOrder
+	 */
+	public function get_purchaseorder($ponbr) {
+		return PurchaseOrderQuery::create()->findOneByPonbr($ponbr);
+	}
+
+	/**
+	 * Return if User has Purchase Order Editing Permission
+	 * @param  User $user User
+	 * @return bool
+	 */
+	public function user_has_permission(User $user) {
+		return $user->has_function(self::PERMISSION_DPLUS);
+	}
+
+	/**
+	 * Returns if Purchase Order can be Edited
+	 * @param  string $ponbr Purchase Order Number
+	 * @return bool
+	 */
+	public function is_po_editable($ponbr) {
+		$q = PurchaseOrderQuery::create();
+		$q->filterByPonbr($ponbr);
+		$q->filterByStatus(PurchaseOrder::STATUS_CLOSED, Criteria::ALT_NOT_EQUAL);
+		return boolval($q->count());
+	}
+
+	/**
+	 * Returns if Purchase Order Exists
+	 * @param  string $ponbr Purchase Order Number
+	 * @return bool
+	 */
+	public function exists($ponbr) {
+		$validator = new MpoValidator();
+		return $validator->po($ponbr);
+	}
+
+	/**
+	 * Return Warehouses
+	 * @return Warehouses[]|ObjectCollection
+	 */
+	public function get_warehouses() {
+		return WarehouseQuery::create()->find();
+	}
+
+	/**
+	 * Return Vendor
+	 * @param  string  $vendorID Vendor ID
+	 * @return Vendor
+	 */
+	public function get_vendor($vendorID) {
+		return VendorQuery::create()->findOneByVendorid($vendorID);
+	}
+
+	/**
+	 * Return US States
+	 * @return States[]|ObjectCollection
+	 */
+	public function get_states() {
+		return StatesQuery::create()->select(['name', 'abbreviation'])->find();
+	}
+
+	/**
+	 * Return Shipvias
+	 * @return Shipvia[]|ObjectCollection
+	 */
+	public function get_shipvias() {
+		return ShipviaQuery::create()->find();
+	}
+
+	/**
+	 * Return Accounts Payable Terms Codes
+	 * @return ApTermsCode[]|ObjectCollection
+	 */
+	public function get_termscodes() {
+		return ApTermsCodeQuery::create()->find();
+	}
+
+	/**
+	 * Return termscode description
+	 * @return string
+	 */
+	public function get_termscode($termscode) {
+		return ApTermsCodeQuery::create()->findOneByCode($termscode)->description;
+	}
+
+	/**
+	 * Return Country Codes
+	 * @return CountryCodes[]|ObjectCollection
+	 */
+	public function get_country_codes() {
+		return CountryCodesQuery::create()->find();
+	}
+
+	/**
+	 * Return Logperm Record
+	 * @return Logperm
+	 */
+	public function get_logperm() {
+		$q = LogpermQuery::create();
+		return $q->findOneBySessionid($this->sessionID);
+	}
+
+	public function itmitem($itemID) {
+		return ItemMasterItemQuery::create()->findOneByItemid($itemID);
+	}
+
+	/**
+	 * Return if Field has Error
+	 * NOTE: Uses $session->response_epo->fields to derive this
+	 * @param  string $inputname Input name e.g. vendorID
+	 * @return bool
+	 */
+	public function field_has_error_header($inputname) {
+		$response = $this->wire('session')->response_epo;
+		return ($response) ? array_key_exists($inputname, $response->fields) : false;
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public function init() {
+		$this->sessionID = session_id();
+		$this->items = $this->wire('modules')->get('PurchaseOrderEditItems');
+		$this->configs = $this->wire('modules')->get('PurchaseOrderEditConfigs');
+	}
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'PurchaseOrderEdit',
+			'version' => 101,
+			'summary' => 'Handles Purchase Order Editing',
+			'singular' => true,
+			'autoload' => true,
+			'installs' => array()
+		);
+	}
+}

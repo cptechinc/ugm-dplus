@@ -1,0 +1,32 @@
+<nav aria-label="breadcrumb rounded-0" class="d-print-none">
+	<ol class="breadcrumb">
+		{% block parents %}
+			{% for parent in page.parents() %}
+				<li class="breadcrumb-item">
+					<a href="{{ parent.url }}">
+						<i class="fa {{ parent.template == 'home' ? 'fa-home' : 'fa-list'}}" aria-hidden="true"></i>
+						{% if parent.template != 'home' %}
+							{{ parent.has('dplus_function') and parent.dplus_function|length ? parent.dplus_function|upper : parent.title }}
+						{% endif %}
+						<span class="sr-only">Home</span>
+					</a>
+				</li>
+			{% endfor %}
+		{% endblock %}
+
+		{% block extra_parents %}
+		{% endblock %}
+
+		{% block current_page %}
+			{% if page.has('title_previous') and page.title_previous != page.title %}
+				<li class="breadcrumb-item">
+					<a href="{{ page.url }}">{{ page.title_previous }}</a>
+				</li>
+			{% endif %}
+			<li class="breadcrumb-item active" aria-current="page">
+				<i class="fa {{ page.template == 'dplus-menu' ? 'fa-list' : page.template == 'home' ? 'fa-home' : 'fa-microchip'}}" aria-hidden="true"></i>
+				{{ page.has('dplus_function') and page.dplus_function|length ? page.dplus_function|upper : page.title }}
+			</li>
+		{% endblock %}
+	</ol>
+</nav>

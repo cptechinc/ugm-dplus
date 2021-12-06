@@ -1,7 +1,7 @@
 <hr>
 
-<form id="edit-sales-order-form" action="{{ page.formurl }}">
-	<input type="hidden" name="action" value="edit-order">
+<form id="edit-sales-order-form" action="{{ page.url }}" method="post">
+	<input type="hidden" name="action" value="update-header">
 	<input type="hidden" name="ordn" value="{{ order.ordernumber }}">
 
 	<div class="row">
@@ -18,10 +18,13 @@
 		</div>
 	</div>
 
-	<button type="submit" class="btn btn-info btn-block mt-5">
-		Save Order <i class="fa fa-floppy-o" aria-hidden="true"></i>
-	</button>
-	<button type="submit" class="btn btn-success btn-block mt-2" name="exit" value="unlock-order">
-		Save and Exit <i class="fa fa-sign-out" aria-hidden="true"></i>
-	</button>
+	<div class="d-flex w-100 justify-content-between mt-4">
+		<button type="submit" class="btn btn-success save-header">
+			 <i class="fa fa-floppy-o" aria-hidden="true"></i> Save
+		</button>
+
+		<button type="submit" class="btn btn-info" name="exit" value="unlock-order">
+			 <i class="fa fa-floppy-o" aria-hidden="true"></i> Save and <i class="fa fa-sign-out" aria-hidden="true"></i> Exit
+		</button>
+	</div>
 </form>

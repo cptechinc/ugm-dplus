@@ -4,15 +4,16 @@
 
 	if ($input->get->code) {
 		$code = $input->get->text('code');
+		$configSO = ConfigSalesOrderQuery::create()->findOne();
 		$countries = CountryQuery::create()->find();
-	 	// $creditcards = CreditCardDigitGetQuery::create()->find();
+	 	$creditcards = CreditCardDigitGetQuery::create()->find();
 
 		if ($module_codetable->code_exists($code)) {
-			$page->title = $page->headline = "TRM: $code";
+			$page->title = $page->headline = "Customer Terms Code: $code";
 			$termscode = $module_codetable->get_code($code);
 		} else {
 			$page->title = $page->headline = "Create $page->title";
-			$termscode = new ArTermsCode();
+			$termscode = new CustomerTermsCode;
 
 			if ($code != 'new') {
 				$termscode->setCode($code);
@@ -38,8 +39,9 @@
 			}
 		}
 
-		$page->body .= $config->twig->render("code-tables/mar/$page->codetable/form.twig", ['page' => $page, 'table' => $page->codetable, 'code' => $termscode, 'countries' => $countries, 'recordlocker' => $recordlocker, 'm_trm' => $module_codetable]);
-		$page->js   .= $config->twig->render("code-tables/mar/$page->codetable/js.twig", ['page' => $page, 'termscode' => $termscode]);
+		$page->body .= $config->twig->render("code-tables/mar/$page->codetable/form.twig", ['page' => $page, 'table' => $page->codetable, 'code' => $termscode, 'countries' => $countries, 'creditcards' => $creditcards, 'configso' => $configSO, 'recordlocker' => $recordlocker, 'm_trm' => $module_codetable]);
+		$page->js   .= $config->twig->render("code-tables/mar/$page->codetable/js/js.twig", ['page' => $page, 'configso' => $configSO, 'termscode' => $termscode, 'm_trm' => $module_codetable]);
+		$page->js   .= $config->twig->render("code-tables/mar/$page->codetable/js/splits.js.twig", ['page' => $page, 'configso' => $configSO, 'termscode' => $termscode, 'm_trm' => $module_codetable]);
 	} else {
 		$page->title = $page->headline = "Customer Terms Code";
 		$recordlocker->remove_lock($page->codetable);

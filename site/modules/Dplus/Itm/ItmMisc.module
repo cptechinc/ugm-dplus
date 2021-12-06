@@ -1,0 +1,216 @@
+<?php namespace ProcessWire;
+
+include_once(__DIR__.'/ItmResponse.php');
+// Purl URI Manipulation Library
+use Purl\Url;
+// Dplus Model
+use ItemMasterItemQuery, ItemMasterItem;
+// Dplus Configs
+use Dplus\Configs;
+// Dplus Code Validators
+use Dplus\CodeValidators\Min\Itm as ItmValidator;
+
+/**
+ * Module that handles the cRUD processing for ITM Misc
+ */
+class ItmMisc extends Itm implements Module {
+	const MODEL              = 'ItemMasterItem';
+	const MODEL_KEY          = 'code';
+	const DESCRIPTION        = 'Item Master Item';
+	const DESCRIPTION_RECORD = 'Item Master Item';
+	const RESPONSE_TEMPLATE  = 'ITM Item {itemid} Misc was {not} {crud}';
+
+	public function __construct() {
+		parent::__construct();
+	}
+
+/* =============================================================
+	CRUD Processing Functions
+============================================================= */
+	/**
+	 * Takes Input, processses the action, calls the process_input
+	 * @param  WireInput $input Input
+	 * @return void
+	 */
+	public function processInput(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		switch ($values->text('action')) {
+			// TODO MOVE
+			case 'update-itm-hazmat':
+				$this->hazmat->processInput($input);
+				break;
+			case 'update-itm-misc':
+				$this->inputUpdate($input);
+				break;
+			default:
+				$this->setResponse(ItmResponse::response_error('itm', "No Action Provided"));
+				break;
+		}
+	}
+
+	private function inputUpdate(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$itemID = $values->text('itemID');
+
+		if ($this->exists($itemID) === false) {
+			$this->setResponse(ItmResponse::response_error($itemID, "$itemID does not exist"));
+			return false;
+		}
+
+		$this->lockrecord($itemID);
+		if ($this->recordlocker->userHasLocked($itemID) === fase) {
+			$message = self::DESCRIPTION_RECORD . " ($itemID)  was not saved, it is locked by " . $this->recordlocker->getLockingUser($itemID);
+			$this->setResponse(ItmResponse::response_error($itemID, $message));
+			return false;
+		}
+		$item = $this->item($itemID);
+		return $this->inputUpdateItem($item, $input);
+	}
+
+	/**
+	 * Update Itm Item Misc Fields
+	 * @param  ItemMasterItem $item
+	 * @param  WireInput      $input Input Data
+	 * @return bool
+	 */
+	private function inputUpdateItem(ItemMasterItem $item, WireInput $input) {
+		$invalidfields = $this->setItemFields($item, $input);
+		$response = $this->saveAndRespond($item, $invalidfields);
+		$this->setResponse($response);
+		return $response->has_success();
+	}
+
+	/**
+	 * Set Item Misc Fields
+	 * NOTE: uses Input Validator to validate / set fields
+	 * @param  ItemMasterItem $item
+	 * @param  WireInput      $input  Input
+	 * @return array
+	 */
+	protected function setItemFields(ItemMasterItem $item, WireInput $input) {
+		$invalid = [];
+		$fields = [
+			'tariffcode' => [
+				'description' => 'Tariff Code',
+				'input'       => 'tariffcode',
+				'allow_blank' => true
+			],
+			'origincountry' => [
+				'function'    => 'countrycode',
+				'description' => 'Country of Origin',
+				'input'       => 'origincountry',
+				'allow_blank' => true,
+			],
+			'msdscode' => [
+				'description' => 'Msds Code',
+				'input'       => 'msdscode',
+				'allow_blank' => true
+			],
+			'freightcode' => [
+				'description' => 'Freight Code',
+				'input'       => 'freightcode',
+				'allow_blank' => true
+			],
+			'preference' => [
+				'description' => 'Preference',
+				'input'       => 'preference',
+				'allow_blank' => false
+			],
+			'producer' => [
+				'description' => 'Producer',
+				'input'       => 'producer',
+				'allow_blank' => false
+			],
+			'documentation' => [
+				'description' => 'Documentation',
+				'input'       => 'documentation',
+				'allow_blank' => false
+			],
+		];
+		$item->setDate(date('Ymd'));
+		$item->setTime(date('His'));
+		$validator = $this->wire('modules')->get('InputValidator');
+		$validator->set_validator((new ItmValidator()))->set_input($input)->set_record($item)->set_validatefields($fields);
+		$invalid = $validator->validate();
+		$validator->set_valid_properties();
+		return $invalid;
+	}
+
+/* =============================================================
+	CRUD Response Functions
+============================================================= */
+	/**
+	 * Returns ItmResponse based on the outcome of the database save
+	 * @param  ItemMasterItem $item
+	 * @param  array          $invalidfields Input fields that require attention
+	 * @return ItmResponse
+	 */
+	public function saveAndRespond(ItemMasterItem $item, array $invalidfields = []) {
+		$is_new = $item->isDeleted() ? false : $item->isNew();
+		$saved  = $item->isDeleted() ? $item->isDeleted() : $item->save();
+
+		$response = new ItmResponse();
+		$response->set_itemID($item->itemid);
+
+		if ($saved) {
+			$response->set_success(true);
+		} else {
+			$response->set_error(true);
+		}
+
+		if ($is_new) {
+			$response->set_action(ItmResponse::CRUD_CREATE);
+		} elseif ($item->isDeleted()) {
+			$response->set_action(ItmResponse::CRUD_DELETE);
+		} else {
+			$response->set_action(ItmResponse::CRUD_UPDATE);
+		}
+
+		$response->build_message(self::RESPONSE_TEMPLATE);
+		$response->set_fields($invalidfields);
+
+		if (empty($invalidfields) === false) {
+			$response->set_error(true);
+			$response->set_success(false);
+			$response->set_saved_itm(false);
+			$response->build_message(self::RESPONSE_TEMPLATE);
+			return $response;
+		}
+
+		if ($response->has_success() && empty($invalidfields)) {
+			$response->set_saved_itm($response->success);
+			$this->request_item_update($item->itemid);
+		}
+
+		return $response;
+	}
+
+/* =============================================================
+	Supplemental Functions
+============================================================= */
+
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus ITM Misc CRUD Manager',
+			'version' => 101,
+			'summary' => 'Module for Updating ITM Misc',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array(
+				'Itm',
+			)
+		);
+	}
+
+	public function init() {
+		parent::init();
+		$this->hazmat = $this->wire('modules')->get('ItmHazmat');
+	}
+}

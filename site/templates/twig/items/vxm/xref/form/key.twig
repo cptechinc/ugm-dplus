@@ -1,0 +1,114 @@
+{% set values = page.wire('input').get %}
+
+{% if item.isNew() and values.text('vendorID') == '' %}
+	<div class="row form-group">
+		<div class="col-sm-3">
+			<label for="vendorID">Vendor ID</label>
+		</div>
+		<div class="col-sm-8">
+			{% include 'util/bootstrap/form/input-group.twig' with {
+					'inputgroup': {
+						'type': 'prepend',
+						'attributes': {
+							'readonly': item.vendorid ? true : false,
+							'tabindex': item.vendorid ? '-1' : ''
+						},
+						'input': {
+							'name': 'vendorID',
+							'value': item.vendorid,
+							'attributes': {
+								'placeholder': '',
+								'aria-label':  'Vendor ID',
+								'tabindex': item.vendorid ? '-1' : ''
+							}
+						},
+						'button': {
+							'colorclass': 'btn-secondary',
+							'text': 'fa fa-search'|icon,
+							'attributes': {
+								'title': 'Search Vendors',
+								'data-toggle': 'modal',
+								'data-target': '#ajax-modal',
+								'data-lookupurl': page.search_lookupURL('vendors'),
+								'data-input': '#vendorID'
+							}
+						}
+					}
+				}
+			%}
+		</div>
+	</div>
+{% else %}
+	<input type="hidden" name="vendorID" value="{{ item.vendorid }}">
+
+	{% if (page.pw_template == 'itm') %}
+		<div class="row form-group">
+			<div class="col-sm-3">
+				<label for="vendorID">Vendor ID</label>
+			</div>
+			<div class="col-sm-8">
+				<p class="form-control-plaintext form-control-sm">{{ item.vendorid }} - {{ item.vendor.name }}</p>
+			</div>
+		</div>
+	{% endif %}
+{% endif %}
+
+<div class="row form-group">
+	<div class="col-sm-3">
+		<label for="vendoritemID"><b>Vendor Item ID</b></label>
+	</div>
+	<div class="col-sm-8">
+		{% include 'util/form/input.twig' with {
+				'name': 'vendoritemID', 'value': item.vendoritemid,
+				'attributes': {
+					'data-vendoritemid': item.vendoritemid,
+					'data-new': item.isNew() ? 'true' : 'false',
+					'readonly': item.vendoritemid ? true : false,
+					'tabindex': item.vendoritemid ? '-1' : '',
+				}
+			}
+		%}
+	</div>
+</div>
+<div class="row">
+	<div class="col-sm-3">
+		<b>Our Item ID</b>
+	</div>
+	<div class="col-sm-8 item-col">
+		{% include 'util/bootstrap/form/input-group.twig' with {
+				'inputgroup': {
+					'type': 'prepend',
+					'attributes': {
+						'readonly': item.itemid ? true : false,
+						'tabindex': item.itemid ? '-1' : '',
+					},
+					'input': {
+						'name': 'itemID',
+						'value': item.itemid,
+						'attributes': {
+							'placeholder': '',
+							'aria-label':  'Item ID',
+							'tabindex': item.itemid ? '-1' : '',
+							'data-itemid': item.itemid,
+							'data-iskit':  item.itemid ? (item.imitem.is_kit() ? 'true' : 'false') : '',
+							'data-standardcostbase': item.imitem.standardcostbasedon
+						}
+					},
+					'button': {
+						'colorclass': 'btn-secondary',
+						'text': 'fa fa-search'|icon,
+						'attributes': {
+							'title': 'Search Items',
+							'data-toggle': 'modal',
+							'data-target': '#ajax-modal',
+							'data-lookupurl': page.search_lookupURL('items'),
+							'data-input': '#itemID'
+						}
+					}
+				}
+			}
+		%}
+		<small class="form-text text-muted description">{{ item.imitem.description }}</small>
+		<small class="form-text text-muted description2">{{ item.imitem.description2 }}</small>
+	</div>
+</div>

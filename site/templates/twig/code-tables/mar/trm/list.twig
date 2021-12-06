@@ -33,7 +33,8 @@
 		</div>
 	</div>
 	{% for code in codes %}
-		<div id="{{ code.code|attrJS(jsprepend = false)  }}" class="list-group-item pb-1 pt-1 {{ (response.key == code.code and response.has_success() ) ? 'bg-success text-white' : ''}}">
+		{# data-code attribute and class code is for the highlight on close #}
+		<div id="{{ code.code|urlencode }}" data-code="{{ code.code }}" class="list-group-item code pb-1 pt-1 {{ (response.key == code.code and response.has_success() ) ? 'bg-success text-white' : ''}}">
 			<div class="row align-items-center">
 				<div class="col-1">
 					{{ code.code }}
@@ -54,7 +55,7 @@
 					{{ code.country }}
 				</div>
 				<div class="col-1">
-					{{ code.exp_date|convertdate('m/d/Y') }}
+					{{ code.exp_date ? code.exp_date|convertdate : '' }}
 				</div>
 				<div class="col-3 text-center">
 					{% if recordlocker.function_locked(page.name, code.code) == false or recordlocker.function_locked_by_user(page.name, code.code) %}

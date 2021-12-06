@@ -1,0 +1,26 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	qusers                 Dplus\qusers\Noce
+	users                  NotePreDefined[]|ObjectCollection
+#}
+{# set response = users.getResponse() #}
+
+<div class="table-responsive">
+	<table class="table table-sm">
+		<thead>
+			<tr>
+				<th>Login ID / Name</th>
+				<th>Warehouse</th>
+				<th>Admn</th>
+				<th>SF</th>
+				<th>CD</th>
+				<th>RA</th>
+				<th></th>
+			</tr>
+		</thead>
+	</table>
+</div>
+
+{% include 'util/paginator/propel.twig' with {'pager': users} %}

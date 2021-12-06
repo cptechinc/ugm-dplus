@@ -1,10 +1,5 @@
-<div class="mb-3">
-	<a href="{{ page.itm_warehouseURL(itemID, 'new') }}" class="btn btn-secondary">
-		<i class="fa fa-plus" aria-hidden="true"></i> Add
-	</a>
-</div>
 <table class="table table-sm">
-	<tr>
+	<tr class="bg-dark text-white">
 		<th>Whse</th>
 		<th>Bin</th>
 		<th>
@@ -16,30 +11,49 @@
 		<th>
 			<abbr title="Supply Warehouse">S-Wh</abbr>
 		</th>
-		<th class="text-right">Order Point</th>
-		<th class="text-right">Order Quantity</th>
-		<th class="text-right">Max Qty</th>
-		<th class="text-right">Count Date</th>
+		<th>Order Point</th>
+		<th>Order Quantity</th>
+		<th>Max Quantity</th>
+		<th>Count Date</th>
 		<th>Note</th>
-		<th>Edit</th>
+		<th>
+			<a href="{{ page.itmUrlWhse(itemID, 'new') }}" class="btn btn-light btn-sm">
+				<i class="fa fa-plus" aria-hidden="true"></i> Add
+			</a>
+		</th>
 	</tr>
 	<tbody>
+		{% if warehouses.count() == 0 %}
+			<td colspan="11" class="bg-gray text-center">No Warehouses found for {{ itemID }}</td>
+		{% endif %}
+
 		{% for warehouse in warehouses %}
-			<tr>
+			{% set class = warehouse.warehouseid == session.getFor('response', 'itm').whseID  ? 'bg-success text-white' : '' %}
+			{% set class = warehouse.warehouseid == page.wire('input').get.text('focus') ? 'highlight' : class %}
+
+			<tr class="{{ class }}">
 				<td>{{ warehouse.warehouseid }}</td>
 				<td>{{ warehouse.bin_default }}</td>
 				<td>{{ warehouse.status }}</td>
 				<td>{{ warehouse.specialorder }}</td>
 				<td>{{ warehouse.whsesupply }}</td>
-				<td class="text-right">{{ warehouse.orderpoint + 0 }}</td>
-				<td class="text-right">{{ warehouse.orderqty + 0 }}</td>
-				<td class="text-right">{{ warehouse.maxqty + 0 }}</td>
-				<td class="text-right">{{ warehouse.countdate ? warehouse.countdate|convertdate : '' }}</td>
-				<td></td>
+				<td class="text-center">{{ warehouse.orderpoint + 0 }}</td>
+				<td class="text-center">{{ warehouse.orderqty + 0 }}</td>
+				<td class="text-center">{{ warehouse.maxqty + 0 }}</td>
+				<td>{{ warehouse.countdate ? warehouse.countdate|convertdate : '' }}</td>
 				<td>
-					<a href="{{ page.itm_warehouseURL(warehouse.itemid, warehouse.warehouseid) }}" class="btn btn-warning">
-						<i aria-hidden="true" class="fa fa-pencil"></i> Edit
-					</a>
+					{{ qnotes.anyNotesExist(warehouse.itemid, warehouse.warehouseid)|yesorno|capitalize }}
+				</td>
+				<td>
+					{% if itmw.recordlocker.isLocked(itmw.get_warehouseitem_lockkey(warehouse)) == false or itmw.recordlocker.userHasLocked(itmw.get_warehouseitem_lockkey(warehouse)) %}
+						<a href="{{ page.itmUrlWhse(warehouse.itemid, warehouse.warehouseid) }}" class="btn btn-warning btn-sm">
+							<i aria-hidden="true" class="fa fa-pencil"></i> Edit
+						</a>
+					{% else %}
+						<span class="badge badge-secondary">
+							<i class="fa fa-lock" aria-hidden="true"></i> Locked By {{ itmw.recordlocker.getLockingUser(itmw.get_warehouseitem_lockkey(warehouse)) }}
+						</span>
+					{% endif %}
 				</td>
 			</tr>
 		{% endfor %}

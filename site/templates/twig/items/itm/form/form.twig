@@ -1,0 +1,66 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	item                   ItemMasterItem
+	itm                    module Itm
+	qnotes                 module QnotesItem
+#}
+
+<form action="{{ input.url() }}" method="POST" id="itm-form" data-itemID="{{ item.itemid }}">
+	<input type="hidden" name="action" value="update-itm">
+	<div class="row">
+		<div class="col-sm-8">
+			{% include 'items/itm/form/form-left.twig' %}
+		</div>
+
+		<div class="col-sm-4">
+			{% include 'items/itm/form/form-right.twig' %}
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-6">
+			<div class="form-group">
+				<div class="d-flex justify-content-between align-items-center">
+					<div>
+						<b>Notes - </b>
+					</div>
+					<div>
+						<b>Order:</b> {{ qnotes.notes.order.anyNotesExist(item.itemid) ? 'Y' : 'N' }}
+					</div>
+					<div>
+						<b>Internal:</b>  {{ qnotes.notes.internal.notes_exist(item.itemid) ? 'Y' : 'N' }}
+					</div>
+					<div>
+						<b>Revision:</b> {{ qnotes.notes.revision.notes_exist(item.itemid) ? 'Y' : 'N' }}
+					</div>
+					<div>
+						<b>Inspection:</b> {{ qnotes.notes.inspection.notes_exist(item.itemid) ? 'Y' : 'N' }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="d-flex justify-content-between align-items-center form-actions">
+		{#
+			Only show Edit Actions if the Item is
+			1. Locked for editing by the User
+			2. Is a new Item
+			NOTE: Only show delete if item already exists.
+		#}
+		{% if itm.recordlocker.userHasLocked(item.itemid) or item.isNew() %}
+			<button type="submit" class="btn btn-success">
+				<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
+			</button>
+			{% if item.isNew() == false %}
+				<a href="{{ page.itmDeleteUrl(item.itemid) }}" class="btn btn-danger delete-itm delete_button">
+					<i class="fa fa-trash-o" aria-hidden="true"></i> Delete
+				</a>
+			{% endif %}
+		{% endif %}
+		<a href="{{ page.itmListUrl(item.itemid) }}" class="btn btn-warning">
+			<i class="fa fa-times" aria-hidden="true"></i> Close
+		</a>
+	</div>
+</form>
+<hr>

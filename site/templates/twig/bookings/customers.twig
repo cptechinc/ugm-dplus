@@ -6,10 +6,10 @@
 		</tr>
 	</thead>
 	<tbody>
-		{% for customerbooking in customerbookings %}
+		{% for customerbooking in customers %}
 		<tr>
 			<td>
-				<a href="{{ page.get_bookings_customerURL(customerbooking.custid) }}" class="link">
+				<a href="{{ page.get_ci_customerURL(customerbooking.custid) }}" class="link">
 					{{ customerbooking.customer.name ? customerbooking.customer.name : customerbooking.custid }}
 				</a>
 			</td>

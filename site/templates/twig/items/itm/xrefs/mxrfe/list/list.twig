@@ -1,0 +1,52 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	mxrfe                  module XrefMxrfe
+	recordlocker           module RecordLockerUser
+	xrefs                  ItemXrefManufacturer[]|ObjectCollection
+#}
+{% set response = mxrfe.getResponse() %}
+
+<table class="table table-sm">
+	<thead>
+		<tr class="bg-dark text-white p-3">
+			<th class="pt-3 pb-3 align-middle">Mnfr / Comp ID</th>
+			<th class="pt-3 pb-3 align-middle">Mnfr / Comp Name</th>
+			<th class="pt-3 pb-3 align-middle">Mnfr / Comp Item ID</th>
+			<th class="pt-3 pb-3 text-center">
+				{% if itm.recordlocker.isLocked(item.itemid) == false or itm.recordlocker.userHasLocked(item.itemid) %}
+					<a href="{{ page.xrefUrl('', 'new', item.itemid) }}" class="btn btn-light btn-sm">
+						<i class="fa fa-plus" aria-hidden="true"></i> Add New
+					</a>
+				{% endif %}
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% if xrefs.count() == 0 %}
+			<tr class="text-center">
+				<td colspan="4">
+					No Mnfr X-refs
+				</td>
+			</tr>
+		{% endif %}
+
+		{% if xrefs.count() %}
+			{% for xref in xrefs %}
+				{% set class = mxrfe.get_recordlocker_key(xref) == input.get.text('focus') ? 'highlight' : '' %}
+				{% set class = (response.key == mxrfe.get_recordlocker_key(xref) and response.has_success()) ? 'bg-success text-white' : class %}
+				<tr class="{{ class }}" data-mxrfe="{{ mxrfe.get_recordlocker_key(xref) }}">
+					<td>{{ xref.mnfrid }}</td>
+					<td>{{ xref.vendor.name }}</td>
+					<td>{{ xref.mnfritemid }}</td>
+					<td class="text-center">
+						{% if itm.recordlocker.isLocked(item.itemid) == false or itm.recordlocker.userHasLocked(item.itemid) %}
+							{% include 'items/mxrfe/list/vendor/actions/edit.twig' %}
+						{% endif %}
+					</td>
+				</tr>
+			{% endfor %}
+		{% endif %}
+	</tbody>
+</table>

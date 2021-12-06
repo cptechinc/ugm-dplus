@@ -21,11 +21,11 @@
 
 <table class="table table-striped table-sm">
 	<tr>
-		<td>Sale UoM</td>
+		<td><b>Sale UoM</b></td>
 		<td>{{ json['sale uom'] }}</td>
 	</tr>
 	<tr>
-		<td>Base Price</td>
+		<td><b>Base Price</b></td>
 		<td>{{ json['base price'] }}</td>
 	</tr>
 </table>
@@ -41,7 +41,7 @@
 	<tbody>
 		{% for item in json['data']['sub items'] %}
 			<tr>
-				<td class="" colspan="2">{{ item['subitem'] }}</td>
+				<td class="" colspan="2">{{ item['sub item'] }}</td>
 				<td class="" colspan="2">{{ item['same/like'] }}</td>
 				<td class="" colspan="{{ json['columns']|length - 3 }}">{{ item['sub desc'] }}</td>
 				{% if item['alt items'] %}

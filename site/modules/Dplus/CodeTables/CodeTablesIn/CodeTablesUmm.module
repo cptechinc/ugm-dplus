@@ -43,6 +43,16 @@ class CodeTablesUmm extends WireData implements Module {
 	}
 
 	/**
+	 * Return the IDs for the Customer Price Code
+	 * @return array
+	 */
+	public function get_codes_ids() {
+		$q = $this->get_query();
+		$q->select(UnitofMeasureSale::get_aliasproperty('id'));
+		return $q->find()->toArray();
+	}
+
+	/**
 	 * Returns if Codes Exists
 	 * @param  string $productlne ProductLneID
 	 * @return bool
@@ -93,9 +103,12 @@ class CodeTablesUmm extends WireData implements Module {
 			$description = $input->$rm->text('description');
 			$conversion = $input->$rm->text('conversion');
 			$pricebyweight = $input->$rm->text('pricebyweight');
+			$stockbycase = $input->$rm->yn('stockbycase');
+
 			$record->setDescription($description);
 			$record->setConversion($conversion);
 			$record->setPricebyweight($pricebyweight);
+			$record->setStockbycase($stockbycase);
 			$record->setDate(date('Ymd'));
 			$record->setTime(date('His'));
 			$record->setDummy('P');
@@ -181,6 +194,14 @@ class CodeTablesUmm extends WireData implements Module {
 	 * @return int
 	 */
 	public function get_max_length_code() {
+		return UnitofMeasureSale::MAX_LENGTH_CODE;
+	}
+
+	/**
+	 * Return the MaxLength for the UMM code
+	 * @return int
+	 */
+	public function getCodeMaxlength() {
 		return UnitofMeasureSale::MAX_LENGTH_CODE;
 	}
 

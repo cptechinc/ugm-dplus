@@ -1,53 +1,13 @@
 <?php namespace ProcessWire;
 
+include_once(__DIR__.'/vendor/autoload.php');
+
 class Filters extends WireData implements Module {
-
-	const MODULE_ALIASES = array(
-		'salesorder' => 'FilterSalesOrders',
-		'sales-order' => 'FilterSalesOrders',
-		'saleshistory' => 'FilterSalesHistory',
-		'sales-history' => 'FilterSalesHistory',
-		'quote' => 'FilterQuotes',
-		'purchaseorder'  => 'FilterPurchaseOrder',
-		'purchase-order' => 'FilterPurchaseOrder',
-		'purchasehistory'  => 'FilterApInvoices',
-		'purchase-history' => 'FilterApInvoices',
-		'bookings' => 'FilterBookings',
-		'vendors'  => 'FilterVendors'
-	);
-
-	/**
-	 * Returns Filter Module
-	 * @param  string $module Filter Module Name
-	 * @return Module
-	 */
-	public function get_filter($module) {
-		$modules = $this->wire('modules');
-		$filter = self::MODULE_ALIASES[strtolower($module)];
-		return $modules->get($filter);
-	}
-
-	/**
-	 * ProcessWire Installer Function
-	 * NOTE: Runs when installed through ProcessWire
-	 * @return void
-	 */
-	public function ___install() {
-
-	}
-
-	/**
-	 * ProcessWire removal Function
-	 * NOTE: Runs when removed through ProcessWire
-	 * @return void
-	 */
-	public function ___uninstall() {
-
-	}
 
 	public function update() {
 		$info = self::getModuleInfo();
 		$modules = $this->wire('modules');
+		$modules->refresh();
 
 		foreach ($info['installs'] as $module_name) {
 			$modules->install($module_name);
@@ -55,14 +15,9 @@ class Filters extends WireData implements Module {
 	}
 
 
-	/* =============================================================
-		ProcessWire Module Functions
-	============================================================= */
-	/**
-	 * ProcessWire Module Info
-	 *
-	 * @return void
-	 */
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Filters Module',
@@ -71,8 +26,6 @@ class Filters extends WireData implements Module {
 			'singular' => true,
 			'autoload' => true,
 			'installs' => array(
-				'FilterSalesOrders',
-				'FilterSalesHistory',
 				'FilterQuotes',
 				'FilterPurchaseOrder',
 				'FilterApInvoices',
@@ -81,6 +34,8 @@ class Filters extends WireData implements Module {
 				'FilterItemXrefUpc',
 				'FilterItemMaster',
 				'FilterItemXrefVxm',
+				'FilterQnotes',
+				'FilterCountryCodes',
 			)
 		);
 	}

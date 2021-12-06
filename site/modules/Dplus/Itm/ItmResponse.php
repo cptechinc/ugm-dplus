@@ -1,7 +1,7 @@
 <?php namespace ProcessWire;
 
 /**
- * Volume
+ * ItmResponse
  * Handles Response Data for Itm functions
  *
  * @author Paul Gomez
@@ -16,6 +16,7 @@
  * @property bool    $saved_itm_whse     Was ITM Warehouse record Updated?
  * @property bool    $saved_itm_pricing  Was ITM Pricing record Updated?
  * @property bool    $saved_itm_costing  Was ITM Pricing record Updated?
+ * @property array   $fields             Key-Value array of fields that need attention
  *
  */
 class ItmResponse extends WireData {
@@ -23,6 +24,12 @@ class ItmResponse extends WireData {
 	const CRUD_CREATE = 1;
 	const CRUD_UPDATE = 2;
 	const CRUD_DELETE = 3;
+
+	const CRUD_DESCRIPTION = [
+		1 => 'created',
+		2 => 'updated',
+		3 => 'deleted'
+	];
 
 	public function __construct() {
 		$this->success = false;
@@ -35,6 +42,7 @@ class ItmResponse extends WireData {
 		$this->saved_itm_pricing = false;
 		$this->saved_itm_whse = false;
 		$this->saved_itm_costing = false;
+		$this->fields = array();
 	}
 
 	public function set_action(int $action = 0) {
@@ -83,5 +91,41 @@ class ItmResponse extends WireData {
 
 	public function set_saved_itm_costing(bool $saved) {
 		$this->saved_itm_costing = $saved;
+	}
+
+	public function set_fields(array $fields) {
+		$this->fields = $fields;
+	}
+
+	public function has_field($field) {
+		return array_key_exists($field, $this->fields);
+	}
+
+	public function build_message($template) {
+		$crud = self::CRUD_DESCRIPTION[$this->action];
+		$replace = ['{itemid}' => $this->itemID, '{not}' => $this->has_success() ? '' : 'not', '{crud}' => $crud];
+		if ($this->whseID) {
+			$replace['{whseid}'] = $this->whseID;
+		}
+		$msg = str_replace(array_keys($replace), array_values($replace), $template);
+		$this->message = $msg;
+	}
+
+	public static function response_error($itemID, $message) {
+		$response = new ItmResponse();
+		$response->itemID = $itemID;
+		$response->message = $message;
+		$response->set_error(true);
+		$response->set_success(false);
+		return $response;
+	}
+
+	public static function response_success($itemID, $message) {
+		$response = new ItmResponse();
+		$response->itemID = $itemID;
+		$response->message = $message;
+		$response->set_error(false);
+		$response->set_success(true);
+		return $response;
 	}
 }

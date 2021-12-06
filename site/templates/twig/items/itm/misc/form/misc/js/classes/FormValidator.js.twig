@@ -1,0 +1,20 @@
+class MiscFormValidator {
+	static instance = null;
+
+	static getInstance() {
+		if (this.instance === null) {
+			this.instance = new MiscFormValidator();
+		}
+		return this.instance;
+	}
+
+	constructor() {
+		this.form = null;
+	}
+
+	setForm(form) {
+		this.form = form;
+	}
+
+	
+}

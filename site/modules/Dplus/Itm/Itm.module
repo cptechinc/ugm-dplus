@@ -1,8 +1,13 @@
 <?php namespace ProcessWire;
 
 include_once(__DIR__.'/ItmResponse.php');
+include_once(__DIR__.'/vendor/autoload.php');
 
+// Purl URI
 use Purl\Url;
+
+use Dplus\CodeValidators\Min\Itm as ItmValidator;
+use Dplus\Filters\Min\ItemMaster as ItemMasterFilter;
 
 use ItemMasterItemQuery, ItemMasterItem;
 use ConfigInQuery, ConfigIn;
@@ -12,6 +17,12 @@ use InvCommissionCodeQuery, InvCommissionCode;
 use InvStockCodeQuery, InvStockCode;
 use InvSpecialCodeQuery, InvSpecialCode;
 
+// Dplus Configs
+use Dplus\Configs;
+
+// Dplus Record Locker
+use Dplus\RecordLocker\UserFunction as FunctionLocker;
+
 /**
  * Module that handles the editing of the UPC item Itm
  */
@@ -20,101 +31,88 @@ class Itm extends WireData implements Module {
 	const MODEL_KEY          = 'code';
 	const DESCRIPTION        = 'Item Master Item';
 	const DESCRIPTION_RECORD = 'Item Master Item';
+	const RECORDLOCKER_FUNCTION  = 'itm';
 
-	const TEMPLATES_ITM = array(
-		'itm',
-		'itm-pricing',
-		'itm-whse',
-		'itm-costing',
-		'itm-xrefs',
-		'itm-search'
-	);
+	const FIELD_ATTRIBUTES = [
+		'itemID'           => ['type' => 'text', 'maxlength' => 30],
+		'description1'     => ['type' => 'text', 'maxlength' => 35],
+		'description2'     => ['type' => 'text', 'maxlength' => 35],
+		'revision'         => ['type' => 'text', 'maxlength' => 10],
+		'custID'           => ['type' => 'text', 'maxlength' => 6],
+		'weight'           => ['type' => 'number', 'precision' => 5, 'max'  => 9999999.99999],
+		'cubes'            => ['type' => 'number', 'precision' => 4, 'max'  => 9999999.9999],
+		'grams'            => ['type' => 'number', 'precision' => 5, 'conversion' => 453.6],
+		'minmarginbase'    => ['type' => 'text', 'default' => '%']
+	];
+
+	/**
+	 * Return Field Attribute value
+	 * @param  string $field Field Name
+	 * @param  string $attr  Attribute Name
+	 * @return mixed|bool
+	 */
+	public function fieldAttribute($field = '', $attr = '') {
+		if (empty($field) || empty($attr)) {
+			return false;
+		}
+		if (array_key_exists($field, self::FIELD_ATTRIBUTES) === false) {
+			return false;
+		}
+		if (array_key_exists($attr, self::FIELD_ATTRIBUTES[$field]) === false) {
+			return false;
+		}
+		return self::FIELD_ATTRIBUTES[$field][$attr];
+	}
 
 	public function __construct() {
 		$this->description = self::DESCRIPTION;
-		$this->configs = new WireData();
-		$this->configs->inventory = false;
 	}
 
-	public function init() {
-		$templates = implode('|', self::TEMPLATES_ITM);
-
-		$this->addHook("Page(pw_template=$templates)::itmURL", function($event) {
-			$itemID = $event->arguments(0);
-			$event->return = $this->get_itmURL($itemID);
-		});
-
-		$this->addHook("Page(pw_template=$templates)::itm_deleteURL", function($event) {
-			$itemID = $event->arguments(0);
-			$event->return = $this->get_itm_deleteURL($itemID);
-		});
-
-		$this->addHook("Page(pw_template=$templates)::get_itemURL", function($event) {
-			$itemID = $event->arguments(0);
-			$event->return = $this->get_itmURL($itemID);
-		});
-
-		$this->addHookProperty("Page(pw_template=$templates)::itemID", function($event) {
-			$p = $event->object;
-			$event->return = $p->fullURL->query->get('itemID');
-		});
-
-		$this->addHook("Page(pw_template=$templates)::itm_pricingURL", function($event) {
-			$itemID = $event->arguments(0);
-			$event->return = $this->get_itm_pricingURL($itemID);
-		});
-
-		$this->addHook("Page(pw_template=$templates)::itm_warehouseURL", function($event) {
-			$itemID = $event->arguments(0);
-			$whseID = $event->arguments(1);
-			$event->return = $this->get_itm_warehouseURL($itemID, $whseID);
-		});
-
-		$this->addHook("Page(pw_template=$templates)::itm_warehouse_deleteURL", function($event) {
-			$itemID = $event->arguments(0);
-			$whseID = $event->arguments(1);
-			$event->return = $this->get_itm_warehouse_deleteURL($itemID, $whseID);
-		});
-
-		$this->addHook("Page(pw_template=$templates)::itm_costingURL", function($event) {
-			$itemID = $event->arguments(0);
-			$event->return = $this->get_itm_costingURL($itemID);
-		});
-
-		$this->addHook("Page(pw_template=$templates)::itemIDURL", function($event) {
-			$p = $event->object;
-			$itemID = $event->arguments(0);
-			$url = new Url($p->url);
-			$url->query->set('itemID', $itemID);
-			$event->return = $url->getUrl();
-		});
-
-		$this->addHookProperty("Page(pw_template=$templates)::lockcode", function($event) {
-			$p = $event->object;
-			$lockcode = $p->pw_template;
-
-			switch ($p->pw_template) {
-				case 'itm-costing':
-				case 'itm-pricing':
-					$lockcode = 'itm';
-					break;
-				default:
-					$lockcode = $p->pw_template;
-			}
-			$event->return = $lockcode;
-		});
+	/**
+	 * Returns ItemMasterItemQuery
+	 * @return ItemMasterItemQuery
+	 */
+	public function query() {
+		return ItemMasterItemQuery::create();
 	}
 
-	public function init2() {
-		$this->configs->inventory = $this->get_config_in();
+	/**
+	 * Return Query Filtered by Item ID
+	 * @param  string $itemID Item ID
+	 * @return ItemMasterItemQuery
+	 */
+	public function queryItemid($itemID) {
+		$configIn = $this->configIn();
+		if ($configIn->useUppercaseItemid()) {
+			$itemID = strtoupper($itemID);
+		}
+		$q = $this->query();
+		$q->filterByitemid($itemID);
+		return $q;
 	}
 
+	/**
+	 * Return Item ID as configured
+	 * @param  string $itemID
+	 * @return string
+	 */
+	public function itemid($itemID) {
+		$configIn = Configs\In::config();
+		if ($configIn->useUppercaseItemid() === false) {
+			return $itemID;
+		}
+		return strtoupper($itemID);
+	}
+
+/* =============================================================
+	CRUD Read, Validate Functions
+============================================================= */
 	/**
 	 * Return ItemMasterItem[]
 	 * @return ItemMasterItem[]|ObjectCollection
 	 */
 	public function get_items() {
-		$q = $this->get_query();
+		$q = $this->query();
 		return $q->find();
 	}
 
@@ -124,8 +122,16 @@ class Itm extends WireData implements Module {
 	 * @return bool
 	 */
 	public function item_exists($itemID) {
-		$q = $this->get_query();
-		$q->filterByItemid($itemID);
+		return $this->exists($itemID);
+	}
+
+	/**
+	 * Return if Item Exists
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function exists($itemID) {
+		$q = $this->queryItemid($itemID);
 		return boolval($q->count());
 	}
 
@@ -135,17 +141,17 @@ class Itm extends WireData implements Module {
 	 * @return ItemMasterItem
 	 */
 	public function get_item($itemID) {
-		$q = $this->get_query();
-		$q->filterByItemid($itemID);
-		return $q->findOne();
+		return $this->item($itemID);
 	}
 
 	/**
-	 * Returns ItemMasterItemQuery
-	 * @return ItemMasterItemQuery
+	 * Return ItemMasterItem
+	 * @param  string $itemID Item ID
+	 * @return ItemMasterItem
 	 */
-	public function get_query() {
-		return ItemMasterItemQuery::create();
+	public function item($itemID) {
+		$q = $this->queryItemid($itemID);
+		return $q->findOne();
 	}
 
 	/**
@@ -153,35 +159,28 @@ class Itm extends WireData implements Module {
 	 * @param  string $itemID Item ID
 	 * @return ItemMasterItem
 	 */
-	public function get_create_item($itemID) {
-		if ($this->item_exists($itemID)) {
-			$record = $this->get_item($itemID);
-		} else {
-			$record = $this->get_new_item();
+	public function getCreateItem($itemID) {
+		if ($this->exists($itemID)) {
+			return $this->item($itemID);
+		}
+		$configIn = $this->configIn();
+		$itemID = substr($itemID, 0, ItemMasterItem::LENGTH_ITEMID);
+		$itemID = $configIn->useUppercaseItemid() ? strtoupper($itemID) : $itemID;
+		$record = $this->newItem();
+		if (strtolower($itemID) != 'new') {
 			$record->setItemid($itemID);
 		}
 		return $record;
 	}
 
 	/**
-	 * Returns Item with Defaults Set
+	 * Return Item
+	 * NOTE: uses default values from IN config
 	 * @return ItemMasterItem
 	 */
-	public function get_new_item() {
+	public function newItem() {
+		$configIn = $this->configIn();
 		$item = new ItemMasterItem();
-		$this->configs->inventory = $this->get_config_in();
-
-		$item->setItemgroup($this->configs->inventory->default_itemgroup);
-
-		if ($this->configs->inventory->use_pricegroup()) {
-			$item->setPricecode($this->configs->inventory->default_pricegroup);
-		}
-
-		if ($this->configs->inventory->use_commgroup()) {
-			$item->setCommissiongroup($this->configs->inventory->default_commgroup);
-		}
-
-		$item->setItemtype($this->configs->inventory->default_itemtype);
 
 		$item->setTaxable('Y');
 		$item->setAllow_backorder('Y');
@@ -189,13 +188,31 @@ class Itm extends WireData implements Module {
 		$item->setRequire_freight('N');
 		$item->setCore('N');
 		$item->setSplitorder('Y');
+		$item->setMinmarginbase($this->fieldAttribute('minmarginbase', 'default'));
+		$item->setInspection('N');
+		$item->setQtypercase(1);
+		$item->setDummy('P');
 
-		$item->setUom_sale($this->configs->inventory->default_uom_sale);
-		$item->setUom_purchase($this->configs->inventory->default_uom_purchase);
-		$item->setPreference($this->configs->inventory->default_nafta_pref_code);
-		$item->setProducer($this->configs->inventory->default_nafta_producer);
-		$item->setDocumentation($this->configs->inventory->default_nafta_documentation);
-		$item->setBasestandardcost($this->configs->inventory->default_base_standard_cost);
+		// CONFIG IN DEFAULTS
+		$item->setItemgroup($configIn->default_itemgroup);
+
+		if ($configIn->use_pricegroup()) {
+			$pricegroup = $configIn->use_itemgroup_as_pricegroup() ? $item->itemgroup : $configIn->default_pricegroup;
+			$item->setPricecode($pricegroup);
+		}
+
+		if ($configIn->use_commgroup()) {
+			$commgroup = $configIn->use_itemgroup_as_commgroup() ? $item->itemgroup : $configIn->default_commgroup;
+			$item->setCommissiongroup($commgroup);
+		}
+
+		$item->setItemtype($configIn->default_itemtype);
+		$item->setUom_sale($configIn->default_uom_sale);
+		$item->setUom_purchase($configIn->default_uom_purchase);
+		$item->setPreference($configIn->default_nafta_pref_code);
+		$item->setProducer($configIn->default_nafta_producer);
+		$item->setDocumentation($configIn->default_nafta_documentation);
+		$item->setBasestandardcost($configIn->default_base_standard_cost);
 
 		if ($this->wire('modules')->get('DplusCustomer')->get_custID() == 'LINDST') {
 			$item->setStockcode('MM');
@@ -203,154 +220,218 @@ class Itm extends WireData implements Module {
 		return $item;
 	}
 
+/* =============================================================
+	CRUD Processing Functions
+============================================================= */
 	/**
-	 * Takes Input, validates it's for one of the code tables
-	 * Processes it, and if updated sends request to dplus
+	 * Takes Input, processses the action, calls the process_input
 	 *
 	 * @param  WireInput $input Input
 	 * @return void
 	 */
 	public function process_input(WireInput $input) {
 		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
 
-		if ($input->$rm->text('action') == 'update-notes' || $input->$rm->text('action') == 'delete-notes') {
-			$module_notes = $this->wire('modules')->get('QnotesItem');
-			$module_notes->process_input($input);
-		} else {
-			$this->process_input_itm($input);
+		switch ($values->text('action')) {
+			case 'update-notes':
+			case 'delete-notes':
+				$qnotes = $this->wire('modules')->get('QnotesItem');
+				$qnotes->process_input($input);
+				break;
+			case 'delete-itm':
+				$this->inputDelete($input);
+				break;
+			case 'update-itm':
+				$this->inputUpdate($input);
+				break;
+			default:
+				$itemID = $values->text('itemID');
+				$message = self::DESCRIPTION_RECORD . " ($itemID) was not saved, no action was specified";
+				$response = ItmResponse::response_error($itemID, $message);
+				$this->wire('session')->setFor('response', 'itm', $response);
+				break;
 		}
 	}
 
 	/**
-	 * Takes Input, validates it's for an Item
-	 * Updates Item
-	 * Processes it, and if updated sends request to dplus
-	 *
-	 * @param  WireInput $input Input
-	 * @return void
+	 * Delete Item
+	 * @param  WireInput $input Input Data
+	 * @return bool
 	 */
-	public function process_input_itm(WireInput $input) {
-		$this->configs->inventory = $this->get_config_in();
-		$recordlocker = $this('modules')->get('RecordLockerUser');
+	private function inputDelete(WireInput $input) {
 		$rm = strtolower($input->requestMethod());
 		$values = $input->$rm;
-		$itemID = strtoupper($input->$rm->text('itemID'));
-		$record = $this->get_create_item($itemID);
+		$itemID = $values->text('itemID');
 
-		/**
-		 * Create lock for ITM code if not already locked.
-		 */
-		if (!$recordlocker->function_locked('itm', $itemID)) {
-			$recordlocker->create_lock('itm', $itemID);
+		if ($this->exists($itemID) === false) {
+			return true;
+		}
+		$this->lockrecord($itemID);
+
+		if ($this->recordlocker->userHasLocked($itemID) === false) {
+			$message = self::DESCRIPTION_RECORD . " ($itemID)  was not saved, it is locked by " . $this->recordlocker->getLockingUser($itemID);
+			$response = ItmResponse::response_error($itemID, $message);
+			$this->wire('session')->setFor('response', 'itm', $response);
+			return false;
+		}
+		$record = $this->item($itemID);
+		$this->request_item_delete($record->itemid);
+		$response = $this->verify_delete($itemID);
+
+		if ($response->has_success()) {
+			$record->delete();
 		}
 
-		if ($record->isNew() || $recordlocker->function_locked_by_user('itm', $itemID)) {
-			if ($values->text('action') == 'remove-itm-item') {
-				$record->delete();
-			} elseif ($values->text('action') == 'update-itm') {
+		$this->wire('session')->setFor('response', 'itm', $response);
+		return $response->has_success();
+	}
 
-				$record->setDescription($values->text('description'));
-				$record->setDescription2($values->text('description2'));
-				$record->setRevision($values->text('revision'));
-				$record->setTimefence($values->text('itemfence'));
-				$record->setQtypercase($values->int('qtypercase'));
+	/**
+	 * Update Item from Input Data
+	 * @param  WireInput $input Input Data
+	 * @return bool
+	 */
+	private function inputUpdate(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$configIn = $this->configIn();
 
-				$record->setAllow_backorder($values->yn('allow_backorder'));
-				$record->setSplitorder($values->yn('splitorder'));
-				$record->setInspection($values->yn('inspection'));
-				$record->setTaxable($values->yn('taxable'));
-				$this->set_validated_fields($record, $input);
-			}
+		$itemID = $configIn->useUppercaseItemid() ? strtoupper($values->text('itemID')) : $values->text('itemID');
+		$record = $this->getCreateItem($itemID);
+		$invalidfields = array();
 
-			if ($values->action) {
-				$response = $this->save_and_process_response($record);
-				$response->set_saved_itm($response->success);
+		$this->lockrecord($itemID);
 
-				if ($values->text('action') == 'remove-itm-item') {
-					$response = $this->verify_delete($itemID);
-					$this->wire('page')->fullURL->query->remove('itemID');
-				} else {
-					$this->wire('page')->fullURL->query->set('itemID', $record->itemid);
-				}
-			} else {
-				$response = new ItmResponse();
-				$response->set_itemID($record->itemid);
-				$response->set_error(true);
-				$response->set_action(ItmResponse::CRUD_UPDATE);
-				$message = self::DESCRIPTION_RECORD . " ($record->itemid) was not saved, no action was specified";
-				$response->set_message($message);
-			}
-		} else {
-			$response = new ItmResponse();
-			$response->set_itemID($record->itemid);
+		if ($record->isNew() === false && $this->recordlocker->userHasLocked($itemID) === false) {
+			$message = self::DESCRIPTION_RECORD . " ($itemID)  was not saved, it is locked by " . $this->recordlocker->getLockingUser($itemID);
+			$response = ItmResponse::response_error($itemID, $message);
+		}
+
+		$invalidfields = $this->setItemFields($record, $input);
+		$response = $this->save_and_respond($record, $invalidfields);
+
+		if ($invalidfields) {
 			$response->set_error(true);
-			$response->set_action(ItmResponse::CRUD_UPDATE);
-			$message = self::DESCRIPTION_RECORD . " ($record->itemid)  was not saved, it is locked by " . $recordlocker->get_locked_user('itm', $itemID);
-			$response->set_message($message);
+			$response->set_success(false);
+			$response->set_saved_itm(false);
+			$response->set_message("$itemID was not saved to Dplus");
+		} else {
+			$response->set_saved_itm($response->success);
 		}
-		$this->wire('session')->response_itm = $response;
+
+		$this->wire('session')->setFor('response', 'itm', $response);
+		return $response->has_success();
+	}
+
+	/**
+	 * Sets Item Values
+	 * @param ItemMasterItem $record Item Master Item
+	 * @param WireInput      $input  Input Data
+	 */
+	protected function setItemFields(ItemMasterItem $record, WireInput $input) {
+		$configIn = $this->configIn();
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$invalidfields = array();
+
+		$record->setRevision($values->text('revision', ['maxLength' => $this->fieldAttribute('revision', 'maxlength')]));
+		$record->setTimefence($values->text('itemfence'));
+		$record->setAllow_backorder($values->yn('allow_backorder'));
+		$record->setSplitorder($values->yn('splitorder'));
+		$record->setInspection($values->yn('inspection'));
+		$record->setTaxable($values->yn('taxable'));
+		$record->setRequire_freight($values->yn('require_freight'));
+		$record->setCubes($values->float('cubes', ['precision' => $this->fieldAttribute('cubes', 'precision')]));
+		$record->setWeight($values->float('weight', ['precision' => $this->fieldAttribute('weight', 'precision')]));
+
+		$description1 = $values->text('description', ['maxLength' => $this->fieldAttribute('description1', 'maxlength')]);
+		$description2 = $values->text('description2', ['maxLength' => $this->fieldAttribute('description2', 'maxlength')]);
+		$record->setDescription($configIn->useUppercaseItemDescription() ? strtoupper($description1) : $description1);
+		$record->setDescription2($configIn->useUppercaseItemDescription() ? strtoupper($description2) : $description2);
+
+		if ($this->configIn()->useLiters()) {
+			$record->setLiters($values->float('liters'));
+		}
+		// Set Packaging Fields
+		$record->setQty_pack_inner($values->float('innerpack'));
+		$record->setQty_pack_outer($values->float('outerpack'));
+		$record->setQty_tare($values->float('qtytare'));
+		$record->setQtypercase($values->float('qtypercase'));
+		$record->setDate(date('Ymd'));
+		$record->setTime(date('his'));
+		$invalidfields = $this->setValidatedFields($record, $input);
+		return $invalidfields;
 	}
 
 	/**
 	 * Updates the fields that need to be validated against a table
-	 * @param ItemMasterItem $record Item
-	 * @param WireInput      $input  Input Values
+	 * @param  ItemMasterItem $record Item
+	 * @param  WireInput      $input  Input Values
+	 * @return array                  Invalid Input fields, empty if none
 	 */
-	protected function set_validated_fields(ItemMasterItem $record, WireInput $input) {
-		$rm = strtolower($input->requestMethod());
-		$values = $input->$rm;
-		$modules = $this->wire('modules');
+	protected function setValidatedFields(ItemMasterItem $record, WireInput $input) {
+		$configIn = $this->configIn();
+		$invalid = array();
+		$fields = array(
+			'custid' => array(
+				'description' => 'Cust ID',
+				'input'       => 'custID',
+				'allow_blank' => true
+			),
+			'itemtype' => array(
+				'description' => 'Item Type',
+				'input'       => 'itemtype',
+				'allow_blank' => false
+			),
+			'stockcode' => array(
+				'description' => 'Stock Code',
+				'input'       => 'stockcode',
+				'allow_blank' => true
+			),
+			'itemgroup' => array(
+				'description' => 'Item Group',
+				'input'       => 'itemgroup',
+				'allow_blank' => false
+			),
+			'specialitem' => array(
+				'description' => 'Special Item Code',
+				'input'       => 'specialitemcode',
+				'allow_blank' => true
+			),
+		);
 
-		// VALIDATE with Respective tables
-		$validate_custid = $modules->get('LookupCustomer');
-		$custID = $input->$rm->text('custid');
-		if ($validate_custid->lookup_customer($custID)) {
-			$record->setCustid($custID);
+		if ($configIn->use_pricegroup()) {
+			$fields['pricecode'] = array(
+				'description' => 'Price Code',
+				'input'       => 'pricecode',
+				'allow_blank' => true
+			);
 		}
-
-		if (in_array($input->$rm->text('itemtype'), array_keys(ItemMasterItem::ITEMTYPE_DESCRIPTIONS))) {
-			$record->setItemtype($values->text('itemtype'));
+		if ($configIn->use_commgroup()) {
+			$fields['commissiongroup'] = array(
+				'description' => 'Comission Group',
+				'input'       => 'commissiongroup',
+				'allow_blank' => true
+			);
 		}
-
-		$validate_stockcode = $modules->get('CodeTablesStcm');
-		$stockcode = $values->text('stockcode');
-
-		if ($validate_stockcode->code_exists($stockcode)) {
-			$record->setStockcode($stockcode);
-		}
-
-		$validate_itemgroup = $modules->get('CodeTablesIgm');
-		$itemgroup = $values->text('itemgroup');
-
-		if ($validate_itemgroup->code_exists($itemgroup)) {
-			$record->setItemgroup($itemgroup);
-		}
-
-		if ($this->configs->inventory->use_pricegroup()) {
-			$validate_pricecode = $modules->get('CodeTablesIgpm');
-			$pricecode = $values->text('pricecode');
-
-			if ($validate_pricecode->code_exists($pricecode)) {
-				$record->setPricecode($pricecode);
-			}
-		}
-
-		if ($this->configs->inventory->use_commgroup()) {
-			$validate_commissiongroup = $modules->get('CodeTablesIgcm');
-			$commissiongroup = $values->text('commissiongroup');
-
-			if ($validate_commissiongroup->code_exists($commissiongroup)) {
-				$record->setCommissiongroup($commissiongroup);
-			}
-		}
+		$validator = $this->wire('modules')->get('InputValidator');
+		$validator->set_validator((new ItmValidator()))->set_input($input)->set_record($record)->set_validatefields($fields);
+		$invalid = $validator->validate();
+		$validator->set_valid_properties();
+		return $invalid;
 	}
 
+/* =============================================================
+	CRUD Response Functions
+============================================================= */
 	/**
 	 * Returns ItmResponse based on the outcome of the database save
-	 * @param  ItemMasterItem $record Record to record response of database save
+	 * @param  ItemMasterItem $record        Record to record response of database save
+	 * @param  array          $invalidfields Input fields that require attention
 	 * @return ItmResponse
 	 */
-	protected function save_and_process_response(ItemMasterItem $record) {
+	public function save_and_respond(ItemMasterItem $record, array $invalidfields = []) {
 		$is_new = $record->isDeleted() ? false : $record->isNew();
 		$saved  = $record->isDeleted() ? $record->isDeleted() : $record->save();
 
@@ -378,26 +459,128 @@ class Itm extends WireData implements Module {
 
 		$response->set_message($message);
 
-		if ($response->has_success()) {
+		if ($response->has_success() && empty($invalidfields)) {
 			if ($record->isDeleted()) {
-				$this->delete_dplus_cobol($record->itemid);
+				$this->request_item_delete($record->itemid);
 			} else {
-				$this->update_dplus_cobol($record->itemid);
+				$this->request_item_update($record->itemid);
 			}
 		}
+		$response->set_fields($invalidfields);
 		return $response;
 	}
 
 	/**
-	 * Accessory Functions
+	 * Set Session Response
+	 * @param ItmResponse $response
 	 */
+	public function setResponse(ItmResponse $response) {
+		$this->wire('session')->setFor('response', 'itm', $response);
+	}
 
 	/**
-	  * Returns IN config
-	  * @return ConfigIn
-	  */
-	public function get_config_in() {
-		return ConfigInQuery::create()->findOne();
+	 * Get Session Response
+	 * @return ItmResponse|null
+	 */
+	public function getResponse() {
+		return $this->wire('session')->getFor('response', 'itm');
+	}
+
+	/**
+	 * Delete Session Response
+	 */
+	public function deleteResponse() {
+		$this->wire('session')->removeFor('response', 'itm');
+	}
+
+/* =============================================================
+	Dplus Cobol Request Functions
+============================================================= */
+	private function request_dplus(array $data) {
+		$config = $this->wire('config');
+		$dplusdb = $this->wire('modules')->get('DplusDatabase')->db_name;
+		$data = array_merge(["DBNAME=$dplusdb"], $data);
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		$requestor->cgi_request($config->cgis['database'], session_id());
+	}
+
+	/**
+	 * Writes File for Dplus to update the ITM file for this ITEM
+	 * @param  string $itemID Item ID
+	 * @return void
+	 */
+	public function request_item_update($itemID) {
+		$data = array('UPDATEITM', "ITEMID=$itemID");
+		$this->request_dplus($data);
+	}
+
+	/**
+	 * Writes File for Dplus to delete the ITM file for this ITEM
+	 * @param  string $itemID Item ID
+	 * @return void
+	 */
+	private function request_item_delete($itemID, $debug = false) {
+		$data = array('DELETEITM', "ITEMID=$itemID");
+		$this->request_dplus($data);
+	}
+
+	/**
+	 * Return if Item was able to be deleted
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	private function verify_delete($itemID) {
+		$m_json = $this->wire('modules')->get('JsonDataFiles');
+		$json = $m_json->get_file(session_id(), 'itm-delete');
+		$response = new ItmResponse();
+		$response->set_itemID($itemID);
+		$response->set_action(ItmResponse::CRUD_DELETE);
+		$message = self::DESCRIPTION_RECORD . " ($itemID) was ";
+
+		if ($m_json->had_succeeded()) {
+			if ($json['itemid'] != $itemID) {
+				$response->set_error(true);
+				$message .= "not deleted";
+			} elseif ($json['error'] === true) {
+				$response->set_error(true);
+				$message .= "not deleted";
+			} else {
+				$response->set_success(true);
+				$message .= "deleted";
+			}
+		} else {
+			$response->set_error(true);
+			$message .= "not deleted";
+		}
+
+		if ($json['error']) {
+			$message .= " Error: " . $json['errormsg'];
+		}
+		$response->set_message($message);
+		return $response;
+	}
+
+/* =============================================================
+	Supplemental Functions
+============================================================= */
+	/**
+	 * Lock Record, validate User is locking Record
+	 * @param  string $itemID ItemID
+	 * @return bool
+	 */
+	public function lockrecord($itemID) {
+		if ($this->recordlocker->isLocked($itemID) === false) {
+			$this->recordlocker->lock($itemID);
+		}
+		return $this->recordlocker->userHasLocked($itemID);
+	}
+	/**
+	 * Returns IN config
+	 * @return ConfigIn
+	 */
+	public function configIn() {
+		return Configs\In::config();
 	}
 
 	/**
@@ -441,143 +624,72 @@ class Itm extends WireData implements Module {
 	}
 
 	/**
-	 * Return URL to view / edit Item
-	 * @param  string $itemID
-	 * @return string
+	 * Return if Field has Error
+	 * NOTE: Uses $session->response_itm->fields to derive this
+	 * @param  string $inputname Input name e.g. commissiongroup
+	 * @return bool
 	 */
-	public function get_itmURL($itemID) {
-		$url = new Url($this->wire('pages')->get("pw_template=itm")->url);
-		$url->query->set('itemID', $itemID);
-		return $url->getUrl();
+	public function field_has_error($inputname) {
+		$response = $this->wire('session')->getFor('response', 'itm');
+		return ($response) ? array_key_exists($inputname, $response->fields) : false;
 	}
 
+/* =============================================================
+	Item Functions
+============================================================= */
 	/**
-	 * Return URL to view / edit Item
-	 * @param  string $itemID
-	 * @return string
-	 */
-	public function get_itm_deleteURL($itemID) {
-		$url = new Url($this->wire('pages')->get("pw_template=itm")->url);
-		$url->query->set('action', 'remove-itm-item');
-		$url->query->set('itemID', $itemID);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return URL to view / edit Item Pricing
-	 * @param  string $itemID
-	 * @return string
-	 */
-	public function get_itm_pricingURL($itemID) {
-		$url = new Url($this->wire('pages')->get("pw_template=itm-pricing")->url);
-		$url->query->set('itemID', $itemID);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return URL to view / edit Item Warehouse
-	 * @param  string $itemID
-	 * @param  string $whseID
-	 * @return string
-	 */
-	public function get_itm_warehouseURL($itemID, $whseID) {
-		$url = new Url($this->wire('pages')->get("pw_template=itm-whse")->url);
-		$url->query->set('itemID', $itemID);
-		$url->query->set('whseID', $whseID);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return URL to view / edit Item Warehouse
-	 * @param  string $itemID
-	 * @param  string $whseID
-	 * @return string
-	 */
-	public function get_itm_warehouse_deleteURL($itemID, $whseID) {
-		$url = new Url($this->wire('pages')->get("pw_template=itm-whse")->url);
-		$url->query->set('action', 'remove-itm-whse');
-		$url->query->set('itemID', $itemID);
-		$url->query->set('whseID', $whseID);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return URL to view / edit Item Costing
-	 * @param  string $itemID
-	 * @return string
-	 */
-	public function get_itm_costingURL($itemID) {
-		$url = new Url($this->wire('pages')->get("pw_template=itm-costing")->url);
-		$url->query->set('itemID', $itemID);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Writes File for Dplus to update the ITM file for this ITEM
-	 * @param  string $itemID Item ID
-	 * @return void
-	 */
-	public function update_dplus_cobol($itemID) {
-		$config = $this->wire('config');
-		$dplusdb = $this->wire('modules')->get('DplusConnectDatabase')->db_name;
-		$data = array("DBNAME=$dplusdb", 'UPDATEITM', "ITEMID=$itemID");
-
-		$requestor = $this->wire('modules')->get('DplusRequest');
-		$requestor->write_dplusfile($data, session_id());
-		$requestor->cgi_request($config->cgis['database'], session_id());
-	}
-
-	/**
-	 * Writes File for Dplus to delete the ITM file for this ITEM
-	 * @param  string $itemID Item ID
-	 * @return void
-	 */
-	public function delete_dplus_cobol($itemID, $debug = false) {
-		$config = $this->wire('config');
-		$dplusdb = $this->wire('modules')->get('DplusConnectDatabase')->db_name;
-		$data = array("DBNAME=$dplusdb", 'DELETEITM', "ITEMID=$itemID");
-
-		$requestor = $this->wire('modules')->get('DplusRequest');
-		$requestor->write_dplusfile($data, session_id());
-		$requestor->cgi_request($config->cgis['database'], session_id());
-	}
-
-	/**
-	 * Return if Item was able to be deleted
+	 * Return if Item Type for Item ID is normal (N)
 	 * @param  string $itemID Item ID
 	 * @return bool
 	 */
-	public function verify_delete($itemID) {
-		$m_json = $this->wire('modules')->get('JsonDataFiles');
-		$json = $m_json->get_file(session_id(), 'itm-delete');
-		$response = new ItmResponse();
-		$response->set_itemID($itemID);
-		$response->set_action(ItmResponse::CRUD_DELETE);
-		$message = self::DESCRIPTION_RECORD . " ($itemID) was ";
-
-		if ($m_json->had_succeeded()) {
-			if ($json['itemid'] != $itemID) {
-				$response->set_error(true);
-				$message .= "not deleted";
-			} elseif ($json['error'] === true) {
-				$response->set_error(true);
-				$message .= "not deleted";
-			} else {
-				$response->set_success(true);
-				$message .= "deleted";
-			}
-		} else {
-			$response->set_error(true);
-			$message .= "not deleted";
-		}
-
-		if ($json['error']) {
-			$message .= " Error: " . $json['errormsg'];
-		}
-		$response->set_message($message);
-		return $response;
+	public function is_item_normal($itemID) {
+		$q = $this->query();
+		return $q->is_item_normal($itemID);
 	}
 
+	/**
+	 * Return if Item Type for Item ID is lotted (L)
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function is_item_lotted($itemID) {
+		$q = $this->query();
+		return $q->is_item_lotted($itemID);
+	}
+
+	/**
+	 * Return if Item Type for Item ID is serialized (S)
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function is_item_serialized($itemID) {
+		$q = $this->query();
+		return $q->is_item_serialized($itemID);
+	}
+
+	/**
+	 * Return if Item Type for Item ID is lotted (S) or lotted (L)
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function is_item_lotserialized($itemID) {
+		$q = $this->query();
+		return ($q->is_item_serialized($itemID) || $this->is_item_lotted($itemID));
+	}
+
+	/**
+	 * Return if Item Type for Item ID is Price Only(P)
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function is_item_priceonly($itemID) {
+		$q = $this->query();
+		return $q->is_item_priceonly($itemID);
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Dplus ITM CRUD Manager',
@@ -585,6 +697,34 @@ class Itm extends WireData implements Module {
 			'summary' => 'Module for CRUD Methods for ITM',
 			'singular' => true,
 			'autoload' => true,
+			'installs' => array(
+				'ItmCosting',
+				'ItmPricing',
+				'ItmWarehouse',
+				'ItmXrefs',
+				'ItmMisc',
+				'ItmHazmat',
+			)
 		);
+	}
+
+	public function update() {
+		$info = self::getModuleInfo();
+		$modules = $this->wire('modules');
+		$modules->refresh();
+
+		foreach ($info['installs'] as $module_name) {
+			$modules->install($module_name);
+		}
+	}
+
+	/**
+	 * Set up Functions / Properties for pw_templated pages
+	 * @return void
+	 */
+	public function init() {
+		$this->recordlocker = new FunctionLocker();
+		$this->recordlocker->setFunction(self::RECORDLOCKER_FUNCTION);
+		$this->recordlocker->setUser($this->wire('user'));
 	}
 }

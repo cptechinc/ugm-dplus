@@ -1,3 +1,10 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	config                 ProcessWire\Config
+	configPo              ConfigPo
+#}
 <div class="list-group-item bg-light font-weight-bold">
 	{% block header %}
 		<div class="form-row">
@@ -11,16 +18,16 @@
 		</div>
 	{% endblock %}
 </div>
-{% if purchaseorders.count > 0 %}
-	{% for order in purchaseorders %}
-		<a href="{{ orderpage ~ '?ponbr=' ~ order.ordernumber }}" class="list-group-item list-group-item-action">
+{% if orders.count > 0 %}
+	{% for order in orders %}
+		<a href="{{ page.poUrl(order.ponbr) }}" class="list-group-item list-group-item-action">
 			<div class="row">
 				<div class="col">{{ order.ponbr }}</div>
 				<div class="col">{{ order.poref }}</div>
 				<div class="col">{{ order.shipfromid }}</div>
-				<div class="col text-right">$ {{ order.get_total()|currency }}</div>
-				<div class="col text-right">{{ convertdate(order.date_ordered) }}</div>
-				<div class="col text-right">{{ convertdate(order.date_expected) }}</div>
+				<div class="col text-right">$ {{ order.get_total()|number_format(configPo.decimal_places_cost) }}</div>
+				<div class="col text-right">{{ order.date_ordered|convertdate }}</div>
+				<div class="col text-right">{{ order.date_expected|convertdate }}</div>
 				<div class="col">{{ order.status()|capitalize }}</div>
 			</div>
 		</a>

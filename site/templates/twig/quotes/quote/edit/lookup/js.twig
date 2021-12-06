@@ -1,0 +1,155 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+#}
+$(function() {
+	var formHeader  = new HeaderForm();
+	var formAddItem = new AddItemForm();
+
+	var modal_ajax = $('#ajax-modal');
+
+/* =============================================================
+	Validation Functions
+============================================================= */
+	var validator = formAddItem.form.validate({
+		errorClass: "is-invalid",
+		validClass: "is-valid",
+		errorPlacement: function(error, element) {
+			error.insertAfter(element).addClass('invalid-feedback');
+		},
+		rules: {
+			itemID: {
+				required: true,
+				remote: {
+					url: '{{ page.jsonapiURL('inv/validate/itemid/') }}',
+					type: "get",
+					data: {
+						itemID: function() {
+							return $('#additemID').val();
+						},
+						jqv: 'true'
+					}
+				}
+			},
+			qty: {
+				required: true,
+				min: 1
+			}
+		},
+		submitHandler: function(form) {
+			var server = new EqoRequests();
+			server.validateItem(formAddItem.fields.itemid.val(), function(exists) {
+				if (exists) {
+					if (validator.element('#'+formAddItem.fields.qty.attr('id'))) {
+						form.submit();
+					} else {
+						formAddItem.fields.qty.focus();
+					}
+				} else {
+					formAddItem.validateGetItem();
+				}
+			});
+		}
+	});
+
+/* =============================================================
+	Event Functions
+============================================================= */
+	$("body").on('click', '.item-lookup-result', function(e) {
+		e.preventDefault();
+
+		var button = $(this);
+		var itemID = button.data('itemid');
+		formAddItem.fields.itemid.val(itemID);
+		formAddItem.fields.qty.focus();
+	});
+
+	$("body").on('change', '#add-item-form input[name=itemID]', function(e) {
+		var input = $(this);
+		formAddItem.validateGetItem();
+		if (validator.element('#'+input.attr('id'))) {
+			if (validator.element('#'+formAddItem.fields.qty.attr('id'))) {
+				formAddItem.form.submit();
+			} else {
+				formAddItem.fields.qty.focus();
+			}
+		}
+	});
+
+	// function validate_get_item() {
+	// 	var server = new EqoRequests();
+	// 	server.validateItemEntry(formAddItem.fields.itemid.val(), formHeader.fields.custid.val(), formHeader.fields.shiptoid.val(), function(response) {
+	// 		if (response.exists) {
+	// 			formAddItem.fields.itemid.addClass('is-valid');
+	// 			var server = new EqoRequests();
+	// 			server.itmItem(formAddItem.fields.itemid.val(), function(item) {
+	// 				if (item) {
+	// 					$('small.desc1').text(item.description);
+	// 					$('small.desc2').text(item.description2);
+	// 				}
+	// 			});
+	// 		} else if (response.matches.itm > 0) {
+	// 			var q = formAddItem.fields.itemid.val();
+	// 			formAddItem.fields.itemid.val('');
+	// 			var url = URI(formAddItem.fields.itemid.closest('.input-group').find('button').data('lookupurl'));
+	// 			url.addQuery('q', q);
+	// 			var modal_ajax = $('#ajax-modal');
+	// 			modal_ajax.find('.modal-title').text('Searching for ' + q);
+	// 			modal_ajax.resizeModal('xl');
+	// 			modal_ajax.modal('show');
+	// 			modal_ajax.find('.modal-body').loadin(url.toString(), function() {});
+	// 		} else {
+	// 			var alerts = EqoAlerts();
+	// 			alerts.notFound(formAddItem.fields.itemid.val(), function(useAdvancedSearch) {
+	// 				if (useAdvancedSearch === true) {
+	// 					var url = URI('');
+	// 					url.setQuery('q', formAddItem.fields.itemid.val());
+	// 					window.location.replace(url.toString());
+	// 				}
+	// 			});
+	// 		}
+	// 	});
+	// }
+
+/* =============================================================
+	Lookup Modal Functions
+============================================================= */
+	modal_ajax.on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var modal = $(this);
+		var url = button.data('lookupurl');
+
+		modal.attr('data-input', button.data('input'));
+		modal.find('.modal-title').text(button.attr('title'));
+		modal.resizeModal('xl');
+		modal.find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('submit', '#ajax-modal form', function(e) {
+		e.preventDefault();
+		var form = $(this);
+		var query = form.serialize();
+		var action = form.attr('action');
+		var search = form.find('input[name=q]').val();
+		var url = action + '?' + query;
+		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
+		form.closest('.modal').find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
+		e.preventDefault();
+		var href = $(this).attr('href');
+		modal_ajax.find('.modal-body').load(href);
+	});
+
+	$("body").on('click', '.item-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var itemID = button.data('itemid');
+		var modal = button.closest('.modal');
+		var input = $(modal.attr('data-input'));
+		input.val(itemID).change();
+		modal_ajax.modal('hide');
+	});
+});

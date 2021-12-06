@@ -1,12 +1,12 @@
 <?php
 	$modules->get('DpagesMvi')->init_vipage();
 	$html = $modules->get('HtmlWriter');
-	$lookup_vendor = $modules->get('LookupVendor');
+	$validate = new Dplus\CodeValidators\Map();
 
 	if ($input->get->vendorID) {
 		$vendorID = $input->get->text('vendorID');
 
-		if ($lookup_vendor->lookup_vendor($vendorID)) {
+		if ($validate->vendorid($vendorID)) {
 			$load_vendor = $modules->get('ViLoadVendorShipfrom');
 			$load_vendor->set_vendorID($vendorID);
 
@@ -20,7 +20,7 @@
 				$page->body .= $html->div('class=col-sm-2', $toolbar);
 				$page->body .= $html->div('class=col-sm-10', $header);
 			$page->body .= "</div>";
-
+			$config->po = Dplus\Configs\Po::config();
 			$page->body .= $config->twig->render('vendors/vi/vendor/purchase-orders-panel.twig', ['page' => $page, 'resultscount' => $vendor->countPurchaseOrders(), 'purchaseorders' => $load_vendor->get_purchaseorders(), 'purchase_orders_list' => $load_vendor->get_purchaseordersURL()]);
 			$page->body .= $config->twig->render('vendors/vi/vendor/invoices-panel.twig', ['page' => $page, 'resultscount' => $vendor->countApInvoices(), 'invoices' => $load_vendor->get_invoices(), 'purchase_history_list' => $load_vendor->get_invoicesURL()]);
 		} else {
@@ -39,12 +39,12 @@
 		if ($input->get->q) {
 			$q = strtoupper($input->get->text('q'));
 
-			if ($lookup_vendor->lookup_vendor($q)) {
-				$session->redirect($page->get_vi_vendorURL($q));
+			if ($validate->vendorid($q)) {
+				$session->redirect($page->choose_vendorURL($q), $http301);
 			}
 
 			$page->headline = "VI: Searching for '$q'";
-			$filter_vendors->filter_search($q);
+			$filter_vendors->search($q);
 		}
 
 		$filter_vendors->apply_sortby($page);

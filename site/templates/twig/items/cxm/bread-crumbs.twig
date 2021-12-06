@@ -1,0 +1,34 @@
+{% extends 'util/bread-crumbs.twig' %}
+
+{% set values = page.wire('input').get %}
+
+{% block current_page %}
+	{% if values.offsetExists('custID') %}
+		<li class="breadcrumb-item">
+			<a href="{{ page.custListUrl(values.text('custID')) }}">
+				<i class="fa fa-arrows" aria-hidden="true"></i> {{ page.has('dplus_function') ? page.dplus_function|upper : page.title }}
+			</a>
+		</li>
+		{% if (values.offsetExists('custitemID')) %}
+			<li class="breadcrumb-item">
+				<a href="{{ page.custUrl(values.text('custID')) }}">{{ values.text('custID') }}</a>
+			</li>
+			{% if values.text('custitemID') == 'new' %}
+				<li class="breadcrumb-item active" aria-current="page">Create X-ref</li>
+			{% else %}
+				<li class="breadcrumb-item active" aria-current="page">X-Ref: {{ values.text('custitemID')}}</li>
+			{% endif %}
+		{% else %}
+			{% if values.offsetExists('custID') %}
+				<li class="breadcrumb-item active" aria-current="page">{{ values.text('custID')}}</li>
+			{% endif %}
+		{% endif %}
+	{% elseif values.text('itemID') %}
+		<li class="breadcrumb-item">
+			<a href="{{ page.url }}">{{ page.title }}</a>
+		</li>
+		<li class="breadcrumb-item active" aria-current="page">Item: {{ values.text('itemID')}}</li>
+	{% else %}
+		<li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+	{% endif %}
+{% endblock %}

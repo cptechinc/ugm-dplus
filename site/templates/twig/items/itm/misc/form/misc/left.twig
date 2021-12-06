@@ -1,0 +1,192 @@
+<div class="form-group row">
+	<div class="col-sm-3">
+		<label for="tariffcode">Tariff Code</label>
+	</div>
+	<div class="col-sm-9">
+		<div class="row">
+			<div class="col-sm-3">
+				{% include 'util/bootstrap/form/input-group.twig' with {
+						'inputgroup': {
+							'type': 'prepend',
+							'size': 'sm',
+							'input': {
+								'name': 'tariffcode',
+								'value': item.tariffcode,
+								'addclasses': ['ajax-lookup'],
+								'attributes': {
+									'placeholder': '',
+									'aria-label':  'Tariff Code',
+									'data-ajaxfields': 'number,description,rate',
+									'data-api': 'inv',
+									'data-validate': 'tariff-code',
+								}
+							},
+							'button': {
+								'colorclass': 'btn-secondary',
+								'text': 'fa fa-search'|icon,
+								'attributes': {
+									'title': 'Search for / Choose Tariff Code',
+									'data-toggle': 'modal',
+									'data-target': '#ajax-modal',
+									'data-lookupurl': page.search_lookupURL('tariff-codes'),
+									'data-input': '#tariffcode',
+									'data-search': 'tariffcode',
+								}
+							}
+						}
+					}
+				%}
+			</div>
+			<div class="col-sm-9">
+				{% set tariffcode = item.getCodeTariff() %}
+				<div class="row">
+					<div class="col-sm-6">
+						<p class="form-control-plaintext form-control-sm tariffcode-number">{{ tariffcode.number }}</p>
+					</div>
+					<div class="col-sm-6">
+						<p class="form-control-plaintext form-control-sm tariffcode-rate">{{ tariffcode.duty_rate }} %</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<small class="form-text text-muted tariffcode-description">{{ tariffcode.description }}</small>
+	</div>
+</div>
+<div class="form-group row">
+	<div class="col-sm-3">
+		<label for="origincountry">Country of Origin</label>
+	</div>
+	<div class="col-sm-9">
+		<div class="row">
+			<div class="col-sm-3">
+				{% include 'util/bootstrap/form/input-group.twig' with {
+						'inputgroup': {
+							'type': 'prepend',
+							'size': 'sm',
+							'input': {
+								'name': 'origincountry',
+								'value': item.origincountry,
+								'addclasses': ['ajax-lookup'],
+								'attributes': {
+									'placeholder': '',
+									'aria-label':  'Country Code',
+									'data-ajaxfields': 'description',
+									'data-api': 'inv',
+									'data-validate': 'country-code',
+								}
+							},
+							'button': {
+								'colorclass': 'btn-secondary',
+								'text': 'fa fa-search'|icon,
+								'attributes': {
+									'title': 'Search for / Choose Country',
+									'data-toggle': 'modal',
+									'data-target': '#ajax-modal',
+									'data-lookupurl': page.search_lookupURL('country-codes'),
+									'data-input': '#origincountry',
+									'data-search': 'origincountry',
+								}
+							}
+						}
+					}
+				%}
+			</div>
+			<div class="col-sm-8">
+				{% set country = item.getCodeOriginCountry() %}
+				<p class="form-control-plaintext form-control-sm origincountry-description">{{ country.description }}</p>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="form-group row">
+	<div class="col-sm-3">
+		<label for="msdscode">MSDS Code</label>
+	</div>
+	<div class="col-sm-9">
+		<div class="row">
+			<div class="col-sm-3">
+				{% include 'util/bootstrap/form/input-group.twig' with {
+						'inputgroup': {
+							'type': 'prepend',
+							'size': 'sm',
+							'input': {
+								'name': 'msdscode',
+								'value': item.msdscode,
+								'addclasses': ['ajax-lookup'],
+								'attributes': {
+									'placeholder': '',
+									'aria-label':  'Msds Code',
+									'data-ajaxfields': 'description',
+									'data-api': 'inv',
+									'data-validate': 'msds-code',
+								}
+							},
+							'button': {
+								'colorclass': 'btn-secondary',
+								'text': 'fa fa-search'|icon,
+								'attributes': {
+									'title': 'Search for / Choose Msds Code',
+									'data-toggle': 'modal',
+									'data-target': '#ajax-modal',
+									'data-lookupurl': page.search_lookupURL('msds-codes'),
+									'data-input': '#msdscode',
+									'data-search': 'msdscode',
+								}
+							}
+						}
+					}
+				%}
+			</div>
+			<div class="col-sm-9">
+				{% set msds = item.getCodeMsds() %}
+				<p class="form-control-plaintext form-control-sm msdscode-description">{{ msds.description }}</p>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="form-group row">
+	<div class="col-sm-3">
+		<label for="freightcode">Motor Freight Code</label>
+	</div>
+	<div class="col-sm-9">
+		<div class="row">
+			<div class="col-sm-5">
+				{% include 'util/bootstrap/form/input-group.twig' with {
+						'inputgroup': {
+							'type': 'prepend',
+							'size': 'sm',
+							'input': {
+								'name': 'freightcode',
+								'value': item.freightcode,
+								'addclasses': ['ajax-lookup'],
+								'attributes': {
+									'placeholder': '',
+									'aria-label':  'Msds Code',
+									'data-ajaxfields': 'description',
+									'data-api': 'mso',
+									'data-validate': 'freight-code',
+								}
+							},
+							'button': {
+								'colorclass': 'btn-secondary',
+								'text': 'fa fa-search'|icon,
+								'attributes': {
+									'title': 'Search for / Choose Freight',
+									'data-toggle': 'modal',
+									'data-target': '#ajax-modal',
+									'data-lookupurl': page.search_lookupURL('freight-codes'),
+									'data-input': '#freightcode',
+									'data-search': 'freightcode',
+								}
+							}
+						}
+					}
+				%}
+			</div>
+			<div class="col-sm-7">
+				{% set freight = item.getCodeFreight() %}
+				<p class="form-control-plaintext form-control-sm freightcode-description">{{ freight.description }}</p>
+			</div>
+		</div>
+	</div>
+</div>

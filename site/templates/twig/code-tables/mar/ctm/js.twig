@@ -1,5 +1,52 @@
 $(function () {
-	$("#code-edit-form").validate({
+	var codeIDs = {{ m_ctm.get_codes_ids()|json_encode()|raw }};
+	var input_codeID = $('#code');
+	var form = $('#code-edit-form');
+
+/* =============================================================
+	Event Functions
+============================================================= */
+if (input_codeID.val() == '' ) {
+	$('#mail_list').val('N');
+	$('#gl_freight').val('7810');
+	$('#gl_misc').val('9830');
+	$('#gl_ar').val('1000');
+	$('#gl_cash').val('1102');
+	$('#gl_finance').val('9810');
+	$('#gl_discounts').val('7100');
+	$('.note-button').prop('disabled', true);
+}
+
+$("body").on("change", "input[name=code]", function(e) {
+	var input = $(this);
+	var code = input.val();
+
+	if (validate_codeID(form)) {
+
+	} else {
+		swal2.fire({
+			title: 'Customer Type ' + code + ' Exists',
+			text: 'Edit that Customer Type?',
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No',
+		}).then((result) => {
+			if (result.value) {
+				var url = URI('{{ page.url }}');
+				url.addQuery('code', code);
+				window.location.href = url.toString();
+			} else if (result.dismiss === Swal.DismissReason.cancel) {
+				window.location.href = '{{ page.url }}';
+			}
+		});
+	}
+});
+
+/* =============================================================
+	Validation Functions
+============================================================= */
+	var validator = form.validate({
 		errorClass: "is-invalid",
 		validClass: "is-valid",
 		errorPlacement: function(error, element) {
@@ -10,17 +57,95 @@ $(function () {
 				required: true,
 				maxlength: {{ typecode.get_max_length_code() }}
 			},
-			mail_list: 'required'
+			mail_list: 'required',
+			gl_sales: 'required',
+			gl_credits: 'required',
+			gl_cogs: 'required',
+			gl_freight: 'required',
+			gl_misc: 'required',
+			gl_ar: 'required',
+			gl_cash: 'required',
+			gl_finance: 'required',
+			gl_discounts: 'required'
 		},
 		messages: {
 			code: "Please review your code (Max Length: {{ typecode.get_max_length_code() }})",
+			mail_list: "Please select an option",
+			gl_sales: "Please select an account",
+			gl_credits: "Please select an account",
+			gl_cogs: "Please select an account",
+			gl_freight: "Please select an account",
+			gl_misc: "Please select an account",
+			gl_ar: "Please select an account",
+			gl_cash: "Please select an account",
+			gl_finance: "Please select an account",
+			gl_discounts: "Please select an account"
 		},
 		submitHandler: function(form) {
-			form.submit();
+			var jform = $(form);
+			var codeID = input_codeID.val();
+
+			if (validate_codeID(form)) {
+				form.submit();
+			} else {
+				var url = URI('{{ page.url }}');
+				url.addQuery('code', codeID);
+				var bootstrap = new JsContento();
+				var content = bootstrap.open('div', 'class=swal2-content|id=swal2-content');
+				content += '<a class="btn btn-secondary mb-2" href="'+url.toString()+'">View Customer Type Code</a>';
+				content += '<br>';
+				content += "Do you want to overwrite?";
+				content += bootstrap.close('div');
+
+				swal2.fire({
+					title: 'Customer Type Code ' +input_codeID.val() + ' Exists' ,
+					text: 'Do you want to overwrite?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: '<i class="fa fa-floppy-o" aria-hidden="true"></i> Yes',
+					cancelButtonText: 'No',
+					html: content,
+				}).then((result) => {
+					if (result.value) {
+						form.submit();
+					}
+				});
+			}
 		}
 	});
 
-	var form = $('#code-edit-form'),
+	$("body").on("focusin", "#code-edit-form input:not(#code),#code-edit-form select", function(e) {
+		if (input_codeID.val() == '') {
+			validator.element( "#code" );
+			input_codeID.focus();
+			$('.note-button').prop('disabled', true);
+		} else {
+			$('.note-button').prop('disabled', false);
+		}
+	});
+
+	/**
+	 * Return if Customer Type Code ID can be used to save, based upon if
+	 * it exists, and if is the one being edited.
+	 * @param  {[type]} form [description]
+	 * @return {[type]}      [description]
+	 */
+	function validate_codeID(form) {
+		var jform = $(form);
+
+		if (codeIDs.contains(input_codeID.val())) {
+			console.log('Customer Type Code Exists');
+
+			if (input_codeID.val() != jform.attr('data-code')) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+/* =============================================================
+	Unsaved Fields Alert
+============================================================= */
 	origForm = form.serialize();
 
 	$("body").on("click", "a:not(.form_button, #ajax-modal a)", function(e) {
@@ -49,6 +174,10 @@ $(function () {
 		}
 	});
 
+/* =============================================================
+	Notes Functions
+============================================================= */
+
 	var form_notes = $('#notes-modal').find('form');
 
 	$('#notes-modal').on('show.bs.modal', function (event) {
@@ -60,7 +189,7 @@ $(function () {
 		// Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
 		var modal = $(this);
 		modal.find('.desc').text(description.capitalize());
-		modal.find('textarea[name=note]').text(ele_notes.text()).attr('cols', ele_notes.attr('cols') - 1);
+		modal.find('textarea[name=note]').val(ele_notes.text()).attr('cols', ele_notes.attr('cols'));
 		modal.find('input[name=notes-type]').val(notetype);
 	});
 
@@ -73,10 +202,10 @@ $(function () {
 	form_notes.validate({
 		errorClass: "is-invalid",
 		validClass: "is-valid",
+		ignore: ".validate-ignore",
 		errorPlacement: function(error, element) {
 			error.insertAfter(element).addClass('invalid-feedback');
 		},
-		ignore: ".validate-ignore",
 		submitHandler: function(form) {
 			var submittedform = $(form);
 			var values = {};
@@ -104,7 +233,10 @@ $(function () {
 					}
 				});
 			} else {
-				form.submit();
+				var url = URI(submittedform.attr('action'));
+				url.setQuery(values);
+				window.location.href = url.toString();
+				// form.submit();
 			}
 		}
 	});

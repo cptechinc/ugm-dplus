@@ -1,0 +1,69 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	item                   ItemMasterItem
+#}
+<table class="table table-sm xrefs">
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlUpcx(item.itemid) }}" class="link">UPC X-Refs</a>
+		</td>
+		<td>
+			{{ item.countItemXrefUpcs() }} Records
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlVxm(item.itemid) }}" class="link">Vendor X-Refs</a>
+		</td>
+		<td>
+			{{ item.countItemXrefVendors() }} Records
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlCxm(item.itemid) }}" class="link">Customer X-Refs</a>
+		</td>
+		<td>
+			{{ item.countItemXrefCustomers() }} Records
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlBom(item.itemid) }}" class="link">Bill-of-Material</a>
+		</td>
+		<td>
+			{{ item.countBomSubComponents() ? 1 : 0 }} Records
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlKim(item.itemid) }}" class="link">Kit</a>
+		</td>
+		<td>
+			{{ item.countKitcomponents() ? 1 : 0  }} Records
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlSubstitutes(item.itemid) }}" class="link">Substitute Items</a>
+		</td>
+		<td>
+			{{ item.count_substitutes() }} Records
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<a href="{{ page.xrefUrlMxrfe(item.itemid) }}" class="link">Mnfr / Competitor</a>
+		</td>
+		<td>
+			{{ item.countItemXrefManufacturers() }} Records
+		</td>
+	</tr>
+	<tr>
+		<td><a href="{{ page.xrefUrlAddm(item.itemid) }}" class="link">Add-On Items</a></td>
+		<td>
+			{{ item.count_addonitems() }} Records
+		</td>
+	</tr>
+</table>

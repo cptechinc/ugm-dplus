@@ -1,0 +1,38 @@
+<div class="card">
+	<div class="card-header">
+		<div class="row">
+			<div class="col-sm-2">
+				<strong>Item ID:</strong>
+			</div>
+			<div class="col-sm-4">
+				{{ configIn.useUppercaseItemid() ? item.itemid|upper : item.itemid  }}
+			</div>
+			<div class="col-sm-6">
+				{{ configIn.useUppercaseItemDesc() ? item.description|upper : item.description }}
+				{% if item.description2 %}
+					<br>
+					{{ configIn.useUppercaseItemDesc() ? item.description2|upper : item.description2 }}
+				{% endif %}
+			</div>
+		</div>
+	</div>
+
+	{% block body %}
+		{% include 'items/itm/xrefs/vxm/list.twig' %}
+
+		{% include 'util/paginator/propel.twig' with {'pager': items} %}
+	{% endblock %}
+
+	{% block footer %}
+		<div class="card-footer">
+			<div class="d-flex justify-content-between align-items-center">
+				<div></div>
+				<div>
+					<a href="{{ page.itmUrlXrefs(item.itemid) }}" class="btn btn-warning btn-sm">
+						<i class="fa fa-times" aria-hidden="true"></i> Close
+					</a>
+				</div>
+			</div>
+		</div>
+	{% endblock %}
+</div>

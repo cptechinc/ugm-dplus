@@ -4,34 +4,92 @@
 	page                   ProcessWire\Page
 	input                  ProcessWire\WireInput
 #}
-<nav aria-label="breadcrumb" class="rounded-0 mb-4">
-	<ol class="breadcrumb">
-		{% for parent in page.parents() %}
-			{% if parent.pw_template == 'itm' %}
-				<li class="breadcrumb-item">
-					<i class="fa fa-list" aria-hidden="true"></i>
-					<a href="{{ parent.url }}">{{ parent.title }}</a>
-				</li>
-				<li class="breadcrumb-item">
-					<i class="fa fa-cubes" aria-hidden="true"></i>
-					<a href="{{ page.itmURL(input.get.text('itemID')) }}">{{ input.get.text('itemID') }}</a>
-				</li>
-			{% else %}
-				<li class="breadcrumb-item">
-					<i class="fa fa-list" aria-hidden="true"></i>
-					<a href="{{ parent.url }}">{{ parent.title }}</a>
-				</li>
-			{% endif %}
-		{% endfor %}
-		{% if page.pw_template == 'itm-whse' and input.get.text('whseID') %}
-			<li class="breadcrumb-item" aria-current="page">
-				<a href="{{ page.itm_warehouseURL(input.get.text('itemID')) }}">
-					<i class="fa fa-building" aria-hidden="true"></i> {{ page.title }}
+{% extends 'util/bread-crumbs.twig' %}
+
+{% set input = page.wire('input') %}
+{% set values = input.get %}
+{% set segments = input.urlSegments() %}
+{% set lastsegment = segments[segments|length] %}
+
+{% block current_page %}
+	{% if segments|length == 0 and values.offsetExists('itemID') == false %}
+		<li class="breadcrumb-item active" aria-current="page">
+			<i class="fa fa-microchip" aria-hidden="true"></i> ITM
+		</li>
+	{% endif %}
+
+	{% if values.offsetExists('itemID') %}
+		<li class="breadcrumb-item">
+			<a href="{{ page.url }}">
+				<i class="fa fa-microchip" aria-hidden="true"></i> ITM
+			</a>
+		</li>
+	{% endif %}
+
+	{% if segments|length == 0 and values.offsetExists('itemID') %}
+		<li class="breadcrumb-item active">
+			<i class="fa fa-cubes" aria-hidden="true"></i> {{ values.text('itemID') }}
+		</li>
+	{% endif %}
+
+	{% if segments|length %}
+		<li class="breadcrumb-item">
+			<a href="{{ page.itmUrl(values.text('itemID')) }}">
+				<i class="fa fa-cubes" aria-hidden="true"></i> {{ values.text('itemID') }}
+			</a>
+		</li>
+	{% endif %}
+
+	{% if (segments|length == 1) %}
+		{% if lastsegment == 'warehouses' and values.text('whseID') %}
+			<li class="breadcrumb-item">
+				<a href="{{ page.itmUrlFunction(values.text('itemID'), lastsegment) }}">
+					{{ lastsegment|title }}
 				</a>
 			</li>
-			<li class="breadcrumb-item active" aria-current="page">{{ input.get.text('whseID') }}</li>
+			<li class="breadcrumb-item active" aria-current="page">
+				{{ values.text('whseID') }}
+			</li>
 		{% else %}
-			<li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+			<li class="breadcrumb-item active" aria-current="page">
+				{% if lastsegment == 'xrefs' %}
+					<i class="fa fa-arrows" aria-hidden="true"></i>
+				{% endif %}
+				{{ lastsegment == 'xrefs' ? 'X-Refs' : lastsegment|title }}
+			</li>
 		{% endif %}
-	</ol>
-</nav>
+	{% elseif segments[1] == 'xrefs' %}
+		<li class="breadcrumb-item">
+			<a href="{{ page.itmUrlFunction(values.text('itemID'), 'xrefs') }}">
+				<i class="fa fa-arrows" aria-hidden="true"></i> {{ 'X-Refs'|title }}
+			</a>
+		</li>
+
+		{% if lastsegment == 'substitutes' %}
+			{% if values.offsetExists('subitemID') %}
+				<li class="breadcrumb-item">
+					<a href="{{ page.xrefUrlSubstitutes(values.text('itemID')) }}">
+						{{ lastsegment|capitalize }}
+					</a>
+				</li>
+				{% if values.text('subitemID') == 'new' %}
+					<li class="breadcrumb-item active" aria-current="page">
+						Add
+					</li>
+				{% else %}
+					<li class="breadcrumb-item active" aria-current="page">
+						{{ values.text('subitemID')}}
+					</li>
+				{% endif %}
+			{% else %}
+				<li class="breadcrumb-item active" aria-current="page">
+					{{ lastsegment|capitalize }}
+				</li>
+			{% endif %}
+		{% else %}
+			<li class="breadcrumb-item active" aria-current="page">
+				{{ lastsegment|upper }}
+			</li>
+		{% endif %}
+	{% endif %}
+{% endblock %}

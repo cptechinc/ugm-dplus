@@ -1,0 +1,524 @@
+<?php namespace ProcessWire;
+
+include_once(__DIR__.'/XrefResponse.php');
+
+// Purl URI Library
+use Purl\Url;
+// Dplus Model
+use ItemMasterItemQuery, ItemMasterItem;
+use ItemXrefManufacturerQuery, ItemXrefManufacturer;
+use VendorQuery, Vendor;
+use UnitofMeasurePurchaseQuery, UnitofMeasurePurchase;
+// Dplus Record Locker
+use Dplus\RecordLocker\UserFunction as FunctionLocker;
+// Dplus Filters
+use Dplus\Filters\Map\Mxrfe as MxrfeFilter;
+// Dplus Code Validators
+use Dplus\CodeValidators\Map\Vxm as VxmValidator;
+
+/**
+ * Module that handles the editing of the UPC item Xref
+ */
+class XrefMxrfe extends WireData implements Module {
+	const MODEL              = 'ItemXrefManufacturer';
+	const MODEL_KEY          = 'mnfrid,mnfritemid,itemid';
+	const DESCRIPTION        = 'Mxrfe X-ref';
+	const RESPONSE_TEMPLATE  = 'Mxrfe X-ref {key} was {not} {crud}';
+	const RECORDLOCKER_FUNCTION   = 'mxrfe';
+
+	public function __construct() {
+		$this->description = self::DESCRIPTION;
+	}
+
+	/**
+	 * Return ItemXrefManufacturerQuery
+	 * @return ItemXrefManufacturerQuery
+	 */
+	public function query() {
+		return ItemXrefManufacturerQuery::create();
+	}
+
+	/**
+	 * Return Query with filters applied to VendorID, Vendor ItemID, Item ID
+	 * @return ItemXrefManufacturerQuery
+	 */
+	public function query_xref($mnfrID, $mnfritemID, $itemID) {
+		$q = $this->query();
+		$q->filterByMnfrid($mnfrID);
+		$q->filterByMnfritemid($mnfritemID);
+		$q->filterByItemid($itemID);
+		return $q;
+	}
+
+/* =============================================================
+	Field Attributes, Functions
+============================================================= */
+	const PRECISION_MARGIN = 3;
+
+	const FIELD_ATTRIBUTES = [
+		'price' => ['type' => 'number', 'precision' => 2, 'max' => 9999999.99],
+		'cost'  => ['type' => 'number', 'precision' => 2, 'max'  => 9999999.99]
+	];
+
+	public function init_field_attributes_config() {
+		$attributes = self::FIELD_ATTRIBUTES;
+		$this->field_attributes = $attributes;
+	}
+
+	/**
+	 * Return Field Attribute value
+	 * @param  string $field Field Name
+	 * @param  string $attr  Attribute Name
+	 * @return mixed|bool
+	 */
+	public function field_attribute($field = '', $attr = '') {
+		if (empty($field) || empty($attr)) {
+			return false;
+		}
+		$this->init_field_attributes_config();
+		if (array_key_exists($field, $this->field_attributes) === false) {
+			return false;
+		}
+		if (array_key_exists($attr, $this->field_attributes[$field]) === false) {
+			return false;
+		}
+		return $this->field_attributes[$field][$attr];
+	}
+
+/* =============================================================
+	CRUD Read, Validate Functions
+============================================================= */
+	/**
+	 * Return ItemXrefManufacturer
+	 * @param  string $mnfrID     Vendor ID
+	 * @param  string $mnfritemID Vendor's Item ID'
+	 * @param  string $itemID       ITM Item ID'
+	 */
+	public function xref($mnfrID, $mnfritemID, $itemID) {
+		$q = $this->query_xref($mnfrID, $mnfritemID, $itemID);
+		return $q->findOne();
+	}
+
+	/**
+	 * Return ItemXrefVendor from Recordlocker Key
+	 * @param  string $key Key (vendorID-vendoritemID-itemID)
+	 * @return ItemXrefVendor
+	 */
+	public function xref_by_recordlocker_key($key) {
+		$keys = explode(FunctionLocker::glue(), $key);
+		$mnfrID     = $keys[0];
+		$mnfritemID = $keys[1];
+		$itemID     = $keys[2];
+		return $this->xref($mnfrID, $mnfritemID, $itemID);
+	}
+
+	/**
+	 * Return if X-ref Exists
+	 * @param  string $mnfrID     Vendor ID
+	 * @param  string $mnfritemID Vendor's Item ID'
+	 * @param  string $itemID       ITM Item ID'
+	 * @return bool
+	 */
+	public function xref_exists($mnfrID, $mnfritemID, $itemID) {
+		$q = $this->query_xref($mnfrID, $mnfritemID, $itemID);
+		return boolval($q->count());
+	}
+
+	/**
+	 * Return New Xref with defaults
+	 * @return ItemXrefManufacturer
+	 */
+	public function new_xref() {
+		$config = $this->config_in();
+		$xref = new ItemXrefManufacturer();
+		$xref->setUnitofm($config->default_uom_purchase);
+		return $xref;
+	}
+
+	/**
+	 * Return Existing or New X-ref
+	 * @param  string $mnfrID     Vendor ID
+	 * @param  string $mnfritemID Vendor's Item ID'
+	 * @param  string $itemID       ITM Item ID'
+	 * @return ItemXrefManufacturer
+	 */
+	public function get_create_xref($mnfrID, $mnfritemID, $itemID) {
+		if ($this->xref_exists($mnfrID, $mnfritemID, $itemID)) {
+			$record = $this->xref($mnfrID, $mnfritemID, $itemID);
+		} else {
+			$mnfritemID = $mnfritemID == 'new' ? '' : $mnfritemID;
+			$record = $this->new_xref();
+			$record->setAvailable(0.0);
+			$record->setMnfrid($mnfrID);
+			$record->setMnfritemid($mnfritemID);
+
+			if ($this->itemid_exists($itemID)) {
+				$record->setItemid($itemID);
+			}
+		}
+		return $record;
+	}
+
+/* =============================================================
+	CRUD Processing Functions
+============================================================= */
+	/**
+	 * Takes Input, validates it's for one of the code tables
+	 * Processes it, and if updated sends request to dplus
+	 *
+	 * @param  WireInput $input Input
+	 * @return void
+	 */
+	public function process_input(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		switch ($values->text('action')) {
+			case 'delete-notes':
+			case 'update-notes';
+				$qnotes = $this->wire('modules')->get('QnotesItemMxrfe');
+				$qnotes->process_input($input);
+				break;
+			case 'delete-xref':
+				$this->input_delete($input);
+				break;
+			case 'update-xref':
+				$this->input_update($input);
+				break;
+			default:
+				$message = self::DESCRIPTION . " No action was specified";
+				$this->setResponse(XrefResponse::response_error(session_id(), $message));
+				break;
+		}
+	}
+
+	/**
+	 * Delete UPC from Input Data
+	 * @param  WireInput $input Input Data
+	 * @return bool
+	 */
+	public function input_delete(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$mnfrID     = $values->text('mnfrID');
+		$mnfritemID = $values->text('mnfritemID');
+		$itemID     = $values->text('itemID');
+
+		if ($this->xref_exists($mnfrID, $mnfritemID, $itemID)) {
+			$record = $this->xref($mnfrID, $mnfritemID, $itemID);
+
+			if (!$record->isNew()) {
+				if (!$this->lockrecord($record)) {
+					$key = $this->get_recordlocker_key($record);
+					$message = self::DESCRIPTION . " ($key)  was not saved, it is locked by " . $this->recordlocker->getLockingUser($record);
+					$this->setResponse(XrefResponse::response_error(XrefResponse::response_error($key, $message)));
+					return false;
+				}
+			}
+			$record->delete();
+			$response = $this->save_and_respond($record);
+			$this->setResponse($response);
+			if ($response->has_success()) {
+				$this->update_dplus_cobol($record);
+			}
+			return $response->has_success();
+		}
+		return true;
+	}
+
+	/**
+	 * Update VXM Item from Input Data
+	 * @param  WireInput $input Input Data
+	 * @return bool
+	 */
+	protected function input_update(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$mnfrID     = $values->text('mnfrID');
+		$mnfritemID = $values->text('mnfritemID');
+		$itemID     = $values->text('itemID');
+
+		$record = $this->get_create_xref($mnfrID, $mnfritemID, $itemID);
+
+		if (!$record->isNew()) {
+			if (!$this->lockrecord($record)) {
+				$key = $this->get_recordlocker_key($record);
+				$message = self::DESCRIPTION . " ($key)  was not saved, it is locked by " . $this->recordlocker->getLockingUser($record);
+				$this->setResponse(XrefResponse::response_error($key, $message));
+				return false;
+			}
+		}
+
+		$invalidfields = $this->update_record_input($record, $input);
+		$response = $this->save_and_respond($record, $invalidfields);
+
+		if ($response->has_success()) {
+			$this->update_dplus_cobol($record);
+		}
+		$this->setResponse($response);
+		return $response->has_success();
+	}
+
+	/**
+	 * Updates Record, Returns Invalid Fields
+	 * @param  ItemXrefManufacturer  $record MXRFE Record
+	 * @param  WireInput             $input  Input Data
+	 * @return array
+	 */
+	public function update_record_input(ItemXrefManufacturer $record, WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$invalidfields = array();
+
+		$response = new XrefResponse();
+		$response->set_action(XrefResponse::CRUD_UPDATE);
+		$invalidfields = $this->update_record_validated($record, $input);
+
+		$record->setPrice($values->float('price'), ['precision' => $this->field_attribute('price', 'precision')]);
+		$record->setCost($values->float('cost'), ['precision' => $this->field_attribute('cost', 'precision')]);
+		$record->setDateupdated(date('Ymd'));
+		$record->setDate(date('Ymd'));
+		$record->setTime(date('His'));
+		$record->setDummy('P');
+		return $invalidfields;
+	}
+
+	/**
+	 * Sets Record fields if valid, returns invalid fields
+	 * @param  ItemXrefManufacturer $record MXRFE record
+	 * @param  WireInput            $input  Input Data
+	 * @return array
+	 */
+	public function update_record_validated(ItemXrefManufacturer $record, WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$validate = new VxmValidator();
+		$invalid = array();
+
+		$fields = array(
+			'itemid' => array(
+				'description' => 'Item ID',
+				'input'       => 'itemID',
+				'function'    => 'itemid'
+			),
+			'vendorid' => array(
+				'description' => 'Vendor ID',
+				'input'       => 'mnfrID',
+				'function'    => 'vendorid'
+			),
+			'unitofm' => array(
+				'description' => 'Unit of Measure',
+				'input'       => 'unitofm',
+				'function'    => 'unitofm_purchase'
+			),
+		);
+		$validator = $this->wire('modules')->get('InputValidator');
+		$validator->set_validator($validate)->set_input($input)->set_record($record)->set_validatefields($fields);
+		$invalid = $validator->validate();
+		$validator->set_valid_properties();
+		return $invalid;
+	}
+
+/* =============================================================
+	CRUD Response Functions
+============================================================= */
+	/**
+	 * Returns XrefResponse based on the outcome of the database save
+	 * @param  ItemXrefManufacturer $record Record to record response of database save
+	 * @return XrefResponse
+	 */
+	protected function save_and_respond(ItemXrefManufacturer $record) {
+		$is_new = $record->isDeleted() ? false : $record->isNew();
+		$saved  = $record->isDeleted() ? $record->isDeleted() : $record->save();
+
+		$response = new XrefResponse();
+		$response->set_key($this->get_recordlocker_key($record));
+
+		if ($saved) {
+			$response->set_success(true);
+		} else {
+			$response->set_error(true);
+		}
+
+		if ($is_new) {
+			$response->set_action(XrefResponse::CRUD_CREATE);
+		} elseif ($record->isDeleted()) {
+			$response->set_action(XrefResponse::CRUD_DELETE);
+		} else {
+			$response->set_action(XrefResponse::CRUD_UPDATE);
+		}
+
+		$response->build_message(self::RESPONSE_TEMPLATE);
+		return $response;
+	}
+
+	/**
+	 * Set Response
+	 * @param XrefResponse $response
+	 */
+	public function setResponse(XrefResponse $response) {
+		$this->wire('session')->setFor('response', 'mxrfe', $response);
+	}
+
+	/**
+	 * Return Response
+	 * @return XrefResponse
+	 */
+	public function getResponse() {
+		return $this->wire('session')->getFor('response', 'mxrfe');
+	}
+
+	/**
+	 * Delete Session Response
+	 * @return void
+	 */
+	public function deleteResponse() {
+		$this->wire('session')->removeFor('response', 'mxrfe');
+	}
+
+/* =============================================================
+	Dplus Request Functions
+============================================================= */
+	/**
+	 * Writes File for Dplus to update the VXM file for this ITEM
+	 * @param  ItemXrefManufacturer $item
+	 * @return void
+	 */
+	public function update_dplus_cobol(ItemXrefManufacturer $xref) {
+		$config = $this->wire('config');
+		$dplusdb = $this->wire('modules')->get('DplusDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", 'UPDATEMXRFE', "VENDORID=$xref->vendorid", "VENDITEM=$xref->vendoritemid", "OURITEM=$xref->itemid");
+
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		$requestor->cgi_request($config->cgis['database'], session_id());
+	}
+
+/* =============================================================
+	Supplemental Functions
+============================================================= */
+	/**
+	 * Lock Record, validate User is locking Record
+	 * @param  ItemXrefManufacturer $item
+	 * @return bool
+	 */
+	public function lockrecord(ItemXrefManufacturer $item) {
+		if ($this->recordlocker->isLocked($this->get_recordlocker_key($item)) === false) {
+			$this->recordlocker->lock($this->get_recordlocker_key($item));
+		}
+		return $this->recordlocker->userHasLocked($this->get_recordlocker_key($item));
+	}
+
+	/**
+	 * Return Key for VXM Item
+	 * @param  ItemXrefManufacturer $item VXM Item
+	 * @return string
+	 */
+	public function get_recordlocker_key(ItemXrefManufacturer $item) {
+		return implode(FunctionLocker::glue(), [$item->mnfrid, $item->mnfritemid, $item->itemid]);
+	}
+
+	/**
+	 * Return Vendor IDs of existing X-refs
+	 * @return array
+	 */
+	public function vendorids() {
+		$q = $this->query();
+		$q->select(ItemXrefManufacturer::get_aliasproperty('vendorid'));
+		$q->distinct();
+		return $q->find()->toArray();
+	}
+
+	/**
+	 * Return Vendor
+	 * @return Vendor
+	 */
+	public function vendor($mnfrID) {
+		return VendorQuery::create()->filterById($mnfrID)->findOne();
+	}
+
+	/**
+	 * Return if Vendor exists
+	 * @param  string $mnfrID Vendor ID
+	 * @return bool
+	 */
+	public function vendorid_exists($mnfrID) {
+		return boolval(VendorQuery::create()->filterById($mnfrID)->count());
+	}
+
+	/**
+	 * Return if itemID Exists
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function itemid_exists($itemID) {
+		return boolval(ItemMasterItemQuery::create()->filterByItemid($itemID)->count());
+	}
+
+	/**
+	 * Return Units of Measure
+	 * @return UnitofMeasurePurchase[]|ObjectCollection
+	 */
+	public function unitsofm() {
+		return UnitofMeasurePurchaseQuery::create()->find();
+	}
+
+	/**
+	 * Return Config SO
+	 * @return ConfigSalesOrder
+	 */
+	public function config_so() {
+		return $this->wire('modules')->get('ConfigureSo')->config();
+	}
+
+	/**
+	 * Return Config SO
+	 * @return ConfigIn
+	 */
+	public function config_in() {
+		return $this->wire('modules')->get('ConfigureIn')->config();
+	}
+
+	/**
+	 * Return Config PO
+	 * @return ConfigPo
+	 */
+	public function config_po() {
+		return $this->wire('modules')->get('ConfigurePo')->config();
+	}
+
+	/**
+	 * Intialize configs
+	 * @return void
+	 */
+	public function init_configs() {
+		$this->configs = new WireData();
+		$this->configs->in = $this->config_in();
+		$this->configs->so = $this->config_so();
+		$this->configs->po = $this->config_po();
+	}
+
+	public function response() {
+		return $this->wire('session')->getFor('response', 'mxrfe');
+	}
+
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus MXRFE CRUD Manager',
+			'version' => 101,
+			'summary' => 'Module for CRUD Methods for MXRFE',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+
+	public function init() {
+		$this->recordlocker = new FunctionLocker();
+		$this->recordlocker->setFunction(self::RECORDLOCKER_FUNCTION);
+		$this->recordlocker->setUser($this->wire('user'));
+	}
+}

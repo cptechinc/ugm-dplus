@@ -1,0 +1,173 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	epo                    module PurchaseOrderEdit
+	epo.configs            module PurchaseOrderEditConfigs
+	epo.configs.po         ConfigPo
+#}
+$(function () {
+	var modal_ajax    = $('#ajax-modal');
+	var modal_country = $('#country-modal');
+	var form_header   = $('#header-form');
+
+/* =============================================================
+	Input Changes Functions
+============================================================= */
+	$("body").on("change", "input[name=vendorID]", function(e) {
+		var input = $(this);
+		get_vendor(input.val(), function(vendor) {
+			if (vendor) {
+				var fields = $('.vendor-address');
+				fields.find('.name').text(vendor.name);
+				fields.find('.address').text(vendor.address.address1);
+				fields.find('.address2').text(vendor.address.address2);
+				fields.find('.city').text(vendor.address.city);
+				fields.find('.state').text(vendor.address.state);
+				fields.find('.zip').text(vendor.address.zip);
+				if (fields.find('.address2').text().length) {
+					fields.find('.address2').addClass('show');
+				} else {
+					fields.find('.address2').removeClass('show');
+				}
+			}
+		});
+	});
+
+/* =============================================================
+	Unsaved Changes Alert
+============================================================= */
+	origForm = form_header.serialize();
+
+	$("body").on("click", "a:not([href^=#], [data-toggle=modal], .modal a)", function(e) {
+		if (form_header.serialize() !== origForm) {
+			e.preventDefault();
+			var a = $(this);
+
+			swal2.fire({
+				title: 'Purchase Order not saved!',
+				text: "Are you sure you want to leave this page?",
+				icon: 'warning',
+				showCancelButton: true,
+				confirmButtonText: 'Leave',
+				cancelButtonText: 'Stay'
+			}).then(function (result) {
+				if (result.value) {
+					window.location.href = a.attr('href');
+				}
+			});
+		}
+	});
+
+/* =============================================================
+	AJAX Lookup Modal Functions
+============================================================= */
+	$("body").on('click', '#ajax-modal .country-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var modal = button.closest('.modal');
+		var code = button.data('code');
+		var rate = parseFloat(button.data('rate')).toFixed({{ epo.configs.decimal_places_cost() }});
+		form_header.find('input[name=exchange_country]').val(code);
+		form_header.find('input[name=exchange_rate]').val(rate);
+		modal.modal('hide');
+	});
+
+	$("body").on('click', '#ajax-modal .vendor-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var vendorID = button.data('vendorid');
+
+		form_header.find('input[name=vendorID]').val(vendorID).change();
+	});
+
+	$("body").on('click', '#ajax-modal .shipfrom-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var modal = button.closest('.modal');
+		var shipfromID = button.data('shipfromid');
+		form_header.find('input[name=shipfromID]').val(shipfromID);
+		modal.modal('hide');
+	});
+
+	$("body").on('click', '#ajax-modal .vendor-contact-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var modal = button.closest('.modal');
+		var vendorID   = button.data('vendorid');
+		var shipfromID = button.data('shipfromid');
+		var contact = button.data('contact');
+		form_header.find('input[name=contact]').val(contact);
+		get_contact_info(vendorID, shipfromID, contact, function(contact) {
+			if (contact) {
+				form_header.find('input[name=phone]').val(contact.phone);
+				form_header.find('input[name=fax]').val(contact.fax);
+				form_header.find('input[name=email]').val(contact.email);
+				modal.modal('hide');
+			}
+		});
+
+	});
+
+	function get_vendor(vendorID, callback) {
+		var url = URI('{{ page.jsonApiUrl('map/vendor/') }}');
+		url.setQuery('vendorID', vendorID);
+		$.getJSON(url.toString(), function(vendor) {
+			callback(vendor);
+		});
+	}
+
+	function get_contact_info(vendorID, shipfromID, contact, callback) {
+		var url = URI('{{ page.jsonapiURL('map/vendor/contact/') }}');
+		url.setQuery('vendorID', vendorID);
+		url.setQuery('shipfromID', shipfromID);
+		url.setQuery('contact', contact);
+		$.getJSON(url.toString(), function(contact) {
+			callback(contact);
+		});
+	}
+
+/* =============================================================
+	Validation Functions
+============================================================= */
+	form_header.validate({
+		errorClass: "is-invalid",
+		validClass: "is-valid",
+		errorPlacement: function(error, element) {
+			error.insertAfter(element).addClass('invalid-feedback');
+		},
+		rules: {
+			vendorID: {
+				required: true,
+				remote: {
+					url: '{{ page.jsonApiUrl('map/validate/vendorid/') }}',
+					type: "get",
+					data: {
+						jqv: true
+					}
+				}
+			},
+			shipfromID: {
+				required: false,
+				remote: {
+					url: '{{ page.jsonApiUrl('map/validate/vendor/shipfromid/') }}',
+					type: "get",
+					data: {
+						vendorID: function() {
+							return $('#vendorID').val();
+						}
+					}
+				}
+			},
+			reference: {
+				required: {{ epo.configs.po.force_po_reference() ? 'true' : 'false' }}
+			}
+		},
+		messages: {
+
+		},
+		submitHandler: function(form) {
+			form.submit();
+		}
+	});
+});

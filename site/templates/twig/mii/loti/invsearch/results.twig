@@ -1,0 +1,28 @@
+<table id="cust-index" class="table table-bordered">
+	<thead>
+		<tr>
+			<th>Lot Number</th>
+			<th>
+				Lot Ref
+			</th>
+			<th>
+				Item ID
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for lot in lots %}
+			<tr>
+				<td>{{ lot.lotserial }}</td>
+				<td>{{ lot.lotref }}</td>
+				<td>{{ lot.itemid }}</td>
+			</tr>
+		{% endfor %}
+
+		{% if lots.count() == 0 %}
+			<tr>
+				<td colspan="2" class="text-center bg-primary text-white">No matches found for "{{ input.get.text('scan') }}"</td>
+			</tr>
+		{% endif %}
+	</tbody>
+</table>

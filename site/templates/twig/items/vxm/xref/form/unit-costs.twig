@@ -1,0 +1,121 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	vxm                    module XrefVxm
+	recordlocker           module RecordLockerUser
+	item                   ItemXrefVendor
+#}
+<table class="table table-striped table-sm blue-stripes">
+	<thead>
+		<tr>
+			<th>Qty Break</th>
+			<th class="text-right">Unit</th>
+			<th class="text-right">Unit Cost</th>
+			<th class="text-right">Margin %</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr class="unit-row" data-break="{{ 0 }}">
+			<td>Base</td>
+			<td>
+				<input type="hidden" class="form-control form-control-sm unit-qty" value="1">
+			</td>
+			<td>
+				{% include 'util/form/input.twig' with {
+						'name': 'unitcost_base', 'value': (item.unitcost_base * item.uompurchase.conversion)|number_format(vxm.field_attribute('unit_cost', 'precision')),
+						'type': 'number',
+						'class_add': [
+							'unit-cost',
+							'w-75',
+							'text-right',
+							'pull-right'
+						],
+						'attributes': {
+							'max': vxm.field_attribute('unit_cost', 'max'),
+							'data-cost': item.unitcost_base|number_format(vxm.field_attribute('unit_cost', 'precision')),
+							'data-itmcost': item.imitem.standardcost
+						}
+					}
+				%}
+			</td>
+			<td class="text-right">
+				{% include 'util/form/input.twig' with {
+						'name': 'unitmargin_base', 'value': item.get_unitmargin(0)|number_format(vxm.field_attribute('unit_margin', 'precision')),
+						'class_add': [
+							'unit-margin',
+							'w-50',
+							'text-right',
+							'pull-right'
+						]
+					}
+				%}
+			</td>
+		</tr>
+		{% for i in 1..item.get_unitsavailable() %}
+			<tr class="unit-row" data-break="{{ i }}">
+				<td>
+					Qty {{ i }}
+				</td>
+				<td>
+					{% set readonly_qty = i - 1 > 0 ? item.get_unitqty(i - 1) == '' or item.get_unitqty(i - 1) == 0 : false %}
+					{% include 'util/form/input.twig' with {
+							'name': 'unit_qty' ~ i, 'value': item.get_unitqty(i)|number_format(vxm.field_attribute('unit_qty', 'precision')),
+							'type': 'number',
+							'class_add': [
+								'unit-qty',
+								'w-50',
+								'text-right',
+								'pull-right'
+							],
+							'attributes': {
+								'disabled': vxm.configs.ap.use_vendor_cost_breaks() == false,
+								'readonly': readonly_qty,
+								'tabindex': readonly_qty ? '-1' : '',
+								'max': vxm.field_attribute('unit_qty', 'max')
+							}
+						}
+					%}
+				</td>
+				<td>
+					{% include 'util/form/input.twig' with {
+							'name': 'unit_cost' ~ i, 'value': (item.get_unitcost(i) * item.uompurchase.conversion)|number_format(vxm.field_attribute('unit_cost', 'precision')),
+							'type': 'number',
+							'class_add': [
+								'unit-cost',
+								'w-75',
+								'text-right',
+								'pull-right'
+							],
+							'attributes': {
+								'disabled': vxm.configs.ap.use_vendor_cost_breaks() == false,
+								'readonly': item.get_unitqty(i) == '' or item.get_unitqty(i) == 0,
+								'tabindex': item.get_unitqty(i) == '' or item.get_unitqty(i) == 0 ? '-1' : '',
+								'max': vxm.field_attribute('unit_cost', 'max')
+							}
+						}
+					%}
+				</td>
+				<td class="text-right">
+					{% include 'util/form/input.twig' with {
+							'name': 'unit_margin' ~ i, 'value': item.get_unitmargin(i)|number_format(vxm.field_attribute('unit_margin', 'precision')),
+							'type': 'number',
+							'class_add': [
+								'unit-margin',
+								'w-50',
+								'text-right',
+								'pull-right'
+							],
+							'attributes': {
+								'disabled': vxm.configs.ap.use_vendor_cost_breaks() == false,
+								'readonly': item.get_unitqty(i) == '' or item.get_unitqty(i) == 0,
+								'tabindex': item.get_unitqty(i) == '' or item.get_unitqty(i) == 0 ? '-1' : '',
+								'max': vxm.field_attribute('unit_margin', 'max')
+							}
+						}
+					%}
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

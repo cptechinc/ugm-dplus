@@ -1,0 +1,59 @@
+<?php namespace ProcessWire;
+
+use Purl\Url as Purl;
+
+use PurchaseOrder, SalesOrder, Quote;
+
+/**
+ * DplusSanitizer
+ *
+ * Module for Adding Hooks to the Sanitizer Class
+ */
+class DplusInput extends WireData implements Module {
+
+	public function init() {
+		$this->addHookProperty('WireInput::values', function(HookEvent $event) {
+			$input = $event->object;
+			$rm    = strtolower($input->requestMethod());
+			$event->return = $input->$rm;
+		});
+
+		$this->addHook('WireInput::values', function(HookEvent $event) {
+			$input = $event->object;
+			$rm    = strtolower($input->requestMethod());
+			$event->return = $input->$rm;
+		});
+
+		$this->addHook('WireInput::lastSegment', function(HookEvent $event) {
+			$input = $event->object;
+			$segments = $input->urlSegments();
+			$segmentCount = count($segments);
+			$event->return = $segmentCount ? $segments[$segmentCount] : $this->wire('page')->name;
+		});
+
+		$this->addHook('WireInput::countSegments', function(HookEvent $event) {
+			$input = $event->object;
+			$event->return = count($input->urlSegments());
+		});
+
+		$this->addHook('WireInput::paginateUrl', function($event) {
+			$input    = $event->object;
+			$pagenbr = $event->arguments(0);
+			$dpurl   = $this->wire('modules')->get('Dpurl');
+			$url = new Purl($input->url());
+			$url->query = $input->queryString();
+			$dpurl->paginateSimple($url, $pagenbr);
+			$event->return = $url->getUrl();
+		});
+	}
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Input',
+			'version' => 101,
+			'summary' => 'Adds Hooks to the Input Class',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+}

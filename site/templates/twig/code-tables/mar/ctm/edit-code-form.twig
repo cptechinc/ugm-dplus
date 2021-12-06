@@ -2,7 +2,7 @@
 
 <div class="row">
 	<div class="col-sm-6">
-		<form action="{{ page.url }}" method="POST" id="code-edit-form">
+		<form action="{{ page.url }}" method="POST" id="code-edit-form" data-code="{{ code.code }}">
 			<input type="hidden" name="action" value="update-ctm">
 			<input type="hidden" name="table" value="{{ page.codetable }}">
 			<input type="hidden" name="code" value="{{ code.code }}">
@@ -18,12 +18,12 @@
 			</div>
 
 			<div class="form-group">
-				<label for="mail_list">Mail List?</label>
-				{% include 'util/select.twig' with {'name': 'mail_list', 'id': 'mail_list', 'selectedvalue': code.mail_list, 'options': {'Y': 'Yes', 'N': 'No'}} %}
+				<label for="mail_list">Mail List</label>
+				{% include 'util/select.twig' with {'name': 'mail_list', 'id': 'mail_list', 'hideblankoption' : 'true', 'selectedvalue': code.mail_list, 'options': {'Y': 'Yes', 'N': 'No'}} %}
 			</div>
 			<div class="form-group">
 				<label for="order_approval_email">Order Approval Email</label>
-				<input type="text" name="order_approval_email" class="form-control" maxlength="50" value="{{ code.order_approval_email }}" id="order_approval_email">
+				<input type="text" name="order_approval_email" class="form-control email" maxlength="50" value="{{ code.order_approval_email }}" id="order_approval_email">
 			</div>
 
 			{% block extra_fields %}
@@ -48,16 +48,19 @@
 			{% for notetype in module_custnotes.get_notetypes() %}
 				<tr>
 					<td>{{ module_custnotes.get_notetype_description(notetype)|capitalize }}</td>
-					<td>{{ code.count_notetype(notetype)|bool|yesorno|capitalize }}</td>
+					<td>
+						{{ code.count_notetype(notetype)|bool|yesorno|capitalize }}
+					</td>
 					<td class="text-right">
 						<textarea class="collapse" id="notes-{{ notetype }}" cols="{{ module_custnotes.get_notetype_column_count(notetype) }}">{{ module_custnotes.get_notes_array(notetype, code.code)|join('\r') }}</textarea>
-						{% if recordlocker.function_locked_by_user(page.codetable, code.code) %}
+
+						{% if recordlocker.function_locked_by_user(page.codetable, code.code) or code.code == '' %}
 							{% if code.count_notetype(notetype)|bool %}
 								<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#notes-modal" data-type="{{ notetype }}" data-description="{{ module_custnotes.get_notetype_description(notetype)|capitalize }}">
 									<i class="fa fa-pencil" aria-hidden="true"></i> Edit
 								</button>
 							{% else %}
-								<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#notes-modal" data-type="{{ notetype }}" data-description="{{ module_custnotes.get_notetype_description(notetype)|capitalize }}">
+								<button type="button" class="btn btn-secondary note-button" data-toggle="modal" data-target="#notes-modal" data-type="{{ notetype }}" data-description="{{ module_custnotes.get_notetype_description(notetype)|capitalize }}">
 									<i class="fa fa-plus" aria-hidden="true"></i> Add
 								</button>
 							{% endif %}
@@ -95,6 +98,8 @@
 				<i class="fa fa-trash-o" aria-hidden="true"></i> Delete
 			</a>
 		{% endif %}
-		<a href="{{ page.get_codetable_listURL(page.codetable, code.code) }}" class="btn btn-warning pull-right">Close</a>
 	{% endif %}
+	<a href="{{ page.get_codetable_listURL(page.codetable, code.code) }}" class="btn btn-warning pull-right">
+		<i class="fa fa-times" aria-hidden="true"></i> Close
+	</a>
 </div>

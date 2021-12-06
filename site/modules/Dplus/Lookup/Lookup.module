@@ -1,5 +1,7 @@
 <?php namespace ProcessWire;
 
+include_once(__DIR__.'/vendor/autoload.php');
+
 /**
  * Lookup
  *
@@ -19,14 +21,9 @@ class Lookup extends WireData implements Module {
 		}
 	}
 
-	/* =============================================================
-		ProcessWire Module Functions
-	============================================================= */
-	/**
-	 * ProcessWire Module Info
-	 *
-	 * @return void
-	 */
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Lookup Module',
@@ -35,13 +32,10 @@ class Lookup extends WireData implements Module {
 			'singular' => true,
 			'autoload' => true,
 			'installs' => array(
-				'LookupCustomer',
 				'LookupItem',
-				'LookupSalesOrder',
-				'LookupVendor',
 				'LookupQuote',
-				'LookupWarehouse',
-				'ValidatePurchaseOrderNbr'
+				'ValidateCxm',
+				'ValidateUpcx',
 			)
 		);
 	}

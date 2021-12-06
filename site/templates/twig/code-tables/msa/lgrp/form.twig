@@ -1,5 +1,6 @@
 {# lgrp is an instance of SysLoginGroup #}
-<form action="{{ page.url }}" method="POST" id="code-edit-form">
+{# data-code is for verifying edit vs new #}
+<form action="{{ page.url }}" method="POST" id="code-edit-form" data-code="">
 	<input type="hidden" name="table" value="lgrp">
 	<div class="form-group">
 		<label for="code">Group</label>
@@ -11,10 +12,12 @@
 		<input type="text" name="description" class="form-control" maxlength="40" value="{{ login_group.description }}" id="description" autofocus>
 	</div>
 
-	<div class="modal-footer">
-		<button type="submit" class="btn btn-success">
+	<div class="d-flex justify-content-between align-items-center">
+		<button type="submit" class="btn btn-success form_button">
 			<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
 		</button>
-		<button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+		<button type="button" class="btn btn-warning" data-dismiss="modal">
+			<i class="fa fa-times" aria-hidden="true"></i> Close
+		</button>
 	</div>
 </form>

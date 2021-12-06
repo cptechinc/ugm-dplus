@@ -30,6 +30,10 @@ class ConfigsBinr extends Process implements ConfigurableModule {
 		'use_qtyonly' => false,
 	);
 
+	/**
+	 * Return the Number of Decimal Places to use when showing Quantities
+	 * @return int
+	 */
 	public function decimal_places() {
 		return ConfigSalesOrderQuery::create()->findOne()->decimal_places;
 	}

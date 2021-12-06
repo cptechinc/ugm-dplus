@@ -1,26 +1,16 @@
-<nav aria-label="breadcrumb rounded-0">
-	<ol class="breadcrumb">
-		{% for parent in page.parents() %}
-			<li class="breadcrumb-item">
-				<i class="fa fa-list" aria-hidden="true"></i>
-				<a href="{{ parent.url }}">{{ parent.title }}</a>
-			</li>
-		{% endfor %}
-		{% if page.has('itemID') %}
-			<li class="breadcrumb-item">
-				<a href="{{ page.url }}">{{ page.title }}</a>
-			</li>
-			<li class="breadcrumb-item active" aria-current="page">Item: {{ page.itemID }}</li>
-		{% endif %}
+{% extends 'util/bread-crumbs.twig' %}
 
-		{% if upc %}
-			<li class="breadcrumb-item">
-				<a href="{{ page.url }}">{{ page.title }}</a>
-			</li>
-			<li class="breadcrumb-item">
-				<a href="{{ page.item_upcsURL(upc.itemid) }}">Item: {{ upc.itemid }}</a>
-			</li>
-			<li class="breadcrumb-item active" aria-current="page">UPC: {{ upc.upc }}</li>
-		{% endif %}
-	</ol>
-</nav>
+{% set values = page.wire('input').get %}
+
+{% block current_page %}
+	{% if values.offsetExists('upc') == false and values.offsetExists('itemID') == false  %}
+		<li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+	{% endif %}
+
+	{% if values.offsetExists('upc') %}
+		<li class="breadcrumb-item">
+			<i class="fa fa-arrows" aria-hidden="true"></i>  <a href="{{ page.upcListUrl(upcx.getRecordlockerKey(upc)) }}">UPCX</a>
+		</li>
+		<li class="breadcrumb-item active" aria-current="page">{{ values.text('upc') }} - {{ values.text('itemID') }}</li>
+	{% endif %}
+{% endblock %}

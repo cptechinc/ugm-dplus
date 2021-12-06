@@ -1,0 +1,40 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	po                     EditPoHead
+	po_readonly            PurchaseOrder
+	epo                    PurchaseOrderEdit
+#}
+<form action="{{ input.url() }}" method="POST" class="mb-3" id="header-form">
+	<input type="hidden" name="action" value="update-header">
+	<input type="hidden" name="ponbr" value="{{ po.ponbr }}">
+	<div class="row">
+		<div class="col-sm-6">
+			{% include 'purchase-orders/purchase-order/edit/header/form-left.twig' %}
+		</div>
+		<div class="col-sm-6">
+			{% include 'purchase-orders/purchase-order/edit/header/form-right.twig' %}
+		</div>
+	</div>
+	<div class="d-flex w-100 justify-content-between">
+		<button class="btn btn-success">
+			<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
+		</button>
+		<a href="{{ page.poExitUrl(po.ponbr) }}" class="btn btn-danger">
+			<i class="fa fa-times" aria-hidden="true"></i> Exit
+		</a>
+	</div>
+</form>
+<hr>
+<div class="d-flex w-100 justify-content-between">
+	<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#payto-modal">
+		<i class="fa fa-pencil" aria-hidden="true"></i> Pay-To Address
+	</button>
+	<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#phone-modal">
+		<i class="fa fa-pencil" aria-hidden="true"></i> Phone / Email
+	</button>
+	<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#header-notes-modal">
+		<i class="fa fa-sticky-note-o" aria-hidden="true"></i> Notes
+	</button>
+</div>

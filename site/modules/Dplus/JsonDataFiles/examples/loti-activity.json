@@ -1,0 +1,84 @@
+{
+  "error": false,
+  "errormsg": "",
+  "sessionid": "sp6057t2d4ud2rcrhvilki64gg",
+  "itemid": "38I",
+  "date": "00000000",
+  "columns": {
+    "tran type": {
+      "heading": "",
+      "headingjustify": "l",
+      "datajustify": "l"
+    },
+    "warehouse": {
+      "heading": "WH",
+      "headingjustify": "l",
+      "datajustify": "l"
+    },
+    "tran date": {
+      "heading": "Date",
+      "headingjustify": "c",
+      "datajustify": "c"
+    },
+    "tran reference": {
+      "heading": "Reference",
+      "headingjustify": "c",
+      "datajustify": "l"
+    },
+    "quantity": {
+      "heading": "Quantity",
+      "headingjustify": "r",
+      "datajustify": "r"
+    },
+    "balance": {
+      "heading": "Balance",
+      "headingjustify": "r",
+      "datajustify": "r"
+    },
+    "unit cost": {
+      "heading": "Cost",
+      "headingjustify": "r",
+      "datajustify": "r"
+    },
+    "total cost": {
+      "heading": "Amount",
+      "headingjustify": "r",
+      "datajustify": "r"
+    },
+    "lot/serial": {
+      "heading": "Lot/Serial Number",
+      "headingjustify": "l",
+      "datajustify": "l"
+    },
+    "lot bin": {
+      "heading": "Bin",
+      "headingjustify": "l",
+      "datajustify": "l"
+    },
+    "lot reference": {
+      "heading": "Lot Reference",
+      "headingjustify": "l",
+      "datajustify": "l"
+    }
+  },
+  "data": {
+    "BU": {
+      "Whse Name": "BURNSVILLE-EAGAN",
+      "orders": {
+        "1": {
+          "tran type": "Adjust",
+          "warehouse": "BU",
+          "tran date": "01/17/19",
+          "tran reference": "",
+          "quantity": "288.00",
+          "balance": "288.00",
+          "unit cost": "0.35000",
+          "total cost": "100.80",
+          "lot/serial": "T011700001",
+          "lot bin": "E0505",
+          "lot reference": "20190111-0001"
+        }
+      }
+    }
+  }
+}

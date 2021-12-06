@@ -1,0 +1,34 @@
+{% set configIn = page.wire('modules').get('Dconfigs').config('in') %}
+
+<div class="card mb-5">
+	{% block header %}
+		<div class="card-header">
+			<div class="row">
+				<div class="col-sm-2">
+					<strong>Item ID:</strong>
+				</div>
+				<div class="col-sm-4">
+					{{ configIn.useUppercaseItemid() ? item.itemid|upper : item.itemid  }}
+				</div>
+				<div class="col-sm-6">
+					{{ configIn.useUppercaseItemDesc() ? item.description|upper : item.description }}
+					{% if item.description2 %}
+						<br>
+						{{ configIn.useUppercaseItemDesc() ? item.description2|upper : item.description2 }}
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	{% endblock %}
+
+	{% block body %}
+	{% endblock %}
+
+	{% block footer %}
+		<div class="card-footer">
+			<div class="d-flex justify-content-between align-items-center">
+
+			</div>
+		</div>
+	{% endblock %}
+</div>

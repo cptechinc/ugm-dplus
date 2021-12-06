@@ -1,2 +1,16 @@
 <?php
-	include __DIR__ . "/dashboard-$user->dplusrole.php";
+	include($modules->get('Mvc')->controllersPath().'vendor/autoload.php');
+	use Controllers\Dplus\Dashboard as DashboardController;
+
+	DashboardController::initHooks();
+
+	$routes = [
+		['GET',  '', DashboardController::class, 'dashboard'],
+	];
+
+	$router = new Mvc\Router();
+	$router->setRoutes($routes);
+	$router->setRoutePrefix($page->url);
+	$page->body = $router->route();
+
+	include __DIR__ . "/basic-page.php";

@@ -1,0 +1,92 @@
+<?php namespace ProcessWire;
+
+use Purl\Url as Purl;
+
+/**
+ * class DpagesApi
+ *
+ * Installs fields, templates, pages, hooks necessary for Api Pages
+ * api Pages will provide api functionality to the site if not available through other means
+ */
+class DpagesApi extends Dpages implements Module {
+	const FIELDS = [];
+
+	const TEMPLATES = array(
+		'ajax-lookups' => array(
+			'name'   => 'ajax-lookups',
+			'fields' => array(),
+			'paginated' => true
+		),
+		'ajax-json' => array(
+			'name'   => 'ajax-json',
+			'fields' => array(),
+			'paginated' => true
+		),
+	);
+
+	const PAGES = array(
+		'ajax' => array(
+			'template'       => 'ajax-lookups',
+			'name'           => 'ajax',
+			'title'          => 'AJAX Lookups',
+			'summary'        => 'AJAX Lookups',
+			'parent'         => '/'
+		),
+		'ajax-json' => array(
+			'template'       => 'ajax-json',
+			'name'           => 'json',
+			'title'          => 'API JSON',
+			'summary'        => 'API JSON',
+			'parent'         => '/ajax/'
+		),
+	);
+
+	public function lookupUrl($code, $query = []) {
+		$url = new Purl($this->wire('pages')->get("template=ajax-lookups")->httpUrl);
+		$url->path->add($code);
+		if ($query) {
+			$url->query->setData($query);
+		}
+		return $url->getUrl();
+	}
+
+	public function jsonapiURL($api) {
+		$url = $this->wire('pages')->get("template=ajax-json")->httpUrl;
+		if ($api) {
+			$url .= rtrim($api,'/').'/';
+		}
+		return $url;
+	}
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Online API Pages',
+			'version' => 101,
+			'summary' => 'Installs and creates Dplus Online API Pages',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('DplusPwPages', 'Dpages'),
+		);
+	}
+
+	public function init() {
+		$this->addHook("Page::jsonapiURL", function($event) {
+			$api = $event->arguments(0);
+			$event->return = $this->jsonapiURL($api);
+		});
+
+		$this->addHook("Page::search_lookupURL", function($event) {
+			$ajaxcode = $event->arguments(0);
+			$event->return = $this->lookupURL($ajaxcode);
+		});
+
+		$this->addHook("Page::searchLookupUrl", function($event) {
+			$event->return = $this->lookupUrl($event->arguments(0), $event->arguments(1));
+		});
+
+		$this->addHook("Page::jsonApiUrl", function($event) {
+			$api = $event->arguments(0);
+			$event->return = $this->jsonapiURL($api);
+		});
+	}
+}

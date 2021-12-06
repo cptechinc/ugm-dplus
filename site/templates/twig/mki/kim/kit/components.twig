@@ -1,0 +1,51 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	kim                    module Kim
+	kim.recordlocker       module RecordLockerUserFunction
+	kit                    InvKit
+#}
+{% set response = kim.getResponse() %}
+{% set configKt = kim.getConfigKt() %}
+
+<table class="table table-sm">
+	<thead>
+		<tr class="bg-dark text-white p-3">
+			<th>Component</th>
+			{% if configKt.isUsageTag() %}
+				<th>Tag</th>
+			{% endif %}
+			<th>Description</th>
+			<th class="text-right">Usage Rate</th>
+			<th class="text-center">
+				{% block add_new %}
+					{% include 'mki/kim/kit/components/link-add.twig' %}
+				{% endblock %}
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for component in kit.components %}
+			{% set class = component.itemid == page.focus ? 'highlight' : '' %}
+			{% set class = (response.kitID == kit.itemid and response.component == component.itemid and response.has_success()) ? 'bg-success text-white' : class %}
+			<tr class="{{ class }}">
+				<td>{{ component.itemid }}</td>
+
+				{% if configKt.isUsageTag() %}
+					<td>{{ component.usagetag }}</td>
+				{% endif %}
+
+				<td>{{ component.item.description }}</td>
+				<td class="text-right">
+					{{ component.usage()|number_format(kim.component.decimal_places_qty()) }}
+				</td>
+				<td class="text-center">
+					{% block edit_component %}
+						{% include 'mki/kim/kit/components/edit-buttons.twig' %}
+					{% endblock %}
+				</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

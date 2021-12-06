@@ -4,7 +4,7 @@
 			<h3 class="font-weight-bold text-secondary">Notes <i class="fa fa-sticky-note-o" aria-hidden="true"></i></h3>
 		</div>
 		<div class="col">
-			<a href="{{ page.view_notesURL(qnbr) }}" class="btn btn-primary">
+			<a href="{{ page.qnotesUrl(qnbr) }}" class="btn btn-primary">
 				<i class="fa fa-sticky-note" aria-hidden="true"></i> View All Notes
 			</a>
 		</div>
@@ -31,7 +31,7 @@
 					<div class="col">{{ note.invoice }}</div>
 					<div class="col">{{ note.acknowledgement }}</div>
 					<div class="col">
-						<button type="button" class="btn btn-light" data-toggle="collapse" data-target="#notes-{{ note.line }}-{{ note.form }}" aria-controls="collapseExample">
+						<button type="button" class="btn btn-light btn-sm" data-toggle="collapse" data-target="#notes-{{ note.line }}-{{ note.form }}" aria-controls="collapseExample">
 							<i class="fa fa-eye" aria-hidden="true"></i> Show
 						</button>
 					</div>

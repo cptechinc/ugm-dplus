@@ -1,0 +1,23 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	kim                    module InvKitMaster
+	kit                    InvKit
+	component              InvKitComponent
+#}
+{% extends 'mki/kim/kit/page.twig' %}
+
+{% block list %} {% endblock %}
+
+{% block body %}
+	<div class="card-body">
+		<div class="row">
+			<div class="col-sm-8">
+				{% include 'mki/kim/kit/component/form.twig' %}
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block footer %} {% endblock %}

@@ -1,0 +1,107 @@
+<?php namespace ProcessWire;
+
+use Purl\Url;
+
+use PricingQuery, Pricing;
+
+class ItemPricing extends WireData implements Module {
+	/**
+	 * Return Query for This SessionID
+	 * @return PricingQuery
+	 */
+	public function query() {
+		$q = PricingQuery::create();
+		$q->filterBySessionid($this->sessionID);
+		return $q;
+	}
+
+	/**
+	 * Return if Item Has Pricing
+	 * @param  string $itemID Item ID
+	 * @return bool
+	 */
+	public function has_pricing($itemID) {
+		$q = $this->query();
+		$q->filterByItemid($itemID);
+		return boolval($q->count());
+	}
+
+	/**
+	 * Return Pricing Record for this Item ID
+	 * @param  string $itemID Item ID
+	 * @return Pricing
+	 */
+	public function get_pricing($itemID) {
+		$q = $this->query();
+		$q->filterByItemid($itemID);
+		return $q->findOne();
+	}
+
+	public function getAll() {
+		$q = $this->query();
+		return $q->find();
+	}
+
+/* =============================================================
+	Dplus Cobol Request Functions
+============================================================= */
+	/**
+	 * Request Item Search from Dplus
+	 * @param  string $q       Search Query
+	 * @param  string $custID  Customer ID
+	 * @return void
+	 */
+	public function request_search($q, $custID = '') {
+		$config = $this->wire('config');
+		$custID = $custID ? $custID : $config->default_webcustomer;
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", "ITNOSRCH=$q", "CUSTID=$custID");
+		$this->_request_dplus($data);
+	}
+
+	/**
+	 * Request Item Pricing from Dplus
+	 * @param  array  $itemIDs  Item IDs
+	 * @param  string $custID   Customer ID
+	 * @return void
+	 */
+	public function request_multiple(array $itemIDs, $custID = '') {
+		$config = $this->wire('config');
+		$custID = $custID ? $custID : $config->default_webcustomer;
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", "ITMPRIMULT", "CUSTID=$custID");
+		foreach ($itemIDs as $itemID) {
+				$data[] = "ITEMID=$itemID";
+		}
+		$this->_request_dplus($data);
+	}
+
+	/**
+	 * Send Request to Dplus
+	 * @param  array  $data
+	 * @return void
+	 */
+	private function _request_dplus(array $data) {
+		$config = $this->wire('config');
+		$m = $this->wire('modules')->get('DplusRequest');
+		$m->write_dplusfile($data, $this->sessionID);
+		$m->cgi_request($config->cgis['default'], $this->sessionID);
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Item Pricing Module',
+			'version' => 101,
+			'summary' => 'Module for requesting pricing records',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+
+	public function init() {
+		$this->sessionID = session_id();
+	}
+}

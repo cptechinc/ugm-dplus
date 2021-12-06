@@ -1,19 +1,19 @@
 <table class="table table-sm">
 	<thead>
 		<tr>
-			<th>Shipto</th>
+			<th>Date</th>
 			<th>Amount</th>
 		</tr>
 	</thead>
 	<tbody>
-		{% for shiptobooking in shiptobookings %}
+		{% for shipto in shiptos %}
 		<tr>
 			<td>
-				<a href="{{ page.get_bookings_customerURL(shiptobooking.custid, shiptobooking.shiptoid) }}" class="link">
-					{{ shiptobooking.shipto.name ? shiptobooking.shipto.name : 'None' }} ({{ shiptobooking.shiptoid }})
+				<a href="{{ page.get_ci_customerURL(shipto.custid, shipto.shiptoid) }}" class="link">
+					{{ shipto.shipto_name() }} ({{ shipto.shiptoid }})
 				</a>
 			</td>
-			<td>$ {{ shiptobooking.amount|currency }}</td>
+			<td>$ {{ shipto.amount|currency }}</td>
 		</tr>
 		{% endfor %}
 	</tbody>

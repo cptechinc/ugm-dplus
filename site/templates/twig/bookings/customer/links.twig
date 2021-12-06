@@ -8,7 +8,7 @@
 	</a>
 	{% block extra_links %}
 		&nbsp;
-		<a href="{{ page.customerURL(customer.custid) }}" class="btn btn-light">
+		<a href="{{ page.get_ci_customerURL(customer.custid) }}" class="btn btn-light">
 			<i class="fa fa-user" aria-hidden="true"></i> View {{ customer.name }}
 		</a>
 	{% endblock %}

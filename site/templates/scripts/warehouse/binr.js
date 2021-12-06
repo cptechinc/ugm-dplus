@@ -1,7 +1,7 @@
 $(function() {
 	// BINR FORM INPUTS
-	var input_frombin = $('.binr-form').find('input[name=from-bin]');
-	var input_tobin   = $('.binr-form').find('input[name=to-bin]');
+	var input_frombin = $('.binr-form').find('input[name=frombin]');
+	var input_tobin   = $('.binr-form').find('input[name=tobin]');
 	var input_qty     = $('.binr-form').find('input[name=qty]');
 
 	/**
@@ -68,7 +68,7 @@ $(function() {
 	$("body").on("click", ".use-bin-qty", function(e) {
 		e.preventDefault();
 		var button = $(this);
-		var binID = $('.binr-form').find('input[name=from-bin]').val();
+		var binID = $('.binr-form').find('input[name=frombin]').val();
 		var binqty = $('.choose-from-bins').find('[data-binid="'+binID+'"]').data('qty');
 		$('.binr-form').find('.qty-available').text(binqty);
 		input_qty.val(binqty);
@@ -95,7 +95,7 @@ $(function() {
 			var valid_qty     = validate_qty();
 			var valid_tobin   = validate_tobin();
 			var valid_move    = validate_move();
-			var valid_form = new SwalError(false, '', '', false);
+			var valid_form    = new SwalError(false, '', '', false);
 
 			if (valid_frombin.error) {
 				valid_form = valid_frombin;
@@ -169,7 +169,7 @@ $(function() {
 			error = true;
 			title = 'Error';
 			msg = 'Please Fill in the To Bin';
-		} else if (warehouse.binarrangement == 'list' && warehouse.bins.contains(input_tobin.val()) === false) {
+		} else if (warehouse.binarrangement == 'list' && warehouse.bins[input_tobin.val()] === undefined) {
 			error = true;
 			title = 'Invalid Bin ID';
 			msg = 'Please use a valid To bin';
@@ -203,4 +203,28 @@ $(function() {
 		}
 		return new SwalError(error, title, msg, html);
 	}
+
+/* =============================================================
+	Lookup Modal Functions
+============================================================= */
+	$('#ajax-modal').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var modal = $(this);
+		var url = button.data('lookupurl');
+		modal.attr('data-input', button.data('input'));
+
+		modal.find('.modal-title').text(button.attr('title'));
+		modal.resizeModal('xl');
+		modal.find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on("click", "#ajax-modal .item-link", function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var modal  = button.closest('.modal');
+		var itemID = button.data('itemid');
+		var input  = $(modal.attr('data-input'));
+		input.val(itemID);
+		modal.modal('hide');
+	});
 });

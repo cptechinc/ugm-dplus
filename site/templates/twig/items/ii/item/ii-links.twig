@@ -4,23 +4,16 @@
 			<i class="fa fa-arrow-left" aria-hidden="true"></i> Back
 		</a>
 		&nbsp;
-		<a href="{{ page.get_printURL() }}" target="_blank" class="btn btn-primary not-round">
-			<i class="fa fa-print" aria-hidden="true"></i> Printable
+		<a href="{{ page.get_printURL() }}" class="btn btn-primary not-round">
+			<i class="fa fa-print" aria-hidden="true"></i> Print
 		</a>
 		&nbsp;
-		{% if refreshurl %}
-			<a href="{{ refreshurl }}" class="btn btn-primary not-round">
+		{% if page.refreshurl %}
+			<a href="{{ page.refreshurl }}" class="btn btn-primary not-round">
 				<i class="fa fa-refresh" aria-hidden="true"></i> Refresh Data
 			</a>
 			&nbsp;
 			Data Current as of {{ lastmodified|date('m/d/Y h:i A') }}
 		{% endif %}
-	</div>
-{% endif %}
-{% if page.is_print()%}
-	<div class="form-group d-print-none">
-		<button class="btn btn-primary" onclick="window.print();">
-			<i class="fa fa-print" aria-hidden="true"></i> Print
-		</button>
 	</div>
 {% endif %}

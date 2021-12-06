@@ -1,0 +1,157 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	po                     EditPoHead
+	epo                    PurchaseOrderEdit
+#}
+<div class="item-col">
+	<div class="row mb-2">
+		<div class="col-sm-4">
+			<label for="edititemID">Item ID</label>
+		</div>
+		<div class="col-sm-8">
+			{% include 'util/form/input-with-modal-lookup.twig' with {
+					'name': 'itemID', 'id': 'edititemID', 'value': '',
+					'attributes': {
+
+					},
+					'modaltarget': '#ajax-modal', 'modaldescription': 'Search for / Choose Item',
+					'attributes_button': {
+						'data-search': 'item',
+						'data-input': '#edititemID'
+					}
+				}
+			%}
+		</div>
+	</div>
+	<div class="row mb-2">
+		<div class="col-sm-4">
+			<label for="description">Description</label>
+		</div>
+		<div class="col-sm-8">
+			{% include 'util/form/input.twig' with {
+					'name': 'description', 'id': 'editdescription', 'value': '',
+					'class_add': [
+						'description'
+					]
+				}
+			%}
+		</div>
+	</div>
+</div>
+<div class="row mb-2">
+	<div class="col-sm-4">
+		<label for="vendoritemID">Vendor Item ID</label>
+	</div>
+	<div class="col-sm-8">
+		{% include 'util/form/input-with-modal-lookup.twig' with {
+				'name': 'vendoritemID', 'id': 'vendoritemID', 'value': '',
+				'modaltarget': '#ajax-modal', 'modaldescription': 'Search for / Choose Vendor Item',
+				'attributes_button': {
+					'data-search': 'vendoritem',
+					'data-input': '#vendoritemID',
+					'data-lookupurl': page.searchLookupUrl('vxm', {'vendorID': po.vendorID})
+				}
+			}
+		%}
+	</div>
+</div>
+<div class="row mb-2">
+	<div class="col-sm-4">
+		<label for="whse">Warehouse</label>
+	</div>
+	<div class="col-sm-8">
+		{% include 'util/bootstrap/form/input-group.twig' with {
+				'inputgroup': {
+					'size': 'sm',
+					'type': 'prepend',
+					'input': {
+						'name': 'whse',
+						'value': '',
+						'attributes': {
+							'placeholder': '',
+							'aria-label':  'Warehouse ID'
+						}
+					},
+					'button': {
+						'colorclass': 'btn-secondary',
+						'text': 'fa fa-search'|icon,
+						'attributes': {
+							'title': 'Search Warehouse IDs',
+							'data-toggle': 'modal',
+							'data-target': '#ajax-modal',
+							'data-lookupurl': page.search_lookupURL('warehouses'),
+							'data-input': '#whse'
+						}
+					}
+				}
+			}
+		%}
+	</div>
+</div>
+<div class="row mb-2">
+	<div class="col-sm-4">
+		<label for="whse">Special Order</label>
+	</div>
+	<div class="col-sm-8">
+		<select class="form-control form-control-sm" name="specialorder" id="specialorder">
+			{% for code, desc in constant('LINE_TYPES', epo.items) %}
+				<option value="{{ code }}">{{ desc|title }}</option>
+			{% endfor %}
+		</select>
+	</div>
+</div>
+<div class="row mb-2">
+	<div class="col-sm-4">
+		<label for="ordn">Sales Order</label>
+	</div>
+	<div class="col-sm-8">
+		{% include 'util/bootstrap/form/input.twig' with {
+				'input': {
+					'name': 'ordn',
+					'size': 'sm',
+					'value': '',
+					'attributes': {
+						'placeholder': '',
+						'aria-label':  'Sales Order Number'
+					}
+				}
+			}
+		%}
+	</div>
+</div>
+<div class="row mb-2">
+	<div class="col-sm-4">
+		<label for="glaccounts">GL Account</label>
+	</div>
+	<div class="col-sm-8">
+		{% include 'util/bootstrap/form/input-group.twig' with {
+				'inputgroup': {
+					'size': 'sm',
+					'type': 'prepend',
+					'input': {
+						'name': 'glaccount',
+						'value': '',
+						'attributes': {
+							'placeholder': '',
+							'aria-label':  'GL Account Number'
+						}
+					},
+					'button': {
+						'colorclass': 'btn-secondary',
+						'text': 'fa fa-search'|icon,
+						'attributes': {
+							'title': 'GL Accounts',
+							'data-toggle': 'modal',
+							'data-target': '#ajax-modal',
+							'data-lookupurl': page.search_lookupURL('gl-codes'),
+							'data-input': '#glaccount'
+						}
+					}
+				}
+			}
+		%}
+		<p class="form-control-plaintext form-control-sm gl-desc"></p>
+	</div>
+</div>

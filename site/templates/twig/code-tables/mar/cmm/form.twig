@@ -97,15 +97,17 @@
 			NOTE: Only show delete if code already exists.
 		#}
 		{% if recordlocker.function_locked_by_user(page.codetable, code.custid) or code.isNew() %}
-			<button type="submit" class="btn btn-success form_button">
+			<button type="submit" class="btn btn-success">
 				<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
 			</button>
 			{% if code.isNew() == false %}
-				<a href="{{ page.get_codetable_code_deleteURL(page.codetable, code.custid) }}" class="btn btn-danger form_button delete_button">
+				<a href="{{ page.get_codetable_code_deleteURL(page.codetable, code.custid) }}" class="btn btn-danger delete_button">
 					<i class="fa fa-trash-o" aria-hidden="true"></i> Delete
 				</a>
 			{% endif %}
 		{% endif %}
-		<a href="{{ page.get_codetable_listURL(page.codetable, code.custid) }}" class="btn btn-warning pull-right form_button">Close</a>
+		<a href="{{ page.get_codetable_listURL(page.codetable, code.custid) }}" class="btn btn-warning pull-right">
+			<i class="fa fa-times" aria-hidden="true"></i> Close
+		</a>
 	</div>
 </form>

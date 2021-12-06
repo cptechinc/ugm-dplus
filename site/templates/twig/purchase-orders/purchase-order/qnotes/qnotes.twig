@@ -1,25 +1,35 @@
-<div class="mb-3">
-	{% include 'purchase-orders/purchase-order/qnotes/header-notes.twig' with {'notes': purchaseorder.get_notes()} %}
-</div>
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	purchaseorder          PurchaseOrder
+	ponbr                  Purchase Order Number
+	qnotes                 module QnotesPo
+	qnotes.pord            module QnotesPoPord
+	qnotes.intl            module QnotesPoIntl
+	qnotes.irev            module QnotesItemRevision
+#}
+<h3>Header Notes</h3>
+{% include 'purchase-orders/purchase-order/qnotes/line.twig' with {'qnotes': qnotes, 'ponbr': ponbr, 'linenbr': 0, 'show_edit': true} %}
 
 <h3>Item Notes</h3>
 {% for item in purchaseorder.getPurchaseOrderDetails() %}
-	<div class="mb-3">
-		<div class="card" id="line-{{ item.linenbr }}">
-			<div class="card-header bg-primary text-white font-weight-bold">
-				Line # {{ item.linenbr ~ ': ' ~ item.itemid }}
+	<div class="list-group">
+		<div class="list-group-item bg-dark text-white">
+			<div class="d-flex w-100 justify-content-between">
+				Line # {{ item.linenbr }} : {{ item.itemid }}
+
+				<button class="btn btn-sm btn-secondary" type="button" data-toggle="collapse" data-target="#notes-line-{{ item.linenbr }}" aria-expanded="false" aria-controls="notes-line-{{ item.linenbr }}">
+					<i class="fa fa-eye" aria-hidden="true"></i> Show
+				</button>
 			</div>
-			<div class="card-body">
-				{% if item.count_notes() > 0 %}
-					{% for note in item.get_notes() %}
-						<p class="card-text">{{ note.note }}</p>
-					{% endfor %}
-				{% else %}
-					<p class="card-text">
-						No notes found
-					</p>
-				{% endif %}
-			</div>
+		</div>
+		<div class="list-group-item collapse" id="notes-line-{{ item.linenbr }}">
+			{% include 'purchase-orders/purchase-order/qnotes/line-item.twig' with {'qnotes': qnotes, 'item': item, 'linenbr': item.linenbr, 'show_edit': true} %}
 		</div>
 	</div>
 {% endfor %}
+{% include 'purchase-orders/purchase-order/qnotes/pord/modal.twig' %}
+{% include 'purchase-orders/purchase-order/qnotes/intl/modal.twig' %}
+{% include 'purchase-orders/purchase-order/qnotes/irev/modal.twig' %}
+{% include 'msa/noce/ajax/notes-modal.twig' %}

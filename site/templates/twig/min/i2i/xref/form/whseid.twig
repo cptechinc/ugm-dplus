@@ -1,0 +1,14 @@
+<div class="row form-group">
+	<div class="col-sm-4">
+		<label for="whseID">Supplying Warehouse</label>
+	</div>
+	<div class="col-sm-8">
+		<select name="whseID" class="form-control" id="whseID">
+			{% for whse in i2i.getWarehouses() %}
+				<option value="{{ whse.id }}" {{ whse.id == xref.whseid ? 'selected' : ''}}>
+					{{ whse.id }} - {{ whse.name }}
+				</option>
+			{% endfor %}
+		</select>
+	</div>
+</div>

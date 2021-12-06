@@ -11,7 +11,6 @@
 	$pickingsession->set_sessionID(session_id());
 	$pickingsession->set_ordn($ordn);
 
-
 	$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
 	$warehouse   = WarehouseQuery::create()->findOneByWhseid($whsesession->whseid);
 

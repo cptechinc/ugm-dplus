@@ -53,7 +53,7 @@
 				$page->body .= $config->twig->render("bookings/customer/links.twig", ['page' => $page, 'customer' => $customer]);
 			}
 
-			$page->body .= $config->twig->render("bookings/customer/bookings-page.twig", ['page' => $page, 'bookings' => $bookings, 'interval' => $filter_bookings->bookings_user->interval, 'shiptobookings' => $shiptos, 'dpluso' => $dpluso]);
+			$page->body .= $config->twig->render("bookings/customer/bookings-page.twig", ['page' => $page, 'bookings' => $bookings, 'interval' => $filter_bookings->bookings_user->interval, 'shiptos' => $shiptos, 'dpluso' => $dpluso]);
 			$page->js .= $config->twig->render("bookings/user/js/bookings.js.twig", ['page' => $page, 'bookingsdata' => $filter_bookings->convert_bookings_for_js($bookings), 'interval' => $filter_bookings->bookings_user->interval]);
 
 			$config->styles->append(hash_templatefile('styles/lib/morris.css'));

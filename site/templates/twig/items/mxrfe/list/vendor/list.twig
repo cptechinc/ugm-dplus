@@ -1,0 +1,47 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	mxrfe                  module XrefMxrfe
+	recordlocker           module RecordLockerUser
+	xrefs                  ItemXrefManufacturer[]|ObjectCollection
+	qnotes                 module QnotesItemMxrfe
+#}
+{% set response = mxrfe.response() %}
+{% set values   = input.get %}
+
+<table class="table table-sm">
+	<thead>
+		<tr class="bg-dark text-white p-3">
+			<th class="pt-3 pb-3 align-middle">Mnfr / Comp Item</th>
+			<th class="pt-3 pb-3 align-middle">Notes</th>
+			<th class="pt-3 pb-3 align-middle">Our Item</th>
+			<th class="pt-3 pb-3 align-middle">Description</th>
+			<th class="pt-3 pb-3 text-center">
+				{% block add_button %}
+					{% include 'items/mxrfe/list/vendor/actions/add.twig' %}
+				{% endblock %}
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% if xrefs.count() %}
+			{% for xref in xrefs %}
+				{% set class = mxrfe.get_recordlocker_key(xref) == page.focus ? 'highlight' : '' %}
+				{% set class = (response.key == mxrfe.get_recordlocker_key(xref) and response.has_success()) ? 'bg-success text-white' : class %}
+
+				<tr class="{{ class }}" data-mxrfe="{{ mxrfe.get_recordlocker_key(xref) }}">
+					<td>{{ xref.vendoritemid }}</td>
+					<td>{{ (qnotes.mnfr.exist(xref.mnfrid, xref.mnfritemid) or qnotes.intv.notes_exist_item(xref.itemid, xref.mnfrid) or qnotes.mmsc.exist(xref.mnfrid, xref.mnfritemid))|yesorno|capitalize }}</td>
+					<td>{{ xref.itemid }}</td>
+					<td>{{ xref.item.description }}</td>
+					<td class="text-center">
+						{% block edit_actions %}
+							{% include 'items/mxrfe/list/vendor/actions/edit.twig' %}
+						{% endblock %}
+					</td>
+				</tr>
+			{% endfor %}
+		{% endif %}
+	</tbody>
+</table>
