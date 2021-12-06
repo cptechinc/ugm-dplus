@@ -4,7 +4,7 @@ use Purl\Url as Purl;
 // ProcessWire
 use ProcessWire\WireData;
 // Dplus Document Management
-use Dplus\DocManagement\Viewer\Config;
+use Dplus\DocManagement\Config;
 
 
 /**
@@ -36,7 +36,7 @@ class Viewer extends WireData {
 	 * @return bool
 	 */
 	public function exists($file) {
-		return file_exists($this->configs->directory . '/' . $file);
+		return file_exists($this->configs->viewer->directory . '/' . $file);
 	}
 
 	/**
@@ -57,10 +57,10 @@ class Viewer extends WireData {
 	 */
 	private function buildUrl($file, $folder = '') {
 		$url = new Purl($this->wire('pages')->get('/')->url);
-		$url->path = $this->configs->urlpath;
+		$url->path = $this->configs->viewer->urlpath;
 
-		if (empty($this->configs->url) === false) {
-			$url = new Purl($this->configs->url);
+		if (empty($this->configs->viewer->url) === false) {
+			$url = new Purl($this->configs->viewer->url);
 		}
 
 		if ($folder) {
