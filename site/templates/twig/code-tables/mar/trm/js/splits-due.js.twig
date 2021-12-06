@@ -1,0 +1,50 @@
+// $(function() {
+//
+// /* =============================================================
+// 	Event Functions -- Due
+// ============================================================= */
+// 	$("body").on('change', '.due_day', function(e) {
+// 		var input = $(this);
+// 		var row = input.closest('.due');
+// 		var index = row.data('index');
+//
+// 		if (input.val() == 0) {
+// 			$('.split'+index).find($('.due_months')).val(0);
+// 			$('.split'+index).find($('.due_months')).prop('disabled', true);
+// 		} else {
+// 			$('.split'+index).find($('.due_months')).prop('disabled', false).focus();
+// 		}
+// 	});
+//
+// 	$("body").on('change', '.due_date', function(e) {
+// 		var input = $(this);
+// 		var row = input.closest('.due');
+// 		var index = row.attr('data-index');
+//
+// 		if (input.val() == 0) {
+// 			$('.split'+index).find($('.due_year')).val(0);
+// 			$('.split'+index).find($('.due_year')).prop('disabled', true);
+// 		} else {
+// 			$('.split'+index).find($('.due_year')).prop('disabled', false).focus();
+// 		}
+// 	});
+//
+// 	$("body").on('change', '.due_group', function(e) {
+// 		var input = $(this);
+// 		var row = input.closest('.due');
+// 		var index = row.attr("data-index");
+//
+// 		if (input.val() != 0) {
+// 			$('.split'+(index)).find($('.due_day, .due_days')).not(this).val(0);
+// 			if (input.val().length < 3) {
+// 				$('.split'+(index)).find($('input.due_date')).val('');
+// 			}
+// 			$('.split'+(index)).find($('input.due_group')).not(this).prop('disabled', true);
+// 		}
+//
+// 		if (input.val() == 0 && $('.split'+(index)).find($('input.due_group')).not(this).val() == 0) {
+// 			$('.split'+(index)).find($('input.due_group')).not(this).prop('disabled', false);
+// 			input.focus();
+// 		}
+// 	});
+// });
