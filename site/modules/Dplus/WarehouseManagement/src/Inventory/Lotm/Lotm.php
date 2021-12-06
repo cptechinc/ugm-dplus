@@ -8,7 +8,6 @@ use ProcessWire\WireData;
 
 /**
  * Lotm
- * Wrapper for querying Lot Master
  */
 class Lotm extends WireData {
 	private static $instance;
@@ -57,8 +56,8 @@ class Lotm extends WireData {
 ============================================================= */
 	/**
 	 * Return Lot(s) have Images associated with them
-	 * @param  [type] $lotnbr               [description]
-	 * @return [type]         [description]
+	 * @param array|string $lotnbr
+	 * @return bool
 	 */
 	public function lotsHaveImages($lotnbr = null) {
 		$q = $this->queryLotnbr($lotnbr);
