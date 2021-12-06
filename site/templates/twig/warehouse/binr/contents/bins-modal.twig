@@ -20,7 +20,7 @@
 									</div>
 									<div class="col-6">
 										{% if (bin.from in currentbins.toArray('binfrom')|keys)	%}
-											<h5 class="list-group-item-heading">Qty {{ inventory.get_binqty(session.get('sessionid'), item, bin.from) }}</h5>
+											<h5 class="list-group-item-heading">Qty {{ inventory.get_binqty(session.get('sessionid'), item, bin.from)|number_format(config.decimal_places())  }}</h5>
 										{% endif %}
 									</div>
 								</div>

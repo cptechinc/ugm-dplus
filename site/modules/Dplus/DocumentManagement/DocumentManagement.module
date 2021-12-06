@@ -1,8 +1,8 @@
 <?php namespace ProcessWire;
 
 use Purl\Url;
-use DocumentFoldersQuery, DocumentFolders;
-use DocumentsQuery, Documents;
+use DocumentFolderQuery, DocumentFolder;
+use DocumentQuery, Document;
 
 include(__DIR__.'/DocumentManagementVi.trait.php');
 include(__DIR__.'/DocumentManagementPurchaseOrders.trait.php');
@@ -87,12 +87,12 @@ class DocumentManagement extends WireData implements Module {
 	 * @return void
 	 */
 	public function move_document($folder, $filename, $destination = '') {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByFolder($folder);
 		$documents_master->filterByFilename($filename);
 		$document = $documents_master->findOne();
 
-		$folder = DocumentFoldersQuery::create()->findOneByFolder($folder);
+		$folder = DocumentFolderQuery::create()->findOneByFolder($folder);
 		$this->move_file($folder->directory, $document->filename, $destination);
 	}
 
@@ -117,12 +117,12 @@ class DocumentManagement extends WireData implements Module {
 	 * @return string
 	 */
 	public function whereis_document($folder, $filename) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByFolder($folder);
 		$documents_master->filterByFilename($filename);
 		$document = $documents_master->findOne();
 
-		$folder = DocumentFoldersQuery::create()->findOneByFolder($folder);
+		$folder = DocumentFolderQuery::create()->findOneByFolder($folder);
 		return "$folder->directory/$filename";
 	}
 

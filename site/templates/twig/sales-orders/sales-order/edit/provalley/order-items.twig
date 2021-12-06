@@ -54,7 +54,12 @@
 			</div>
 			<div class="col-sm-3 text-right">
 				<button type="submit" class="btn btn-warning">Save&ensp;<i class="fa fa-floppy-o" aria-hidden="true"></i></button>
-				<a href="{{ page.remove_itemURL(order.ordernumber, detail.linenbr) }}" class="btn btn-danger exclude">Remove&ensp;<i class="fa fa-times" aria-hidden="true"></i></a>
+
+				{% if module_edit.canDeleteLines() %}
+					<a href="{{ page.remove_itemURL(order.ordernumber, detail.linenbr) }}" class="btn btn-danger exclude">
+						<i class="fa fa-trash-o" aria-hidden="true"></i> Delete
+					</a>
+				{% endif %}
 			</div>
 		</form>
 		<hr>

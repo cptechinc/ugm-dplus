@@ -1,8 +1,8 @@
 <?php namespace ProcessWire;
 
 use Purl\Url;
-use DocumentFoldersQuery, DocumentFolders;
-use DocumentsQuery, Documents;
+use DocumentFolderQuery, DocumentFolder;
+use DocumentQuery, Document;
 use PurchaseOrderQuery, PurchaseOrder;
 use ApInvoiceQuery, ApInvoice;
 
@@ -73,7 +73,7 @@ trait DocumentManagementPurchaseOrders {
 	 */
 	public function get_purchaseorderdocuments($ponbr) {
 		$ponbr = PurchaseOrder::get_paddedponumber($ponbr);
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_VENDORPO);
 		$documents_master->filterByReference1($ponbr);
 		return $documents_master->find();
@@ -87,7 +87,7 @@ trait DocumentManagementPurchaseOrders {
 	 */
 	public function count_purchaseorderdocuments($ponbr) {
 		$ponbr = PurchaseOrder::get_paddedponumber($ponbr);
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$documents_master->filterByTag(self::TAG_VENDORPO);
 		$documents_master->filterByReference1($ponbr);
 		return $documents_master->count();
@@ -100,7 +100,7 @@ trait DocumentManagementPurchaseOrders {
 	 * @return Documents[]|Object Collection
 	 */
 	public function get_purchasehistorydocuments($invnbr) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$this->filter_purchasehistoryconditions($documents_master, $invnbr);
 		return $documents_master->find();
 	}
@@ -114,7 +114,7 @@ trait DocumentManagementPurchaseOrders {
 	 * @return int            Number of Documents found associated with AP Invoice Number
 	 */
 	public function count_purchasehistorydocuments($invnbr) {
-		$documents_master = DocumentsQuery::create();
+		$documents_master = DocumentQuery::create();
 		$this->filter_purchasehistoryconditions($documents_master, $invnbr);
 		return $documents_master->count();
 	}
@@ -123,11 +123,11 @@ trait DocumentManagementPurchaseOrders {
 	 * Adds Filter Conditions to the Documents Query
 	 * to find Documents associated with an AP Invoice Number
 	 *
-	 * @param  DocumentsQuery $documents_master  Query to add filters to
+	 * @param  DocumentQuery $documents_master  Query to add filters to
 	 * @param  string         $invnbr            AP Invoice Number
 	 * @return void
 	 */
-	protected function filter_purchasehistoryconditions(DocumentsQuery $documents_master, $invnbr) {
+	protected function filter_purchasehistoryconditions(DocumentQuery $documents_master, $invnbr) {
 		$invnbr = PurchaseOrder::get_paddedponumber($invnbr);
 
 		$documentmanagement = $this->wire('modules')->get('DocumentManagement');
@@ -140,35 +140,35 @@ trait DocumentManagementPurchaseOrders {
 		if ($q->count()) {
 			$apinvoice = $q->findOne();
 			$ponbr = $apinvoice->ponbr;
-			$column_tag = Documents::get_aliasproperty('tag');
-			$column_reference1 = Documents::get_aliasproperty('reference1');
-			$column_reference2 = Documents::get_aliasproperty('reference2');
+			$column_tag = Document::get_aliasproperty('tag');
+			$column_reference1 = Document::get_aliasproperty('reference1');
+			$column_reference2 = Document::get_aliasproperty('reference2');
 
 			// Create Invoices Filter
-			$documents_master->condition('tag_invoices', "Documents.$column_tag = ?", self::TAG_APINVOICE);
-			$documents_master->condition('reference1_invoices', "Documents.$column_reference1 = ?", $invnbr);
+			$documents_master->condition('tag_invoices', "Document.$column_tag = ?", self::TAG_APINVOICE);
+			$documents_master->condition('reference1_invoices', "Document.$column_reference1 = ?", $invnbr);
 			$documents_master->combine(array('tag_invoices', 'reference1_invoices'), 'and', 'cond_invoices') ;
 
 			// Create Invoices Filter
-			$documents_master->condition('tag_invoices', "Documents.$column_tag = ?", self::TAG_APINVOICE);
-			$documents_master->condition('reference2_invoices', "Documents.$column_reference2 = ?", $invnbr);
+			$documents_master->condition('tag_invoices', "Document.$column_tag = ?", self::TAG_APINVOICE);
+			$documents_master->condition('reference2_invoices', "Document.$column_reference2 = ?", $invnbr);
 			$documents_master->combine(array('tag_invoices', 'reference2_invoices'), 'and', 'cond_invoices2') ;
 
 			// Create Vendor PO Filter
-			$documents_master->condition('tag_vendorpo', "Documents.$column_tag = ?", self::TAG_VENDORPO);
-			$documents_master->condition('reference1_vendorpo', "Documents.$column_reference1 = ?", $ponbr);
+			$documents_master->condition('tag_vendorpo', "Document.$column_tag = ?", self::TAG_VENDORPO);
+			$documents_master->condition('reference1_vendorpo', "Document.$column_reference1 = ?", $ponbr);
 			$documents_master->combine(array('tag_vendorpo', 'reference1_vendorpo'), 'and', 'cond_vendorpo');
 
 			// Combine Invoices, Vendor PO filters
 			$documents_master->where(array('cond_invoices', 'cond_invoices2', 'cond_vendorpo'), 'or');
 		} else {
 			$documents_master->filterByTag(self::TAG_VENDORPO);
-			$column_reference1 = Documents::get_aliasproperty('reference1');
-			$column_reference2 = Documents::get_aliasproperty('reference2');
+			$column_reference1 = Document::get_aliasproperty('reference1');
+			$column_reference2 = Document::get_aliasproperty('reference2');
 
 			// Create Vendor PO OR Filter
-			$documents_master->condition('reference1_invoices', "Documents.$column_reference1 = ?", $invnbr);
-			$documents_master->condition('reference2_invoices', "Documents.$column_reference2 = ?", $invnbr);
+			$documents_master->condition('reference1_invoices', "Document.$column_reference1 = ?", $invnbr);
+			$documents_master->condition('reference2_invoices', "Document.$column_reference2 = ?", $invnbr);
 			$documents_master->combine(array('reference1_invoices', 'reference2_invoices'), 'or', 'cond_invoices');
 			$documents_master->where(array('cond_invoices'));
 		}

@@ -3,13 +3,17 @@
 		<a href="{{ page.get_backURL() }}" class="btn btn-primary d-print-none">
 			<i class="fa fa-arrow-left" aria-hidden="true"></i> Back to Item
 		</a>
+		&nbsp;
+		<button class="btn btn-primary d-print-none" onclick="window.print();">
+			<i class="fa fa-print" aria-hidden="true"></i> Print
+		</button>
 	{% else %}
 		<a href="{{ page.get_backURL() }}" class="btn btn-primary">
 			<i class="fa fa-arrow-left" aria-hidden="true"></i> Back to Item
 		</a>
 		&nbsp;
-		<a href="{{ page.get_printURL() }}" class="btn btn-primary">
-			<i class="fa fa-print" aria-hidden="true"></i> Print
+		<a href="{{ page.get_printURL() }}" target="_blank" class="btn btn-primary">
+			<i class="fa fa-print" aria-hidden="true"></i> Printable
 		</a>
 		&nbsp;
 		{% if refreshurl %}

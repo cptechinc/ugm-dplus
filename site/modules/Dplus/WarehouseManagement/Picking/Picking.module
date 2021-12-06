@@ -6,7 +6,10 @@ use Purl\Url;
 use WhseitempickQuery, Whseitempick;
 use PickSalesOrderDetailQuery, PickSalesOrderDetail;
 use WhsesessionQuery, Whsesession;
+
 use WarehouseQuery, Warehouse;
+use ItemXrefUpcQuery, ItemXrefUpc;
+use ConfigSalesOrderQuery, ConfigSalesOrder;
 
 /**
  * Picking
@@ -41,33 +44,6 @@ class Picking extends WireData implements Module {
 	 */
 	protected $config;
 
-/* =============================================================
-	ProcessWire Module Functions
-============================================================= */
-	/**
-	 * ProcessWire Module Info
-	 *
-	 * @return void
-	 */
-	public static function getModuleInfo() {
-		return array(
-			'title' => 'Dpluso Warehouse Picking Functions Module',
-			'version' => 101,
-			'summary' => 'Handles Dplus Functions',
-			'singular' => true,
-			'autoload' => false,
-		);
-	}
-
-	public function init() {
-		$this->session = $this->wire('session');
-		$this->config = new WireData();
-		$this->config->inventory = $this->wire('modules')->get('ConfigsWarehouseInventory');
-		$this->config->picking   = $this->wire('modules')->get('ConfigsWarehousePicking');
-		$this->inventory = $this->wire('modules')->get('PickingInventoryManager');
-		$this->items = $this->wire('modules')->get('PickingOrderItems');
-	}
-
 	/**
 	 * Sets Session ID
 	 * @param string $sessionID Session ID
@@ -95,6 +71,9 @@ class Picking extends WireData implements Module {
 		return $this->ordn;
 	}
 
+/* =============================================================
+	CRUD Processing Functions
+============================================================= */
 	/**
 	 * Takes the Wire Input and decides which action to take based on the
 	 * action given
@@ -102,11 +81,11 @@ class Picking extends WireData implements Module {
 	 * @return void
 	 */
 	public function handle_action(WireInput $input) {
-		if ($input->requestMethod('POST')) {
-			$values = $input->post;
-			$action = $values->text('action');
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
 
-			switch ($action) {
+		if ($values->action) {
+			switch ($values->text('action')) {
 				case 'add-lotserials':
 					$this->add_lotserials($input);
 					break;
@@ -115,9 +94,35 @@ class Picking extends WireData implements Module {
 					break;
 				case 'remove-lotserial':
 					$this->remove_lotserial($input);
+					$this->wire('page')->fullURL->query->remove('scan');
 					break;
 				case 'verify-whseitempicks':
 					$this->verify_whseitempicks($input);
+					break;
+				case 'scan-pick-item':
+					$this->inventory->send_searchscan_request($values->text('ordn'), $values->text('scan'));
+					$this->wire('page')->fullURL->query->set('scan', $values->text('scan'));
+					break;
+				case 'exit-order':
+					$this->send_exit_order_request($values->text('ordn'));
+					$this->wire('page')->fullURL->query->remove('ordn');
+					$this->wire('page')->fullURL->query->remove('scan');
+					$this->wire('page')->fullURL->query->remove('action');
+					break;
+				case 'finish-order':
+					$this->send_finish_order_request($values->text('ordn'));
+					$this->wire('page')->fullURL->query->remove('ordn');
+					$this->wire('page')->fullURL->query->remove('scan');
+					$this->wire('page')->fullURL->query->remove('action');
+					break;
+				case 'start-order':
+					$this->send_start_order_request($values->text('ordn'));
+					$this->wire('page')->fullURL->query->remove('action');
+					break;
+				case 'unlock-order':
+					$this->send_unlock_order_request($values->text('ordn'));
+					$this->wire('page')->fullURL->query->remove('action');
+					$this->wire('page')->fullURL->query->remove('ordn');
 					break;
 			}
 		}
@@ -125,7 +130,6 @@ class Picking extends WireData implements Module {
 
 	/**
 	 * Adds Whseitempick records for one lotserial
-	 *
 	 * @param WireInput $input
 	 */
 	public function add_lotserial(WireInput $input) {
@@ -162,7 +166,6 @@ class Picking extends WireData implements Module {
 
 	/**
 	 * Adds Whseitempick records for each lotserial bin that is provided
-	 *
 	 * @param WireInput $input
 	 */
 	public function add_lotserials(WireInput $input) {
@@ -245,42 +248,6 @@ class Picking extends WireData implements Module {
 	}
 
 	/**
-	 * Returns if we have picked this item already for this order
-	 * @param  PickSalesOrderDetail $orderitem Order Item to pick
-	 * @param  string               $lotserial Lot / Serial Number
-	 * @return bool
-	 */
-	public function does_whseitempick_exist(PickSalesOrderDetail $orderitem, $lotserial, $binID = '') {
-		$q = $this->get_whseitempick_query();
-		$q->filterByItemid($orderitem->itemnbr);
-		$q->filterByLotserial($lotserial);
-
-		if ($binID) {
-			$q->filterByBin($binID);
-		}
-		return boolval($q->count());
-	}
-
-	/**
-	 * Return WhseitempickQuery
-	 * @param  array  $filters Column or aliases to filter on ex. array('linenbr' => 2)
-	 * @return WhseitempickQuery
-	 */
-	public function get_whseitempick_query($filters = null) {
-		$q = WhseitempickQuery::create();
-		$q->filterBySessionid($this->sessionID);
-		$q->filterByOrdn($this->ordn);
-
-		if (is_array($filters)) {
-			foreach ($filters as $filter => $value) {
-				$function = 'filterBy' . ucfirst($filter);
-				$q->$function($value);
-			}
-		}
-		return $q;
-	}
-
-	/**
 	 * Adds Whseitempick records for each lotserial bin that is provided
 	 *
 	 * @param WireInput $input
@@ -342,13 +309,24 @@ class Picking extends WireData implements Module {
 		$item->setLotserialref($values->text('lotserialref'));
 		$item->setLotserial($values->text('lotserial'));
 
-		if ($orderitem->is_item_serialized()) {
+		if ($this->inventory->is_item_serialized($orderitem->itemnbr)) {
 			$item->setQty(1);
 		} else {
 			// QTY could be float
 			$item->setQty($values->text('qty'));
 		}
 		return $item;
+	}
+
+/* =============================================================
+	Supplemental Functions
+============================================================= */
+	/**
+	 * Return the number of decimal places for qty values
+	 * @return int
+	 */
+	public function decimal_places() {
+		return ConfigSalesOrderQuery::create()->findOne()->decimal_places;
 	}
 
 	/**
@@ -360,22 +338,84 @@ class Picking extends WireData implements Module {
 	}
 
 	/**
-	 * Sends Dplus Request to Save Picked Line Items
-	 * @param  int    $linenbr Line Number
-	 * @param  bool   $debug   Is this for Debug
-	 * @return bool
+	 * Return Pick Item Sum
+	 * @param  PickSalesOrderDetail $orderitem
+	 * @return float
 	 */
-	public function send_finishline_request($linenbr, $debug = false) {
-		$url = new Url($this->wire('pages')->get('template=redir, redir_file=picking')->url);
-		$url->query->set('action', 'finish-item');
-		$url->query->set('linenbr', $linenbr);
-		$url->query->set('sessionID', session_id());
-		$url->query->set('debug', $debug);
-
-		$requestor = $this->wire('modules')->get('DplusRequest');
-		$requestor->self_request($url->getUrl());
+	protected function get_picked_sum_by_bin(PickSalesOrderDetail $orderitem) {
+		$q = WhseitempickQuery::create();
+		$q->withColumn('SUM(qty)', 'qty');
+		$q->select(array('qty', 'bin'));
+		$q->filterBySessionid($orderitem->sessionID);
+		$q->filterByOrdn($orderitem->ordernbr);
+		$q->filterByLinenbr($orderitem->linenbr);
+		$q->filterBySublinenbr($orderitem->sublinenbr);
+		$q->groupBy('bin');
+		return $q->find();
 	}
 
+	/**
+	 * Return Pick Item Sum
+	 * @param  PickSalesOrderDetail $orderitem
+	 * @return stdClass
+	 */
+	protected function getPickedSumByBinLotserial(PickSalesOrderDetail $orderitem) {
+		$q = WhseitempickQuery::create();
+		$q->withColumn('SUM(qty)', 'qty');
+		$q->select(array('qty', 'bin', 'lotserial'));
+		$q->filterBySessionid($orderitem->sessionID);
+		$q->filterByOrdn($orderitem->ordernbr);
+		$q->filterByLinenbr($orderitem->linenbr);
+		$q->filterBySublinenbr($orderitem->sublinenbr);
+		$q->groupBy(['bin', 'lotserial']);
+		return $q->find();
+	}
+
+	/**
+	 * Returns if we have picked this item already for this order
+	 * @param  PickSalesOrderDetail $orderitem Order Item to pick
+	 * @param  string               $lotserial Lot / Serial Number
+	 * @return bool
+	 */
+	public function does_whseitempick_exist(PickSalesOrderDetail $orderitem, $lotserial, $binID = '') {
+		$q = $this->get_whseitempick_query();
+		$q->filterByItemid($orderitem->itemnbr);
+		$q->filterByLotserial($lotserial);
+
+		if ($binID) {
+			$q->filterByBin($binID);
+		}
+		return boolval($q->count());
+	}
+
+	/**
+	 * Return WhseitempickQuery
+	 * @param  array  $filters Column or aliases to filter on ex. array('linenbr' => 2)
+	 * @return WhseitempickQuery
+	 */
+	public function get_whseitempick_query($filters = null) {
+		$q = WhseitempickQuery::create();
+		$q->filterBySessionid($this->sessionID);
+		$q->filterByOrdn($this->ordn);
+
+		if (is_array($filters)) {
+			foreach ($filters as $filter => $value) {
+				$function = 'filterBy' . ucfirst($filter);
+				$q->$function($value);
+			}
+		}
+		return $q;
+	}
+
+	public function allow_pick_more_than_available() {
+		$allowed = ConfigSalesOrderQuery::create()->findOne()->allow_overpick;
+		return $allowed == ConfigSalesOrder::YN_TRUE;
+	}
+
+
+/* =============================================================
+	Dplus Cobol Request Functions
+============================================================= */
 	/**
 	 * Sends Dplus Request to Remove Picked Line Items
 	 * @param  int    $linenbr Line Number
@@ -383,12 +423,137 @@ class Picking extends WireData implements Module {
 	 * @return bool
 	 */
 	public function send_removepickeditem_request($recordnumber, $debug = false) {
-		$url = new Url($this->wire('pages')->get('template=redir, redir_file=picking')->url);
-		$url->query->set('action', 'remove-picked-item');
-		$url->query->set('recordnumber', $recordnumber);
-		$url->query->set('sessionID', session_id());
-		$url->query->set('debug', $debug);
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$whseitempick = WhseitempickQuery::create()->filterBySessionid($this->sessionID)->filterByOrdn($this->ordn)->filterByRecordnumber($recordnumber)->findOne();
+		$data = array("DBNAME=$dplusdb", 'PICKITEMREMOVE', "ORDERNBR=$this->ordn", "LINENBR=$whseitempick->linenbr", "ITEMID=$whseitempick->itemid");
+		$data[] = "BIN=$whseitempick->bin|LOTSERIAL=$whseitempick->lotserial|QTY=$whseitempick->qty";
+
 		$requestor = $this->wire('modules')->get('DplusRequest');
-		$requestor->self_request($url->getUrl());
+		$requestor->write_dplusfile($data, session_id());
+		if ($debug == false) {
+			$requestor->cgi_request($this->wire('config')->cgis['warehouse'], session_id());
+		}
+	}
+
+	/**
+	 * Sends Dplus Request to Save Picked Line Items
+	 * @param  int    $linenbr Line Number
+	 * @param  bool   $debug   Is this for Debug
+	 * @return bool
+	 */
+	public function send_finishline_request($linenbr, $debug = false) {
+		$orderitem = $this->items->get_picksalesorderdetail_linenbr($linenbr);
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", 'ACCEPTITEM', "ORDERNBR=$this->ordn", "LINENBR=$linenbr", "ITEMID=$orderitem->itemnbr");
+		$data = $this->write_acceptitem_data($data, $orderitem);
+
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		if ($debug == false) {
+			$requestor->cgi_request($this->wire('config')->cgis['warehouse'], session_id());
+		}
+	}
+
+	/**
+	 * Appends Picked Line Item data to array
+	 * @param  array                $data      Dplus Request array
+	 * @param  PickSalesOrderDetail $orderitem Sales Order Item
+	 * @return ArrayCollection
+	 */
+	public function write_acceptitem_data(array $data, PickSalesOrderDetail $orderitem) {
+		$binLots = $this->getPickedSumByBinLotserial($orderitem);
+		foreach ($binLots as $binLot) {
+			$qty       = $binLot['qty'];
+			$binID     = $binLot['bin'];
+			$lotserial = $binLot['lotserial'];
+			$data[]    = "BIN=$binID|LOTSERIAL=$lotserial|QTY=$qty";
+		}
+		return $data;
+	}
+
+	/**
+	 * Sends Dplus Request to Exit Order
+	 * @param  string $ordn   Order Number
+	 * @param  bool   $debug  Is this for Debug
+	 * @return bool
+	 */
+	public function send_exit_order_request($ordn, $debug = false) {
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", 'STOPORDER', "ORDERNBR=$ordn");
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		if ($debug == false) {
+			$requestor->cgi_request($this->wire('config')->cgis['warehouse'], session_id());
+		}
+	}
+
+	/**
+	 * Sends Dplus Request to finish Order
+	 * @param  string $ordn   Order Number
+	 * @param  bool   $debug  Is this for Debug
+	 * @return bool
+	 */
+	public function send_finish_order_request($ordn, $debug = false) {
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", 'FINISHORDER', "ORDERNBR=$ordn");
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		if ($debug == false) {
+			$requestor->cgi_request($this->wire('config')->cgis['warehouse'], session_id());
+		}
+	}
+
+	/**
+	 * Sends Dplus Request to Start & Load Order
+	 * @param  string $ordn   Order Number
+	 * @param  bool   $debug  Is this for Debug
+	 * @return bool
+	 */
+	public function send_start_order_request($ordn, $debug = false) {
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", 'STARTORDER', "ORDERNBR=$ordn");
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		if ($debug == false) {
+			$requestor->cgi_request($this->wire('config')->cgis['warehouse'], session_id());
+		}
+	}
+
+	/**
+	 * Sends Dplus Request to Start & Load Order
+	 * @param  string $ordn   Order Number
+	 * @param  bool   $debug  Is this for Debug
+	 * @return bool
+	 */
+	public function send_unlock_order_request($ordn, $debug = false) {
+		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
+		$data = array("DBNAME=$dplusdb", 'REFRESHPD', "ORDERNBR=$ordn");
+		$requestor = $this->wire('modules')->get('DplusRequest');
+		$requestor->write_dplusfile($data, session_id());
+		if ($debug == false) {
+			$requestor->cgi_request($this->wire('config')->cgis['warehouse'], session_id());
+		}
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dpluso Warehouse Picking Functions Module',
+			'version' => 101,
+			'summary' => 'Handles Dplus Functions',
+			'singular' => true,
+			'autoload' => false,
+		);
+	}
+
+	public function init() {
+		$this->session = $this->wire('session');
+		$this->config = new WireData();
+		$this->config->inventory = $this->wire('modules')->get('ConfigsWarehouseInventory');
+		$this->config->picking   = $this->wire('modules')->get('ConfigsWarehousePicking');
+		$this->inventory = $this->wire('modules')->get('PickingInventoryManager');
+		$this->items = $this->wire('modules')->get('PickingOrderItems');
 	}
 }

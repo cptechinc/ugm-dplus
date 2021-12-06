@@ -17,23 +17,23 @@
 		$page->tobin = $input->get->text('tobin');
 	}
 
+	$page->addHook('Page::binr_itemURL', function($event) {
+		$p = $event->object;
+		$item = $event->arguments(0);
+		$url = new Purl\Url($p->parent('template=warehouse-menu')->child('template=redir')->url);
+		$url->query->set('action','search-item-bins');
+		$url->query->set('itemID', $item->itemid);
+		$url->query->set($item->get_itemtypeproperty(), $item->get_itemidentifier());
+		$url->query->set('binID', $item->bin);
+		$url->query->set('page', $p->fullURL->getUrl());
+		$event->return = $url->getUrl();
+	});
+
 	if ($input->get->scan) {
 		$scan = $input->get->text('scan');
 		$page->scan = $scan;
 		$page->fullURL->query->remove('scan');
 		$resultscount = InvsearchQuery::create()->filterBy('Sessionid', session_id())->count();
-
-		$page->addHook('Page::binr_itemURL', function($event) {
-			$p = $event->object;
-			$item = $event->arguments(0);
-			$url = new Purl\Url($p->parent('template=warehouse-menu')->child('template=redir')->url);
-			$url->query->set('action','search-item-bins');
-			$url->query->set('itemID', $item->itemid);
-			$url->query->set($item->get_itemtypeproperty(), $item->get_itemidentifier());
-			$url->query->set('binID', $item->bin);
-			$url->query->set('page', $p->fullURL->getUrl());
-			$event->return = $url->getUrl();
-		});
 
 		$page->addHookProperty('Page::scan', function($event) {
 			$p = $event->object;
@@ -45,7 +45,7 @@
 			$items = array();
 			$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page]);
 		} elseif ($resultscount == 1) { // If one item is found
-			$item = InvsearchQuery::create()->findOneBySessionid(session_id());
+			$item = InvsearchQuery::create()->filterBy('Sessionid', session_id())->findOne();
 			$url = $page->binr_itemURL($item);
 			$session->redirect($url , $http301 = false);
 		} else {
@@ -62,15 +62,17 @@
 					$inventory = InvsearchQuery::create();
 
 					if ($config->twigloader->exists("warehouse/binr/$config->company/inventory-results.twig")) {
-						$page->body = $config->twig->render("warehouse/binr/$config->company/inventory-results.twig", ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
+						$page->body = $config->twig->render("warehouse/binr/$config->company/inventory-results.twig", ['page' => $page, 'config' => $config->binr, 'resultscount' => $resultscount, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
 					} else {
-						$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
+						$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page, 'config' => $config->binr, 'resultscount' => $resultscount, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
 					}
-
 				} else { // Make Inventory Request for item
 					$pageurl = $page->fullURL->getUrl();
-					$url = $page->parent('template=warehouse-menu,name=binr')->child('template=redir')->url."?action=search-item-bins&itemID=$item->itemid&page=$pageurl";
-					$session->redirect($url, $http301 = false);
+					$url = new Purl\Url($page->parent('template=warehouse-menu,name=binr')->child('template=redir')->url);
+					$url->query->set('action', 'search-item-bins');
+					$url->query->set('itemID', $item->itemid);
+					$url->query->set('page', $pageurl);
+					$session->redirect($url->getUrl(), $http301 = false);
 				}
 			} else {
 				$items = InvsearchQuery::create()->findDistinctItems(session_id(), $item->itemid);
@@ -109,29 +111,29 @@
 				$page->body = $config->twig->render('warehouse/binr/binr-result.twig', ['session' => $session, 'page' => $page, 'whsesession' => $whsesession, 'item' => $item, 'nexturl' => $nexturl]);
 				$session->remove('binr');
 			} else { // Prepare Binr Form
-				$inventory = InvsearchQuery::create();
+				$inventory   = InvsearchQuery::create();
 				$currentbins = BininfoQuery::create()->filterByItem(session_id(), $item)->select_bin_qty()->find();
 
 				// 1. Binr form
 				$page->formurl = $page->parent('template=warehouse-menu')->child('template=redir')->url;
-				$page->body = $config->twig->render('warehouse/binr/binr-form.twig', ['session' => $session, 'page' => $page, 'whsesession' => $whsesession, 'item' => $item, 'inventory' => $inventory, 'config' => $config->binr]);
+				$page->body = $config->twig->render('warehouse/binr/binr-form.twig', ['session' => $session, 'config' => $config->binr,  'page' => $page, 'whsesession' => $whsesession, 'item' => $item, 'inventory' => $inventory, 'config' => $config->binr]);
 
 				// 2. Choose From Bin Modal
-				$page->body .= $config->twig->render('warehouse/binr/from-bins-modal.twig', ['item' => $item, 'bins' => $currentbins]);
+				$page->body .= $config->twig->render('warehouse/binr/from-bins-modal.twig', ['item' => $item, 'bins' => $currentbins, 'config' => $config->binr]);
 
 				// 3. Choose To Bin Modals
-				$page->body .= $config->twig->render('warehouse/binr/to-bins-modal.twig', ['currentbins' => $currentbins, 'warehouse' => $warehouse, 'session' => $session, 'item' => $item, 'inventory' => $inventory]);
+				$page->body .= $config->twig->render('warehouse/binr/to-bins-modal.twig', ['currentbins' => $currentbins, 'warehouse' => $warehouse, 'session' => $session, 'item' => $item, 'inventory' => $inventory, 'config' => $config->binr]);
 
 				// 4. Warehouse Config JS
-				$bins = $warehouse->get_bins();
+				$bins = $warehouse->get_warehousebins()->toArray();
 				$validbins = BininfoQuery::create()->filterBySessionItemid(session_id(), $item->itemID)->find()->toArray('Bin');
-				$jsconfig = array('warehouse' => array('id' => $whsesession->whseid, 'binarrangement' => $warehouse->get_binarrangementdescription(), 'bins' => $bins));
+				$jsconfig = array('id' => $whsesession->whseid, 'binarrangement' => $warehouse->get_binarrangementdescription(), 'bins' => $bins);
 				$page->body .= $config->twig->render('util/js-variables.twig', ['variables' => array('warehouse' => $jsconfig, 'validfrombins' => $validbins)]);
 			}
 		} else { // Show Inventory Search Results
 			$items = InvsearchQuery::create()->findBySessionid(session_id());
 			$inventory = InvsearchQuery::create();
-			$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory]);
+			$page->body = $config->twig->render('warehouse/binr/inventory-results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
 		}
 	} else { // Show Item Form
 		$page->formurl = $page->parent('template=warehouse-menu')->child('template=redir')->url;

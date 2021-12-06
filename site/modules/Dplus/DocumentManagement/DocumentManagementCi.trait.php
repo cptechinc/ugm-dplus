@@ -2,8 +2,8 @@
 
 use Purl\Url;
 
-use DocumentFoldersQuery, DocumentFolders;
-use DocumentsQuery, Documents;
+use DocumentFolderQuery, DocumentFolder;
+use DocumentQuery, Document;
 use SalesOrderQuery, SalesOrder;
 use SalesHistoryQuery, SalesHistory;
 

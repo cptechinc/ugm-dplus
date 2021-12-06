@@ -23,7 +23,7 @@
 							{% endif %}
 						</div>
 						<div class="col">
-							<strong>Qty:</strong> {{ inventory.count_lotserials_itemid(item.sessionid, item.itemid, binitem.bin) }}
+							<strong>Qty:</strong> {{ binitem.qty|number_format(config.decimal_places()) }}
 						</div>
 						<div class="col">
 							{% if (not page.is_print()) %}

@@ -178,6 +178,14 @@ class SalesOrderEdit extends WireData implements Module {
 		return ItemMasterItemQuery::create()->findOneByItemid($itemID);
 	}
 
+	public function canDeleteLines() {
+		$q = SalesOrderQuery::create();
+		$q->select(SalesOrder::get_aliasproperty('pickqueue'));
+		$q->filterByOrdernumber($this->ordn);
+		$q->filterByPickqueue(SalesOrder::PICKQUEUE_LOCKED);
+		return boolval($q->count()) === false;
+	}
+
 	/**
 	 * Sends HTTP GET request to send Dplus Item Search Request
 	 * @param  string $q Query or Item ID

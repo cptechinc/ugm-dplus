@@ -92,8 +92,9 @@ $(function() {
 	$(".binr-form").validate({
 		submitHandler : function(form) {
 			var valid_frombin = validate_frombin();
-			var valid_qty = validate_qty();
-			var valid_tobin = validate_tobin();
+			var valid_qty     = validate_qty();
+			var valid_tobin   = validate_tobin();
+			var valid_move    = validate_move();
 			var valid_form = new SwalError(false, '', '', false);
 
 			if (valid_frombin.error) {
@@ -102,6 +103,8 @@ $(function() {
 				valid_form = valid_qty;
 			} else if (valid_tobin.error) {
 				valid_form = valid_tobin;
+			} else if (valid_move.error) {
+				valid_form = valid_move;
 			}
 
 			if (valid_form.error) {
@@ -128,7 +131,7 @@ $(function() {
 		var lowercase_frombin = input_frombin.val();
 		input_frombin.val(lowercase_frombin.toUpperCase());
 
-		if (input_frombin.val() == '') {
+		if (input_frombin.val() == '' && validfrombins[input_frombin.val()] === undefined) {
 			error = true;
 			title = 'Error';
 			msg = 'Please Fill in the From Bin';
@@ -166,7 +169,7 @@ $(function() {
 			error = true;
 			title = 'Error';
 			msg = 'Please Fill in the To Bin';
-		} else if (warehouse.binarrangement == 'list' && warehouse.bins[input_tobin.val()] === undefined) {
+		} else if (warehouse.binarrangement == 'list' && warehouse.bins.contains(input_tobin.val()) === false) {
 			error = true;
 			title = 'Invalid Bin ID';
 			msg = 'Please use a valid To bin';
@@ -184,6 +187,19 @@ $(function() {
 				msg = 'Your To Bin ID must between these ranges';
 				html = "<h4>Valid Bin Ranges<h4>" + create_binrangetable();
 			}
+		}
+		return new SwalError(error, title, msg, html);
+	}
+
+	function validate_move() {
+		var error = false;
+		var title = '';
+		var msg = '';
+		var html = false;
+		if (input_tobin.val() == input_frombin.val()) {
+			error = true;
+			title = 'Same Bins';
+			msg = "To Bin must be different from From Bin";
 		}
 		return new SwalError(error, title, msg, html);
 	}
