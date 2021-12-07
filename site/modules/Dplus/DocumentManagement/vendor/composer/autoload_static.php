@@ -17,6 +17,7 @@ class ComposerStaticInitfdd038617226e94faa44d44a195565f1
         'Dplus\\DocManagement\\Finders\\Cu' => __DIR__ . '/../..' . '/src/finder/sub/Cu.php',
         'Dplus\\DocManagement\\Finders\\Finder' => __DIR__ . '/../..' . '/src/finder/Finder.php',
         'Dplus\\DocManagement\\Finders\\Ii' => __DIR__ . '/../..' . '/src/finder/sub/Ii.php',
+        'Dplus\\DocManagement\\Finders\\It\\Img' => __DIR__ . '/../..' . '/src/finder/sub/It/Img.php',
         'Dplus\\DocManagement\\Finders\\Lt\\Img' => __DIR__ . '/../..' . '/src/finder/sub/Lt/Img.php',
         'Dplus\\DocManagement\\Finders\\PurchaseOrder' => __DIR__ . '/../..' . '/src/finder/sub/Mpo/PurchaseOrder.php',
         'Dplus\\DocManagement\\Finders\\Qt' => __DIR__ . '/../..' . '/src/finder/sub/Qt.php',
@@ -24,12 +25,13 @@ class ComposerStaticInitfdd038617226e94faa44d44a195565f1
         'Dplus\\DocManagement\\Folders' => __DIR__ . '/../..' . '/src/Folders.php',
         'Dplus\\DocManagement\\Mover' => __DIR__ . '/../..' . '/src/Mover.php',
         'Dplus\\DocManagement\\Updater' => __DIR__ . '/../..' . '/src/updater/Updater.php',
+        'Dplus\\DocManagement\\Updater\\It\\Itmimg' => __DIR__ . '/../..' . '/src/updater/It/Itmimg.php',
         'Dplus\\DocManagement\\Updater\\Lt\\Lotimg' => __DIR__ . '/../..' . '/src/updater/Lt/Lotimg.php',
         'Dplus\\DocManagement\\Updater\\Request' => __DIR__ . '/../..' . '/src/updater/Request.php',
         'Dplus\\DocManagement\\Uploader' => __DIR__ . '/../..' . '/src/uploader/Uploader.php',
+        'Dplus\\DocManagement\\Uploader\\It\\Itmimg' => __DIR__ . '/../..' . '/src/uploader/It/Itmimg.php',
         'Dplus\\DocManagement\\Uploader\\Lt\\Lotimg' => __DIR__ . '/../..' . '/src/uploader/Lt/Lotimg.php',
         'Dplus\\DocManagement\\Viewer' => __DIR__ . '/../..' . '/src/viewer/Viewer.php',
-        'Dplus\\DocManagement\\Viewer\\Config' => __DIR__ . '/../..' . '/src/viewer/Config.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
