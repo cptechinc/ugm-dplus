@@ -4,7 +4,9 @@ use Purl\Url as Purl;
 // Propel ORM Library
 use Propel\Runtime\Util\PropelModelPager;
 // Document Management
-
+use Dplus\DocManagement\Finders\Lt\Img as Docm;
+use Dplus\DocManagement\Copier;
+use Dplus\DocManagement\Folders;
 // Dplus Filters
 use Dplus\Filters;
 // Dplus Warehouse Management
@@ -110,9 +112,11 @@ class Labels extends Base {
 	Display Functions
 ============================================================= */
 	private static function displayList($data, PropelModelPager $lots) {
+		$docm = self::getDocm();
+
 		$html  = '';
 		// $html .= self::displayResponse($data);
-		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/list/display.twig', ['lots' => $lots]);
+		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/list/display.twig', ['lots' => $lots, 'docm' => $docm]);
 		return $html;
 	}
 
@@ -160,5 +164,12 @@ class Labels extends Base {
 		$m->addHook('Page(pw_template=whse-mlot)::labelsUrl', function($event) {
 			$event->return = Menu::labelsUrl();
 		});
+	}
+
+	public static function getDocm() {
+		if (empty(self::$docm)) {
+			self::$docm = new Docm();
+		}
+		return self::$docm;
 	}
 }
