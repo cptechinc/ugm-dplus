@@ -13,6 +13,8 @@ use Dplus\DocManagement\Folders;
 use Dplus\Filters;
 // Dplus Warehouse Management
 use Dplus\Wm\Inventory\Lotm;
+use Dplus\Wm\Inventory\Mlot\Labels as Printer;
+
 
 // Dplus CRUD
 
@@ -42,21 +44,12 @@ class Labels extends Base {
 		return self::list($data);
 	}
 
-	// public static function handleCRUD($data) {
-	// 	self::sanitizeParametersShort($data, ['scan|text', 'lotserial|text', 'action|text']);
-	// 	$url = Menu::imgUrl();
-	// 	$manager = self::getImg();
-	// 	$success = $manager->process(self::pw('input'));
-	//
-	// 	switch ($data->action) {
-	// 		case 'update':
-	// 			if ($success === false) {
-	// 				$url = self::lotserialUrl($data->lotserial);
-	// 			}
-	// 			break;
-	// 	}
-	// 	self::pw('session')->redirect($url, $http301 = false);
-	// }
+	public static function handleCRUD($data) {
+		self::sanitizeParametersShort($data, ['action|text']);
+		$printer  = self::getPrinter();
+		$printer->process(self::pw('input'));
+		self::pw('session')->redirect(Menu::labelsUrl(), $http301 = false);
+	}
 
 	private static function list($data) {
 		self::initHooks();
@@ -68,7 +61,7 @@ class Labels extends Base {
 
 		$lots = $filter->query->paginate(self::pw('input')->pageNum, 10);
 		$html = self::displayList($data, $lots);
-		// self::getImg()->deleteResponse();
+		self::getPrinter()->deleteResponse();
 		return $html;
 	}
 
@@ -103,10 +96,10 @@ class Labels extends Base {
 		}
 		self::pw('page')->headline = "Print Label for $data->lotserial";
 		self::pw('page')->js .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/lotserial/.js.twig');
-		
+
 		$lot = $lotm->lot($data->lotserial);
 		$html = self::displayLotserial($data, $lot);
-		// self::getImg()->deleteResponse();
+		self::getPrinter()->deleteResponse();
 		return $html;
 	}
 
@@ -118,7 +111,7 @@ class Labels extends Base {
 		$docm = self::getDocm();
 
 		$html  = '';
-		// $html .= self::displayResponse($data);
+		$html .= self::displayResponse($data);
 		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/list/display.twig', ['lots' => $lots, 'docm' => $docm]);
 		return $html;
 	}
@@ -127,20 +120,20 @@ class Labels extends Base {
 		$docm = self::getDocm();
 
 		$html  = '';
-		// $html .= self::displayResponse($data);
+		$html .= self::displayResponse($data);
 		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/lotserial/display.twig', ['lot' => $lot, 'docm' => $docm]);
 		return $html;
 	}
-	//
-	// private static function displayResponse($data) {
-	// 	$imgM = self::getImg();
-	// 	$response = $imgM->getResponse();
-	//
-	// 	if (empty($response)) {
-	// 		return '';
-	// 	}
-	// 	return self::pw('config')->twig->render('code-tables/response.twig', ['response' => $response]);
-	// }
+
+	private static function displayResponse($data) {
+		$printer  = self::getPrinter();
+		$response = $printer->getResponse();
+
+		if (empty($response)) {
+			return '';
+		}
+		return self::pw('config')->twig->render('code-tables/response.twig', ['response' => $response]);
+	}
 
 /* =============================================================
 	URL Functions
@@ -164,6 +157,10 @@ class Labels extends Base {
 		$m->addHook('Page(pw_template=whse-mlot)::labelsUrl', function($event) {
 			$event->return = Menu::labelsUrl();
 		});
+	}
+
+	public static function getPrinter() {
+		return Printer::getInstance();
 	}
 
 	public static function getDocm() {
