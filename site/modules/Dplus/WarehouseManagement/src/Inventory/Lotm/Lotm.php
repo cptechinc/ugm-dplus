@@ -52,18 +52,31 @@ class Lotm extends WireData {
 	}
 
 /* =============================================================
-	Lookup Functions
+	Validate, Read Functions
 ============================================================= */
 	/**
-	 * Return If Lot Exists
-	 * @param string $lotnbr
+	 * Return if Lot Exists
+	 * @param  string $lotnbr
 	 * @return bool
- 	*/
+	*/
 	public function exists($lotnbr) {
 		$q = $this->queryLotnbr($lotnbr);
 		return boolval($q->count());
 	}
 
+	/**
+	 * Return Lot
+	 * @param  string $lotnbr
+	 * @return bool
+	*/
+	public function lot($lotnbr) {
+		$q = $this->queryLotnbr($lotnbr);
+		return $q->findOne();
+	}
+
+/* =============================================================
+	Lookup Functions
+============================================================= */
 	/**
 	 * Return Lot(s) have Images associated with them
 	 * @param array|string $lotnbr
