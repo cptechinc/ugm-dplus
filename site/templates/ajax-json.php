@@ -100,6 +100,11 @@
 				['GET', 'custid/', Json\Mci::class, 'validateCustid'],
 			],
 		],
+		'mdm' => [
+			'docvwr' => [
+				['GET', 'copy/', Json\Mdm::class, 'copyFile'],
+			]
+		],
 		'mgl' => [
 			'validate' => [
 				['GET', 'gl-code/', Json\Mgl::class, 'validateGlCode'],
