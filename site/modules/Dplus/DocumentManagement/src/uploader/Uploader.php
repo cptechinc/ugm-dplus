@@ -1,8 +1,12 @@
 <?php namespace Dplus\DocManagement;
 
-use ProcessWire\WireData, ProcessWire\WireInput, ProcessWire\WireUpload;
+use ProcessWire\WireData, ProcessWire\WireInput;
 
 use Dplus\Configs;
+
+use Dplus\DocManagement\Config;
+
+use Dplus\DocManagement\FileUploader;
 
 /**
  * Uploader
@@ -12,9 +16,15 @@ use Dplus\Configs;
  * @property array  $file          $_FILES element
  * @property string $filelocation  Final File Location
  */
-class Uploader extends WireData {
-	const UPLOAD_DIR = '/tmp/';
-	const FIELDS = [];
+abstract class Uploader extends WireData {
+	const UPLOAD_DIR      = '/tmp/';
+	const FILENAME_PREFIX = '';
+	const FIELDS          = [];
+	const REPLACE_IN_FILENAME = [
+		' ' => '^',
+		'-' => '~',
+		'/' => '{'
+	];
 
 	private static $instance;
 
@@ -85,6 +95,39 @@ class Uploader extends WireData {
 	FILE Uploading
 ============================================================= */
 	/**
+	 * Return File name sanitized for use
+	 * @param  string $filename file Name
+	 * @return string
+	 */
+	public function getAcceptableFilename($filename) {
+		return str_replace(array_keys(self::REPLACE_IN_FILENAME), array_values(self::REPLACE_IN_FILENAME), $filename);
+	}
+
+	/**
+	 * Return Target File name
+	 * @param  array  $file      Node from $_FILES
+	 * @param string $filename  File Name
+	 * @return string
+	 */
+	public function getTargetFilename(array $file, $filename) {
+		$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
+		return $this->getFilenamePrefix(). $this->getAcceptableFilename($filename) . ".$ext";
+	}
+
+	/**
+	 * Return File Name Prefix
+	 * @return string
+	 */
+	public function getFilenamePrefix() {
+		$config = Config::getInstance();
+		return $config->folder->useLowercase() ? strtolower(static::FILENAME_PREFIX) : static::FILENAME_PREFIX;
+	}
+
+
+/* =============================================================
+	FILE Uploading
+============================================================= */
+	/**
 	 * Upload Image to directory
 	 * @return bool
 	 */
@@ -96,16 +139,18 @@ class Uploader extends WireData {
 			return false;
 		}
 		$this->filelocation = $this->uploadDirectory . $files[0];
+		echo $this->filelocation;
+		exit;
 		return true;
 	}
 
 	/**
 	 * Return File Uploader with settings
 	 * @param  array  $file          Element from $_FILES
-	 * @return WireUpload
+	 * @return FileUploader
 	 */
 	protected function getUploader(array $file) {
-		$uploader = new WireUpload($this->inputName);
+		$uploader = new FileUploader($this->inputName);
 		$uploader->setMaxFiles(1);
 		$uploader->setOverwrite(true);
 		$uploader->setValidExtensions($this->fieldAttribute($this->inputName, 'extensions'));

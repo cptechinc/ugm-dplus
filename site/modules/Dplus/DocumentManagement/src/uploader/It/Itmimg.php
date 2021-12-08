@@ -1,9 +1,10 @@
 <?php namespace Dplus\DocManagement\Uploader\It;
 
-use ProcessWire\WireData, ProcessWire\WireInput, ProcessWire\WireUpload;
+use ProcessWire\WireData, ProcessWire\WireInput;
 
 use Dplus\DocManagement\Uploader as Base;
 use Dplus\DocManagement\Config;
+use Dplus\DocManagement\FileUploader;
 
 /**
  * Itmimg
@@ -41,29 +42,18 @@ class Itmimg extends Base {
 		$this->itemID = strtoupper($this->wire('sanitizer')->text($itemID));
 	}
 
-	/**
-	 * Return File Name Prefix
-	 * @return string
-	 */
-	public function getFilenamePrefix() {
-		$config = Config::getInstance();
-		return $config->folder->useLowercase() ? strtolower(self::FILENAME_PREFIX) : self::FILENAME_PREFIX;
-	}
-
 /* =============================================================
 	FILE Uploading
 ============================================================= */
 	/**
 	 * Return File Uploader with settings
 	 * @param  array  $file          Element from $_FILES
-	 * @return WireUpload
+	 * @return FileUploader
 	 */
 	protected function getUploader(array $file) {
-		$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-
 		$uploader = parent::getUploader($file);
-		$uploader->setTargetFilename($this->getFilenamePrefix(). $this->itemID . ".$ext");
 		$uploader->setLowercase(false);
+		$uploader->setTargetFilename($this->getTargetFilename($file, $this->itemID));
 		return $uploader;
 	}
 }
