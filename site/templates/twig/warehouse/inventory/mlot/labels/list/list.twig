@@ -1,0 +1,29 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	lots                   Propel\Runtime\Util\PropelModelPager
+#}
+
+<table class="table table-sm table-striped">
+	<thead>
+		<tr>
+			<th>Lot #</th>
+			<th>Lot Reference</th>
+			<th>Item ID</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for lot in lots %}
+			<tr>
+				<td>
+					<a href="{{ page.lotserialUrl(lot.lotnbr) }}" class="link">
+						{{ lot.lotnbr }}
+					</a>
+				</td>
+				<td>{{ lot.lotref }}</td>
+				<td>{{ lot.itemid }}</td>
+			</tr>
+		{% endfor %}
+	</tbody>
+</table>

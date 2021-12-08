@@ -69,12 +69,26 @@ class Labels extends Base {
 	// }
 
 	private static function list($data) {
-		self::sanitizeParametersShort($data, ['q|text', 'itemID|text']);
 		self::initHooks();
 		self::pw('page')->headline = self::TITLE;
-		// self::pw('page')->js .= self::pw('config')->twig->render('warehouse/inventory/mlot/img/lotserial/.js.twig');
-		// self::pw('config')->scripts->append(self::pw('modules')->get('FileHasher')->getHashUrl('scripts/lib/jquery-validate.js'));
+		self::pw('page')->js .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/list/.js.twig');
+
 		$filter = new Filters\Min\LotMaster();
+		self::filterLots($data, $filter);
+
+		$lots = $filter->query->paginate(self::pw('input')->pageNum, 10);
+		$html = self::displayList($data, $lots);
+		// self::getImg()->deleteResponse();
+		return $html;
+	}
+
+	private static function filterLots($data, Filters\Min\LotMaster $filter) {
+		self::sanitizeParametersShort($data, ['q|text', 'itemID|text', 'instock|bool']);
+
+		if (empty($data->itemID) === false) {
+			self::pw('page')->headline = "Filtering Lots for $data->itemID";
+			$filter->query->filterByItemid($data->itemID);
+		}
 
 		if (empty($data->q) === false) {
 			$lotm = Lotm::getInstance();
@@ -85,10 +99,10 @@ class Labels extends Base {
 			self::pw('page')->headline = "Searching Lots for $data->q";
 			$filter->search($data->q);
 		}
-		$lots = $filter->query->paginate(self::pw('input')->pageNum, 10);
-		$html = self::displayList($data, $lots);
-		// self::getImg()->deleteResponse();
-		return $html;
+
+		if (boolval($data->instock)) {
+			$filter->inStock();
+		}
 	}
 
 
