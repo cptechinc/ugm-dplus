@@ -81,6 +81,27 @@
 			<small class="form-text text-muted"></small>
 		</div>
 	</div>
+	<div class="row">
+		<div class="col-sm-3 mb-3">
+			<label for="qty">Qty</label>
+		</div>
+		<div class="col-sm-3 mb-3">
+			{% include 'util/bootstrap/form/input.twig' with {
+					'input': {
+						'type': 'number',
+						'name': 'qty',
+						'size': 'sm',
+						'value': '1',
+						'attributes': {
+							'placeholder': '',
+							'aria-label':  'Qty'
+						},
+						'addclasses': ['text-right']
+					}
+				}
+			%}
+		</div>
+	</div>
 
 	<button type="submit" class="btn btn-success">Submit</button>
 </form>
