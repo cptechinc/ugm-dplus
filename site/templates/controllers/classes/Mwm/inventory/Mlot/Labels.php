@@ -3,6 +3,8 @@
 use Purl\Url as Purl;
 // Propel ORM Library
 use Propel\Runtime\Util\PropelModelPager;
+// Dplus Models
+use InvLot;
 // Document Management
 use Dplus\DocManagement\Finders\Lt\Img as Docm;
 use Dplus\DocManagement\Copier;
@@ -27,7 +29,7 @@ class Labels extends Base {
 	Indexes
 ============================================================= */
 	public static function index($data) {
-		self::sanitizeParametersShort($data, ['scan|text', 'lotserial|text', 'action|text']);
+		self::sanitizeParametersShort($data, ['q|text', 'lotserial|text', 'action|text']);
 		if (self::validateUserPermission() === false) {
 			return self::displayUserNotPermitted();
 		}
@@ -54,20 +56,6 @@ class Labels extends Base {
 	// 			break;
 	// 	}
 	// 	self::pw('session')->redirect($url, $http301 = false);
-	// }
-
-
-	// private static function lotserial($data) {
-	// 	Search::getInstance()->requestSearch($data->lotserial);
-	// 	self::copyImage($data);
-	//
-	// 	self::initHooks();
-	// 	self::pw('page')->headline = "Lotserial #$data->lotserial";
-	// 	self::pw('page')->js .= self::pw('config')->twig->render('warehouse/inventory/mlot/img/lotserial/.js.twig');
-	// 	self::pw('config')->scripts->append(self::pw('modules')->get('FileHasher')->getHashUrl('scripts/lib/jquery-validate.js'));
-	// 	$html = self::displayLotserial($data);
-	// 	self::getImg()->deleteResponse();
-	// 	return $html;
 	// }
 
 	private static function list($data) {
@@ -107,6 +95,21 @@ class Labels extends Base {
 		}
 	}
 
+	private static function lotserial($data) {
+		$lotm = Lotm::getInstance();
+
+		if ($lotm->exists($data->lotserial) === false) {
+			self::pw('session')->redirect(Menu::labelsUrl(), $http301);
+		}
+		self::pw('page')->headline = "Print Label for $data->lotserial";
+		self::pw('page')->js .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/lotserial/.js.twig');
+		
+		$lot = $lotm->lot($data->lotserial);
+		$html = self::displayLotserial($data, $lot);
+		// self::getImg()->deleteResponse();
+		return $html;
+	}
+
 
 /* =============================================================
 	Display Functions
@@ -120,17 +123,14 @@ class Labels extends Base {
 		return $html;
 	}
 
-	//
-	// private static function displayLotserial($data) {
-	// 	$inventory = Search::getInstance();
-	// 	$lotserial = $inventory->getLotserial($data->lotserial);
-	// 	$docm = self::getDocm();
-	//
-	// 	$html  = '';
-	// 	$html .= self::displayResponse($data);
-	// 	$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/img/lotserial/display.twig', ['lotserial' => $lotserial, 'docm' => $docm]);
-	// 	return $html;
-	// }
+	private static function displayLotserial($data, InvLot $lot) {
+		$docm = self::getDocm();
+
+		$html  = '';
+		// $html .= self::displayResponse($data);
+		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/lotserial/display.twig', ['lot' => $lot, 'docm' => $docm]);
+		return $html;
+	}
 	//
 	// private static function displayResponse($data) {
 	// 	$imgM = self::getImg();
