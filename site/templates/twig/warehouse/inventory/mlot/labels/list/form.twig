@@ -6,7 +6,6 @@
 	docm                   Dplus\DocManagement\Finders\Lt\Img
 #}
 
-<form action="{{ input.paginateUrl(1) }}" method="GET">
 <form action="{{ input.paginateUrl(1) }}" method="GET" class="allow-enterkey-submit">
 	<div class="row">
 		<div class="col-sm-3 mb-3">
@@ -48,21 +47,6 @@
 						'attributes': {
 							'placeholder': 'Lot Number',
 							'aria-label':  'Search By Lot Number'
-						}
-					}
-				}
-			%}
-		</div>
-		<div class="col-sm-3 mb-3">
-			<label for="">&nbsp;</label>
-			{% include 'util/bootstrap/form/checkbox-custom.twig' with {
-					'input': {
-						'name': 'instock',
-						'label': 'In Stock',
-						'value': 'true',
-						'size': 'sm',
-						'attributes': {
-							'checked': input.get.bool('instock')
 						}
 					}
 				}

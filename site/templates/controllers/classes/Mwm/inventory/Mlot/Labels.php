@@ -66,6 +66,8 @@ class Labels extends Base {
 	}
 
 	private static function filterLots($data, Filters\Min\LotMaster $filter) {
+		$filter->inStock();
+		
 		self::sanitizeParametersShort($data, ['q|text', 'itemID|text', 'instock|bool']);
 
 		if (empty($data->itemID) === false) {
@@ -81,10 +83,6 @@ class Labels extends Base {
 			}
 			self::pw('page')->headline = "Searching Lots for $data->q";
 			$filter->search($data->q);
-		}
-
-		if (boolval($data->instock)) {
-			$filter->inStock();
 		}
 	}
 
