@@ -67,7 +67,7 @@ class Labels extends Base {
 
 	private static function filterLots($data, Filters\Min\LotMaster $filter) {
 		$filter->inStock();
-		
+
 		self::sanitizeParametersShort($data, ['q|text', 'itemID|text', 'instock|bool']);
 
 		if (empty($data->itemID) === false) {
@@ -116,10 +116,11 @@ class Labels extends Base {
 
 	private static function displayLotserial($data, InvLot $lot) {
 		$docm = self::getDocm();
+		$lastprintjob = self::getPrinter()->getUserPrintJobs()->lastJob(self::pw('user')->loginid);
 
 		$html  = '';
 		$html .= self::displayResponse($data);
-		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/lotserial/display.twig', ['lot' => $lot, 'docm' => $docm]);
+		$html .= self::pw('config')->twig->render('warehouse/inventory/mlot/labels/lotserial/display.twig', ['lot' => $lot, 'docm' => $docm, 'lastPrintJob' => $lastprintjob]);
 		return $html;
 	}
 

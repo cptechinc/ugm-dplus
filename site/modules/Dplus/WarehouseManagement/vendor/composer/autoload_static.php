@@ -15,6 +15,8 @@ class ComposerStaticInitbe01d8a824371fa061fc4d032387886e
         'Dplus\\Wm\\Inventory\\Search' => __DIR__ . '/../..' . '/src/Inventory/Search.php',
         'Dplus\\Wm\\Inventory\\Whse\\Lots\\Lookup' => __DIR__ . '/../..' . '/src/Inventory/Whse/Lots/Lookup.php',
         'Dplus\\Wm\\Inventory\\Whse\\Lots\\Lookup\\ExcludePackBin' => __DIR__ . '/../..' . '/src/Inventory/Whse/Lots/ExcludePackBin.php',
+        'Dplus\\Wm\\LastPrintJob' => __DIR__ . '/../..' . '/src/Printing/LastPrintJob.php',
+        'Dplus\\Wm\\LastPrintJob\\Lotlbl' => __DIR__ . '/../..' . '/src/Printing/LastPrintJob/Lotlbl.php',
         'Dplus\\Wm\\Receiving\\Items' => __DIR__ . '/../..' . '/src/Receiving/Items.php',
         'Dplus\\Wm\\Receiving\\Receiving' => __DIR__ . '/../..' . '/src/Receiving/Receiving.php',
         'Dplus\\Wm\\Receiving\\Strategies\\CreatePo\\Allow' => __DIR__ . '/../..' . '/src/Receiving/Strategies/CreatePo/Allow.php',

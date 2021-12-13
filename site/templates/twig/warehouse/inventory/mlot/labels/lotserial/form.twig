@@ -2,7 +2,7 @@
 	var                    Description / Instance of
 	-------------------------------------------------
 	page                   ProcessWire\Page
-	lot                  Propel\Runtime\Util\PropelModelPager (InvLot)
+	lot                    Propel\Runtime\Util\PropelModelPager (InvLot)
 	docm                   Dplus\DocManagement\Finders\Lt\Img
 #}
 
@@ -23,7 +23,7 @@
 						'size': 'sm',
 						'input': {
 							'name': 'printer',
-							'value': '',
+							'value': lastPrintJob.printerid,
 							'attributes': {
 								'placeholder': '',
 								'aria-label':  'Printer ID'
@@ -58,7 +58,7 @@
 						'size': 'sm',
 						'input': {
 							'name': 'format',
-							'value': '',
+							'value': lastPrintJob.labelid,
 							'attributes': {
 								'placeholder': '',
 								'aria-label':  'Label format'
@@ -91,7 +91,7 @@
 						'type': 'number',
 						'name': 'qty',
 						'size': 'sm',
-						'value': '1',
+						'value': lastPrintJob.qty,
 						'attributes': {
 							'placeholder': '',
 							'aria-label':  'Qty'
