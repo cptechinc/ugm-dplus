@@ -79,6 +79,18 @@ class AllocatedLots extends WireData {
 		return $q->find();
 	}
 
+	public function getLotAllocatedQty($ordn, $linenbr, $lotnbr) {
+		if ($this->hasAllocated($ordn, $linenbr) === false) {
+			return 0;
+		}
+		$col = SoAllocatedLotserial::aliasproperty('shipqty');
+		$q = $this->querySoLinenbr($ordn, $linenbr);
+		$q->withColumn("SUM($col)", 'qty');
+		$q->select('qty');
+		$q->filterByLotserial($lotnbr);
+		return $q->findOne();
+	}
+
 /* =============================================================
 	Supplemental Functions
 ============================================================= */

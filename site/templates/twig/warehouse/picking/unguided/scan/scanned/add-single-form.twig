@@ -6,6 +6,8 @@
 	item                   Whseitemphysicalcount
 	orderitem              PickSalesOrderDetail
 #}
+{% set lotAllocator = pickingM.getAllocatedLotM() %}
+
 <form action="{{ page.fullURL.getUrl() }}" method="post" id="scanned-item-form">
 	<input type="hidden" name="action" value="add-lotserial">
 	<input type="hidden" name="scan" value="{{ scan }}">
@@ -15,7 +17,7 @@
 		<input type="text" class="form-control" name="itemID" id="itemID" value="{{ item.itemid }}" readonly>
 	</div>
 
-	<div class="row {{ m_picking.is_item_normal(item.itemid)? 'collapse' : '' }}">
+	<div class="row {{ m_picking.is_item_normal(item.itemid) ? 'collapse' : '' }}">
 		<div class="col-sm-6">
 			<div class="form-group">
 				<label for="lotserial">Lot / Serial #</label>
@@ -40,10 +42,14 @@
 		<div class="col-sm-6">
 			<div class="form-group">
 				<div class="d-flex justify-content-between align-items-center">
-					<label for="qty">Qty </label>
+					<label for="qty">Qty</label>
 					<span class="pull-right">Ordered: {{ orderitem.qtyordered|number_format(m_picking.getDecimalPlacesQty()) }}</span>
+
+					{% if lotAllocator.hasAllocated(orderitem.ordernbr, orderitem.linenbr) %}
+						<div>Allocated:  {{ lotAllocator.getLotAllocatedQty(orderitem.ordernbr, orderitem.linenbr, item.lotserial)|number_format(m_picking.getDecimalPlacesQty()) }}</div>
+					{% endif %}
 				</div>
-				<input type="number" class="form-control" name="qty" id="qty" {% if m_picking.allow_pick_more_than_available() == false  %} max="{{ item.qty }}" {% endif %} value="">
+				<input type="number" class="form-control text-right" name="qty" id="qty" {% if m_picking.allow_pick_more_than_available() == false  %} max="{{ item.qty }}" {% endif %} value="">
 				<small class="form-text text-muted">Bin Qty: {{ item.qty|number_format(m_picking.getDecimalPlacesQty()) }}</small>
 			</div>
 		</div>

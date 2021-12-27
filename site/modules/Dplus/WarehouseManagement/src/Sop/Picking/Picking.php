@@ -194,6 +194,7 @@ class Picking extends Base {
 
 		if ($this->doesWhseitempickExist($orderitem, $lotserial, $binID)) {
 			$added = boolval($this->addLotserialAlreadyPicked($orderitem, $values));
+
 			if ($added) {
 				$this->requestLineUpdate($orderitem->linenbr);
 			}
@@ -433,7 +434,6 @@ class Picking extends Base {
 
 		$qty = $this->inventory->isItemSerialized($orderitem->itemnbr) ? 1 : $values->float('qty');
 		$item->setQty($qty);
-		echo var_dump($item);
 		return $item;
 	}
 

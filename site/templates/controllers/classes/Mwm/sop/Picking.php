@@ -327,7 +327,7 @@ class Picking extends Base {
 			if ($picking->items->hasItemid($item->itemid)) {
 				$orderitem  = $picking->items->getItemByItemid($item->itemid);
 				$html .= $writer->h3('', 'Enter Item Details');
-				$html .= $config->twig->render('warehouse/picking/unguided/scan/scanned/add-single-form.twig', ['item' => $item, 'orderitem' => $orderitem, 'scan' => $data->scan]);
+				$html .= $config->twig->render('warehouse/picking/unguided/scan/scanned/add-single-form.twig', ['item' => $item, 'orderitem' => $orderitem, 'scan' => $data->scan, 'pickingM' => $picking]);
 				self::pw('page')->js   .= $config->twig->render('warehouse/picking/unguided/scan/scan.js.twig');
 				return $html;
 			}
