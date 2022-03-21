@@ -172,7 +172,7 @@ $(function() {
 	});
 
 
-	$("body").on("click", "a:not([href^=#],.picking-link, #ajax-modal a)", function(e) {
+	$("body").on("click", "a:not([href^=#],.picking-link, #ajax-modal a, .retry-search)", function(e) {
 		e.preventDefault();
 		var a = $(this);
 
