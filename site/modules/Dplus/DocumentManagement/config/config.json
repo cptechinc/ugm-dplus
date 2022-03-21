@@ -1,0 +1,10 @@
+{
+	"folder": {
+		"useLowerCase": true
+	},
+	"viewer": {
+		"directory": "/var/www/html/docvwr/",
+		"url": "",
+		"urlpath": "/docvwr/"
+	}
+}
