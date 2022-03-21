@@ -3,6 +3,7 @@ $(function() {
 	var input_barcode = $('input[name=barcode]');
 	var input_qty     = $('input[name=qty]');
 	var form_barcode  = $('form[id=barcode-form]');
+	var modalAjax     = $('#ajax-modal');
 
 	/**
 	 * The Order of Functions based on Order of Events
@@ -171,7 +172,7 @@ $(function() {
 	});
 
 
-	$("body").on("click", "a:not([href^=#],.picking-link)", function(e) {
+	$("body").on("click", "a:not([href^=#],.picking-link, #ajax-modal a)", function(e) {
 		e.preventDefault();
 		var a = $(this);
 
@@ -190,6 +191,55 @@ $(function() {
 				});
 			}
 		});
+	});
+
+	/* =============================================================
+	AJAX Lookup Modal Functions
+============================================================= */
+	modalAjax.on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var modal = $(this);
+		var url = button.data('lookupurl');
+
+		modal.attr('data-input', button.data('input'));
+		modal.find('.modal-title').text(button.attr('title'));
+		modal.resizeModal('xl');
+		modal.find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '.item-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var itemID = button.data('itemid');
+		var modal  = button.closest('.modal');
+		$(modal.attr('data-input')).val(itemID).change();
+		modal.modal('hide');
+	});
+
+	$("body").on('click', '.whse-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var whseID = button.data('whseid');
+		var modal  = button.closest('.modal');
+		$(modal.attr('data-input')).val(whseID).change();
+		modal.modal('hide');
+	});
+
+	$("body").on('submit', '#ajax-modal form', function(e) {
+		e.preventDefault();
+		var form = $(this);
+		var query = form.serialize();
+		var action = form.attr('action');
+		var search = form.find('input[name=q]').val();
+		var url = action + '?' + query;
+		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
+		form.closest('.modal').find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
+		e.preventDefault();
+		var href = $(this).attr('href');
+		modal_ajax.find('.modal-body').load(href);
 	});
 });
 
