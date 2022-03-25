@@ -5,9 +5,9 @@ use Purl\Url as Purl;
 use Dplus\DocManagement\Finders\Lt\Img as Docm;
 use Dplus\DocManagement\Copier;
 use Dplus\DocManagement\Folders;
-// Dplus Inventory Search
+// Dplus Inventory
 use Dplus\Wm\Inventory\Search;
-// Dplus CRUD
+use Dplus\Wm\Inventory\Lotm;
 use Dplus\Wm\Inventory\Mlot\Img as ImgManager;
 // Mvc Controllers
 use Controllers\Wm\Base;
@@ -57,6 +57,12 @@ class Img extends Base {
 	}
 
 	private static function scan($data) {
+		$lotm = Lotm::getInstance();
+
+		if ($lotm->exists($data->scan)) {
+			self::pw('session')->redirect(self::lotserialUrl($data->scan), $http301 = false);
+		}
+
 		$search = Search::getInstance();
 		$search->requestSearch($data->scan);
 
@@ -72,7 +78,6 @@ class Img extends Base {
 	}
 
 	private static function lotserial($data) {
-		Search::getInstance()->requestSearch($data->lotserial);
 		self::copyImage($data);
 
 		self::initHooks();
@@ -124,8 +129,8 @@ class Img extends Base {
 	}
 
 	private static function displayLotserial($data) {
-		$inventory = Search::getInstance();
-		$lotserial = $inventory->getLotserial($data->lotserial);
+		$lotm = Lotm::getInstance();
+		$lotserial = $lotm->lot($data->lotserial);
 		$docm = self::getDocm();
 
 		$html  = '';

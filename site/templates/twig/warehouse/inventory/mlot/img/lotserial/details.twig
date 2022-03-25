@@ -3,9 +3,8 @@
 	-------------------------------------------------
 	page                   ProcessWire\Page
 	docm                   Dplus\DocManagement\Finders\Lt\Img
-	lotserial              Invsearch
+	lotserial              InvLotMaster
 #}
-
 <table class="table table-sm table-striped">
 	<tr>
 		<td>Item ID</td>
@@ -13,7 +12,7 @@
 	</tr>
 	<tr>
 		<td>Description</td>
-		<td>{{ lotserial.desc1 }}</td>
+		<td>{{ lotserial.getItemMasterItem().description }}</td>
 	</tr>
 	<tr>
 		<td>Lot / Serial #</td>
@@ -22,9 +21,5 @@
 	<tr>
 		<td>Lot Ref</td>
 		<td>{{ lotserial.lotreference }}</td>
-	</tr>
-	<tr>
-		<td>Qty</td>
-		<td>{{ lotserial.qty }}</td>
 	</tr>
 </table>
