@@ -42,10 +42,14 @@
 
 	$filter = new Twig_Filter('attrJS', function ($string, $jsprepend = true) {
 		$replace = array(
-			' ' => '+',
+			' ' => '_',
 			'=' => 'eq',
 			'%' => 'per',
-			'+' => 'plus'
+			'+' => 'plus',
+			'&' => 'amp',
+			"'" => 'apos',
+			"@" => 'att',
+			'.' => 'peri'
 		);
 		$string = str_replace(array_keys($replace), array_values($replace), $string);
 		return $jsprepend ? "js-$string" : $string;
