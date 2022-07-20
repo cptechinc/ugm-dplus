@@ -1,139 +1,67 @@
 $(function() {
-	var form = $('#print-label-form');
-	var modal_ajax    = $('#ajax-modal');
+	var labelform = $('#print-label-form');
+	var input_weight     = labelform.find('input[name=weight]');
+	var input_labelcount = labelform.find('input[name=labelcount]');
 
-	if (form.find('input[name=qty]').val() == '') {
-		form.find('input[name=qty]').focus();
-	} else {
-		form.find('input[name=labelcount]').focus();
-	}
-
-/* =============================================================
-	Lookup Modal Functions
-============================================================= */
-	modal_ajax.on('show.bs.modal', function (event) {
-		var button = $(event.relatedTarget); // Button that triggered the modal
-		var modal = $(this);
-		var url = button.data('lookupurl');
-
-		modal.attr('data-input', button.data('input'));
-		modal.find('.modal-title').text(button.attr('title'));
-		modal.resizeModal('xl');
-		modal.find('.modal-body').loadin(url, function() {});
-	});
-
-	$("body").on('submit', '#ajax-modal form', function(e) {
-		e.preventDefault();
-		var form = $(this);
-		var query = form.serialize();
-		var action = form.attr('action');
-		var search = form.find('input[name=q]').val();
-		var url = action + '?' + query;
-		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
-		form.closest('.modal').find('.modal-body').loadin(url, function() {});
-	});
-
-	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
-		e.preventDefault();
-		var href = $(this).attr('href');
-		modal_ajax.find('.modal-body').load(href);
-	});
-
-	$("body").on('click', '.item-link', function(e) {
-		e.preventDefault();
-		var button = $(this);
-		var itemID = button.data('itemid');
-		var modal = button.closest('.modal');
-		var input = $(modal.attr('data-input'));
-		input.val(itemID).change();
-		modal_ajax.modal('hide');
-	});
-
-/* =============================================================
-	Validation Functions
-============================================================= */
-	var validator = form.validate({
+/////////////////////////////////////
+// 3. Validate form
+////////////////////////////////////
+	labelform.validate({
 		errorClass: "is-invalid",
-		validClass: "is-valid",
-		errorPlacement: function(error, element) {
-			error.insertAfter(element).addClass('invalid-feedback');
-		},
-		rules: {
-			itemID: {
-				required: true,
-				remote: {
-					url: '{{ page.jsonapiURL('inv/validate/itemid/') }}',
-					type: "get",
-					data: {
-						jqv: 'true'
-					}
-				}
-			},
-			productiondate: {
-				required: true
-			},
-			qty: {
-				required: true
-			},
-			labelcount: {
-				required: true
-			},
+		highlight: function(element, errorClass, validClass) {
+			$(element).addClass(errorClass).removeClass(validClass);
 		},
 		submitHandler : function(form) {
-			form.submit();
+			var valid_form = new SwalError(false, '', '', false);
+			var valid_weight = validate_weight();
+			var valid_labelcount = validate_labelcount();
+
+			if (valid_weight.error) {
+				valid_form = valid_weight;
+			} else if (valid_labelcount.error) {
+				valid_form = valid_labelcount;
+			}
+
+			if (valid_form.error) {
+				swal2.fire({
+					icon: 'error',
+					title: valid_form.title,
+					text: valid_form.msg,
+					html: valid_form.html
+				});
+			} else {
+				form.submit();
+			}
 		}
 	});
 
-/* =============================================================
-	Event Functions
-============================================================= */
-	$("body").on('change', '#print-label-form input[name=itemID]', function(e) {
-		e.preventDefault();
-		var input = $(this);
-		validate_itemid_entry(input.val(), function(item) {
-			if (item.exists) {
-				input.val(item.itemID).change();
-				validator.element('#itemID');
-				populate_item_data(input.val());
-			}
-		});
-	});
+	function validate_weight() {
+		var error = false;
+		var title = '';
+		var msg = '';
+		var html = false;
+		var weight = parseFloat(input_weight.val());
 
-	function populate_item_data(itemID) {
-		request_item(itemID, function(item) {
-			if (item) {
-				$('.item-description').text(item.description);
-			}
-		});
+		if (weight == 0) {
+			error = true;
+			title = 'Invalid Weight';
+			msg   = "Weight must be more than 0";
+		}
+		return new SwalError(error, title, msg, html);
 	}
 
-/* =============================================================
-	AJAX Request Functions
-============================================================= */
-	function request_item(itemID, callback) {
-		var url = new URI('{{ page.jsonapiURL('inv/item/') }}');
-		url.addQuery('itemID', itemID);
+	function validate_labelcount() {
+		var error = false;
+		var title = '';
+		var msg = '';
+		var html = false;
+		var count = parseInt(input_labelcount.val());
 
-		$.getJSON(url.toString(), function( item ) {
-			callback(item);
-		});
-	}
-
-	/**
-	 * Return Item Entry Object Validation
-	 * @param  string     itemID    Item ID
-	 * @param  string     vendorID  Vendor ID
-	 * @param  {Function} callback  Callback Function
-	 * @return {object}             {exists: (bool), itemID: xxx, message: xxx, source: xxx }
-	 */
-	function validate_itemid_entry(itemID, callback) {
-		var url = URI("{{ page.jsonapiURL('item-lookup') }}");
-		url.addQuery('itemID', itemID);
-		url.addQuery('custID', '');
-		url.addQuery('shiptoID', '');
-
-		$.getJSON(url.toString(), function( response ) {
-			return callback(response);
-		});
+		if (count == 0) {
+			error = true;
+			title = 'Invalid Label Qty';
+			msg   = "Must Print off at least 1 label";
+		}
+		return new SwalError(error, title, msg, html);
 	}
 });

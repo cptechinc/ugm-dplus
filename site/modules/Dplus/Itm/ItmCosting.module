@@ -4,366 +4,146 @@ include_once(__DIR__.'/ItmResponse.php');
 
 use Purl\Url;
 
-use Dplus\CodeValidators\Min\Itm as ItmValidator;
-
-// Dplus Configs
-use Dplus\Configs;
-
-use ConfigIn, ConfigPo;
 use ItemMasterItemQuery, ItemMasterItem;
 use UnitofMeasurePurchaseQuery, UnitofMeasurePurchase;
-use ApBuyerQuery, ApBuyer;
-use ItemXrefVendorQuery, ItemXrefVendor;
 
 /**
  * Module that handles the editing of the ITM record for costing
- *
- * @param WireData $configs       Wrappper Class for configs
- * @param ConfigIn $configs->inv  IN Config
- * @param ConfigPo $configs->po   PO Config
- * @param string   $appcustID     Application CustId from ConfigSys
  */
 class ItmCosting extends WireData implements Module {
 	const MODEL              = 'ItemMasterItem';
 	const MODEL_KEY          = 'code';
 	const DESCRIPTION        = 'ITM Costing';
 	const DESCRIPTION_RECORD = 'ITM Costing';
-	const RESPONSE_TEMPLATE  = 'ITM Item {itemid} Costing was {not} {crud}';
 
 	public function __construct() {
 		$this->description = self::DESCRIPTION;
 		$this->configs = new WireData();
-		$this->configs->inv = false;
-		$this->configs->po  = false;
-		$this->appcustID    = '';
+		$this->configs->po = false;
 	}
 
-	public function initConfigs() {
-		$this->appcustID = Configs\Sys::custid();
-	}
-
-	/**
-	 * Min Margin Based On Options
-	 * @return array
-	 */
-	public function getMinMarginBasedOnOptions() {
-		return ItemMasterItem::MIN_MARGIN_BASE_OPTIONS;
-	}
-
-/* =============================================================
-	Field Attributes, Functions
-============================================================= */
-	const PRECISION_MARGIN = 4;
-
-	const FIELD_ATTRIBUTES = [
-		'qty'         => ['type' => 'number', 'precision' => 0, 'max' => 99999999],
-		'price'       => ['type' => 'number', 'precision' => 3, 'max'  => 999999999.000],
-		'margin'      => ['type' => 'number', 'precision' => 4, 'max'  => 999999999.000],
-	];
-
-	/**
-	 * Initialize field attributes
-	 * @return void
-	 */
-	public function initFieldAttributes() {
-		// $configSo = Configs\So::config();
-		$configPo = Configs\Po::config();
-		$attributes = self::FIELD_ATTRIBUTES;
-		$attributes['cost']   = ['type' => 'number', 'precision' => $configPo->decimal_places_cost, 'max' => 99999999.9999];
-		$this->fieldAttributes = $attributes;
+	public function init2() {
+		//TODO GET PO Config
 	}
 
 	/**
-	 * Return Field Attribute value
-	 * @param  string $field Field Name
-	 * @param  string $attr  Attribute Name
-	 * @return mixed|bool
-	 */
-	public function fieldAttribute($field = '', $attr = '') {
-		if (empty($this->fieldAttributes)) {
-			$this->initFieldAttributes();
-		}
-		if (empty($field) || empty($attr)) {
-			return false;
-		}
-		if (array_key_exists($field, $this->fieldAttributes) === false) {
-			return false;
-		}
-		if (array_key_exists($attr, $this->fieldAttributes[$field]) === false) {
-			return false;
-		}
-		return $this->fieldAttributes[$field][$attr];
-	}
-
-/* =============================================================
-	CRUD Processing Functions
-============================================================= */
-	/**
-	 * Process CRUD Request
-	 * @param  WireInput $input Input Data
-	 * @return void
-	 */
-	public function processInput(WireInput $input) {
-		$rm = strtolower($input->requestMethod());
-		$values = $input->$rm;
-		$itemID = $values->text('itemID');
-
-		switch ($values->action) {
-			case 'update-itm-costing':
-				$this->inputUpdate($input);
-				break;
-			default:
-				$response = ItmResponse::response_error($itemID, "No Action was specified");
-				$this->setResponse($response);
-				break;
-		}
-	}
-
-	/**
-	 * Process Update Request
+	 * Takes Input, validates Item Updates the pricing record for it, sends update to DPlus
+	 * NOTE: Updates ITM record with changes to the uom_sale, allow_discount, assortmentcode, assortmentqty fields
+	 *
 	 * @param  WireInput $input Input
-	 * @return bool
+	 * @return void
 	 */
-	private function inputUpdate(WireInput $input) {
+	public function process_input(WireInput $input) {
+		$itm = $this->wire('modules')->get('Itm');
 		$rm = strtolower($input->requestMethod());
 		$values = $input->$rm;
 		$itemID = $values->text('itemID');
-		$itm = $this->wire('modules')->get('Itm');
 
-		if ($itm->exists($itemID) === false) {
-			$this->setResponse(ItmResponse::response_error($itemID, "Item $itemID does not exist"));
-			return false;
-		}
-
-		$itm->lockrecord($itemID);
-		if ($itm->recordlocker->userHasLocked($itemID) === false) {
-			$message = self::DESCRIPTION_RECORD . " ($itemID)  was not saved, it is locked by " . $itm->recordlocker->getLockingUser($itemID);
-			$this->setResponse(ItmResponse::response_error($itemID, $message, ItmResponse::CRUD_UPDATE));
-			return false;
-		}
-		$item = $itm->item($itemID);
-		return $this->inputUpdateItem($item, $input);
-	}
-
-	/**
-	 * Update Itm Item Costing Fields
-	 * @param  ItemMasterItem $item
-	 * @param  WireInput      $input Input Data
-	 * @return bool
-	 */
-	private function inputUpdateItem(ItemMasterItem $item, WireInput $input) {
-		$rm = strtolower($input->requestMethod());
-		$values = $input->$rm;
-		$itm = $this->wire('modules')->get('Itm');
-
-		$item->setUom_purchase($values->text('uom_purchase'));  // TODO use Precision
-		$this->setItemStandardcost($item, $input);
-
-		// $item->setLastcost($values->text('lastcost'));
-		$item->setMinmargin($values->float('minmargin', ['precision' => $this->fieldAttribute('margin', 'precision')]));
-		$this->setItemMinmarginbase($item, $input);
-		$item->setStandardcostbasedon($values->text('standardcostbasedon'));
-		$this->setItemBuyercode($item, $input);
-
-		if ($this->appcustID == 'LINDST') {
-			$item->Qty_purchase_carton($values->int('qty_purchase_carton'));
-		}
-		$item->setDateUpdtd(date('Ymd'));
-		$item->setTimeUpdtd(date('His'));
-		$response = $this->saveAndRespond($item);
-		$this->setResponse($response);
-		return $response->has_success();
-	}
-
-	/**
-	 * Set Item's Standardcost field
-	 * @param ItemMasterItem $item
-	 * @param WireInput      $input  Input Data
-	 */
-	private function setItemStandardcost(ItemMasterItem $item, WireInput $input) {
-		$rm = strtolower($input->requestMethod());
-		$values = $input->$rm;
-
-		if ($values->text('standardcost') != $item->standardcost) {
-			// SAVE STANDARD COST AS COST / EACH, display cost * UOM CONVERSION
-			$uom = $this->wire('modules')->get('CodeTablesUmm')->get_code($values->text('uom_purchase'));
-			$costUom = $values->float('standardcost', ['precision' => $this->fieldAttribute('cost', 'precision')]);
-			$costEach = $costUom / $uom->conversion;
-			$item->setStandardcost($costEach);
-			$item->setDate_laststandardcost(date('Ymd'));
-		}
-	}
-
-	/**
-	 * Set Item's Buyercode field
-	 * NOTE: uses PO config to determine if field can be updated
-	 * @param ItemMasterItem $item
-	 * @param WireInput      $input Input Data
-	 */
-	private function setItemBuyercode(ItemMasterItem $item, WireInput $input) {
-		$rm = strtolower($input->requestMethod());
-		$values = $input->$rm;
-		$validate = new ItmValidator();
-
-		if ($this->doesItemControlBuyer()) {
-			if (strlen($values->text('buyer')) && $validate->buyercode($values->text('buyer'))) {
-				$item->setBuyer($values->text('buyer'));
+		if ($values->action) {
+			if ($itm->item_exists($itemID)) {
+				if ($values->text('action') == 'update-itm-costing') {
+					$response = $this->update_itm_input($input);
+				}
 			} else {
-				$item->setBuyer('');
+				$response = $this->create_error_response($itemID, "Item $itemID does not exist");
 			}
-		}
-	}
-
-	/**
-	 * Update Minmarginbase field
-	 * @param ItemMasterItem $item
-	 * @param WireInput      $input Input Data
-	 */
-	private function setItemMinmarginbase(ItemMasterItem $item, WireInput $input) {
-		$rm = strtolower($input->requestMethod());
-		$values = $input->$rm;
-
-		if ($values->offsetExists('minmarginbase') && array_key_exists($values->text('minmarginbase'), ItemMasterItem::MIN_MARGIN_BASE_OPTIONS)) {
-			$item->setMinmarginbase($values->text('minmarginbase'));
 		} else {
-			$item->setMinmarginbase($itm->fieldAttribute('minmarginbase', 'default'));
+			$response = $this->create_error_response($itemID, "No Action was specified");
 		}
+		$this->wire('session')->response_itm = $response;
 	}
 
 	/**
-	 * Update ITM standard Cost from X-Ref Record
-	 * @param  ItemXrefVendor $xref [description]
-	 * @return bool
-	 */
-	public function update_cost_from_vxm(ItemXrefVendor $xref) {
-		$itm = $this->wire('modules')->get('Itm');
-		$vxm = $this->wire('modules')->get('XrefVxm');
-		$vxm->init_configs();
-
-		if ($itm->exists($xref->itemid) === false) {
-			return false;
-		}
-
-		if ($vxm->allow_itm_cost_update($xref->vendorid, $xref->vendoritemid, $xref->itemid) == false) {
-			return false;
-		}
-
-		$item = $xref->imitem;
-		$allowed = [ItemMasterItem::STANDARDCOST_BASE_REPLACEMENT, ItemMasterItem::STANDARDCOST_BASE_MANUAL];
-		$configAp = Configs\Ap::config();
-
-		if ($configAp->update_itm_cost($item->standardcostbasedon) == false) {
-			return false;
-		}
-		$item->setStandardcost($xref->unitcost_base);
-		$item->setDate_laststandardcost(date('Ymd'));
-		$response = $this->saveAndRespond($item);
-		return $response->has_success();
-	}
-
-/* =============================================================
-	CRUD Response Functions
-============================================================= */
-	/**
-	 * Set Session Response
-	 * @param ItmResponse $response
-	 */
-	protected function setResponse(ItmResponse $response) {
-		$this->wire('session')->setFor('response', 'itm', $response);
-	}
-
-	/**
-	 * Get Session Response
-	 * @return ItmResponse|null
-	 */
-	protected function getResponse() {
-		$this->wire('session')->getFor('response', 'itm');
-	}
-
-	/**
-	 * Returns ItmResponse based on the outcome of the database save
-	 * @param  ItemMasterItem $item Record to record response of database save
+	 * Updates ITM Item Record and updates DPLUS
+	 * Records values for uom_sale, allow_discount, assortmentcode, assortmentqty
+	 * @param  WireInput $input
 	 * @return ItmResponse
 	 */
-	private function saveAndRespond(ItemMasterItem $item) {
-		$is_new = $item->isDeleted() ? false : $item->isNew();
-		$saved  = $item->isDeleted() ? $item->isDeleted() : $item->save();
+	public function update_itm_input(WireInput $input) {
+		$itm = $this->wire('modules')->get('Itm');
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$itemID = $values->text('itemID');
+
+		$item = $itm->get_item($itemID);
+		$item->setUom_purchase($values->text('uom_purchase'));
+		$item->setStandardcost($values->text('standardcost'));
+		$item->setLastcost($values->text('lastcost'));
+		$item->setMinmargin($values->text('minmargin'));
+		$item->setStandardcostbasedon($values->text('standardcostbasedon'));
+		return $this->save_and_process_response($item);
+	}
+
+	/**
+	 * Returns XrefResponse based on the outcome of the database save
+	 * @param  ItemMasterItem $record Record to record response of database save
+	 * @return ItmResponse
+	 */
+	protected function save_and_process_response(ItemMasterItem $record) {
+		$is_new = $record->isDeleted() ? false : $record->isNew();
+		$saved  = $record->isDeleted() ? $record->isDeleted() : $record->save();
 
 		$response = new ItmResponse();
-		$response->set_itemID($item->itemid);
+		$response->set_itemID($record->itemid);
+		$message = self::DESCRIPTION_RECORD . " ($record->itemid) was ";
 
 		if ($saved) {
 			$response->set_success(true);
 		} else {
 			$response->set_error(true);
+			$message .= "not ";
 		}
 
 		if ($is_new) {
+			$message .= 'added';
 			$response->set_action(ItmResponse::CRUD_CREATE);
-		} elseif ($item->isDeleted()) {
+		} elseif ($record->isDeleted()) {
+			$message .= 'deleted';
 			$response->set_action(ItmResponse::CRUD_DELETE);
 		} else {
+			$message .= 'updated';
 			$response->set_action(ItmResponse::CRUD_UPDATE);
 		}
 
-		$response->build_message(self::RESPONSE_TEMPLATE);
+		$response->set_message($message);
 		$response->set_saved_itm_costing($response->has_success());
 
 		if ($response->has_success()) {
-			$itm = $this->wire('modules')->get('Itm');
-			$itm->request_item_update($item->itemid);
+			$module_itm = $this->wire('modules')->get('Itm');
+			$module_itm->update_dplus_cobol($itemID);
 		}
 		return $response;
 	}
 
+	/**
+	 * Return Error Response with Provided Message
+	 * @param  string $itemID     Item ID
+	 * @param  string $message    Error Message
+	 * @param  int    $actiontype ItmResponse CRUD value
+	 * @return ItmResponse
+	 */
+	protected function create_error_response($itemID, $message, $actiontype = 0) {
+		$response = new ItmResponse();
+		$response->set_itemID($itemID);
+		$response->set_error(true);
+		$response->set_saved_itm(false);
+		$response->set_action($actiontype != 0 ? $actiontype : ItmResponse::CRUD_UPDATE);
+		$response->set_message($message);
+		return $response;
+	}
 /* =============================================================
 	Supplemental Functions
 ============================================================= */
-	/**
-	 * Return UOM Purchases
-	 * @return UnitofMeasurePurchase[]|ObjectCollection
-	 */
 	public function get_uom_purchases() {
 		return UnitofMeasurePurchaseQuery::create()->find();
 	}
 
-	/**
-	 * Return Options for which Standard Cost is based on
-	 * @return array
-	 */
 	public function get_standardcost_basedon_options() {
 		return ItemMasterItem::STANDARDCOST_BASE_OPTIONS;
 	}
-
-	/**
-	 * Return ApBuyers
-	 * @return ApBuyer[]|ObjectCollection
-	 */
-	public function getApBuyers() {
-		return ApBuyerQuery::create()->find();
-	}
-
-	/**
-	 * Return if Itm is in charge of controlling buyer code
-	 * @return bool
-	 */
-	public function doesItemControlBuyer() {
-		$configPo = Configs\Po::config();
-		return $configPo->controlbuyer == $configPo::CONTROL_BUYER_ITEM;
-	}
-
-	/**
-	 * Return Uom Code Length
-	 * @return int
-	 */
-	public function getUomCodeLength() {
-		return $this->wire('modules')->get('CodeTablesUmm')->getCodeMaxlength();
-	}
-
 /* =============================================================
 	ProcessWire Module Functions
 ============================================================= */
-
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Dplus ITM Costing CRUD Manager',

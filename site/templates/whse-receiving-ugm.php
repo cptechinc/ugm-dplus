@@ -1,4 +1,6 @@
 <?php
+	$rm = strtolower($input->requestMethod());
+	$values = $input->$rm;
 	$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
 	$warehouse   = WarehouseQuery::create()->findOneByWhseid($whsesession->whseid);
 	$warehouse_receiving = $modules->get('ReceivingUgm');

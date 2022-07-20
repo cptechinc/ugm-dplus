@@ -1,26 +1,6 @@
 <?php namespace ProcessWire;
 
-include_once(__DIR__ . '/vendor/autoload.php');
-
 class Qnotes extends WireData implements Module {
-	/**
-	 * Returns Lines Broken down by line limits
-	 * @param  string $note   Text Area Note
-	 * @param  int    $length Line Length Limit
-	 * @return array
-	 */
-	public function note_lines($note, int $length = 0) {
-		$lines = array();
-
-		if ($length) {
-			$wrapped = wordwrap($note, $length, PHP_EOL, $cut = true);
-			$note_lines = explode(PHP_EOL, $wrapped);
-		} else {
-			$note_lines = explode(PHP_EOL, $note);
-		}
-		return $note_lines;
-	}
-
 	/**
 	 * Return Data needed for Dplus to UPDATE the Customer Type Notes
 	 * @param  string $notetype Note Type @see WarehouseNote::TYPES
@@ -29,7 +9,7 @@ class Qnotes extends WireData implements Module {
 	 * @return array
 	 */
 	public function write_dplus_data($notetype, $key2, $form) {
-		$dplusdb = $this->wire('modules')->get('DplusDatabase')->db_name;
+		$dplusdb = $this->wire('modules')->get('DplusConnectDatabase')->db_name;
 		return array("DBNAME=$dplusdb", 'UPDATEQNOTE', "TYPE=$notetype", "KEY2=$key2", "FORM=$form");
 	}
 
@@ -42,21 +22,11 @@ class Qnotes extends WireData implements Module {
 	 */
 	public function update_dplus_cobol($notetype, $key2, $form) {
 		$config = $this->wire('config');
-		$dplusdb = $this->wire('modules')->get('DplusDatabase')->db_name;
+		$dplusdb = $this->wire('modules')->get('DplusConnectDatabase')->db_name;
 		$data = $this->write_dplus_data($notetype, $key2, $form);
 		$requestor = $this->wire('modules')->get('DplusRequest');
 		$requestor->write_dplusfile($data, session_id());
 		$requestor->cgi_request($config->cgis['database'], session_id());
-	}
-
-	public function update() {
-		$info = self::getModuleInfo();
-		$modules = $this->wire('modules');
-		$modules->refresh();
-
-		foreach ($info['installs'] as $module_name) {
-			$modules->install($module_name);
-		}
 	}
 
 	public static function getModuleInfo() {
@@ -70,9 +40,7 @@ class Qnotes extends WireData implements Module {
 				'QnotesSalesOrder',
 				'QnotesSalesHistory',
 				'QnotesQuote',
-				'QnotesItem',
-				'Qponotes',
-				'QnotesPo'
+				'QnotesItem'
 			)
 		);
 	}

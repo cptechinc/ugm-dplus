@@ -1,8 +1,8 @@
 <div class="form-row form-group">
-	<div class="col-sm-4">
+	<div class="col">
 		<label for="{{ name }}">{{ label }}</label>
 	</div>
-	<div class="col-sm-8">
+	<div class="col">
 		<select name="{{ name }}" class="form-control" id="{{ name }}">
 			{% if (warehouse.isNew()) %}
 				<option value="self" id="{{ name ~ '_self'}}" selected>Self</option>

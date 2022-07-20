@@ -1,7 +1,6 @@
 {# cpm is an instance of CustomerPriceCode #}
-<form action="{{ page.url }}" method="POST" id="code-edit-form" data-code="">
+<form action="{{ page.url }}" method="POST" id="code-edit-form">
 	<input type="hidden" name="table" value="cpm">
-	<input type="hidden" name="serialized" value="" disabled>
 
 	<div class="form-group">
 		<label for="code">Code</label>
@@ -14,24 +13,22 @@
 	</div>
 
 	<div class="form-group">
-		<label for="surcharge">Can Add Surcharge?</label>
-		<select name="surcharge" class="form-control" id="surcharge">
-			<option value="Y">Yes</option>
-			<option value="N">No</option>
-		</select>
-	</div>
+	    <label for="surcharge">Can Add Surcharge?</label>
+	    <select name="surcharge" class="form-control" id="surcharge">
+	        <option value="Y">Yes</option>
+	        <option value="N">No</option>
+	    </select>
+    </div>
 
 	<div class="form-group">
 		<label for="percentage">Surcharge Percentage</label>
 		<input type="text" name="percentage" class="form-control" value="" id="percentage">
 	</div>
 
-	<div class="d-flex justify-content-between align-items-center">
-		<button type="submit" class="btn btn-success form_button">
+	<div class="modal-footer">
+		<button type="submit" class="btn btn-success">
 			<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
 		</button>
-		<button type="button" class="btn btn-warning" data-dismiss="modal">
-			<i class="fa fa-times" aria-hidden="true"></i> Close
-		</button>
+		<button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
 	</div>
 </form>

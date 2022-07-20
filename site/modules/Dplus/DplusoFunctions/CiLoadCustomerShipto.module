@@ -11,9 +11,6 @@
 	use ContactQuery, Contact;
 	use UseractionsQuery, Useractions;
 
-	use Dplus\Filters\Mso\SalesOrder   as SalesOrderFilter;
-	use Dplus\Filters\Mso\SalesHistory as SalesHistoryFilter;
-
 	class CiLoadCustomerShipto extends WireData implements Module {
 		/**
 		 * Customer ID
@@ -103,13 +100,6 @@
 			 */
 			$this->addHook('Page::cart_customerURL', function($event) {
 				$event->return = $this->get_cart_customerURL();
-			});
-
-			/**
-			 * Returns CI Customer Shipto Page URL
-			 */
-			$this->addHook('Page::create_blank_orderURL', function($event) {
-				$event->return = $this->create_blank_orderURL();
 			});
 		}
 
@@ -255,14 +245,15 @@
 		 * @return PropelModelPager
 		 */
 		public function get_salesorders($limit = 10, $page = 1) {
-			$filter = new SalesOrderFilter();
-			$filter->user($this->get_user());
-			$filter->query->filterByCustid($this->custID);
+			$filter_orders = $this->wire('modules')->get('FilterSalesOrders');
+			$filter_orders->init_query($this->get_user());
+			$query = $filter_orders->get_query();
+			$query->filterByCustid($this->custID);
 
 			if ($this->shiptoID) {
-				$filter->query->filterByShiptoid($this->shiptoID);
+				$query->filterByShiptoid($this->shiptoID);
 			}
-			return $filter->query->paginate($page, $limit);
+			return $query->paginate($page, $limit);
 		}
 
 		/**
@@ -273,14 +264,15 @@
 		 * @return PropelModelPager
 		 */
 		public function get_saleshistory($limit = 10, $page = 1) {
-			$filter = new SalesOrderFilter();
-			$filter->user($this->get_user());
-			$filter->query->filterByCustid($this->custID);
+			$filter_history = $this->wire('modules')->get('FilterSalesHistory');
+			$filter_history->init_query($this->get_user());
+			$query = $filter_history->get_query();
+			$query->filterByCustid($this->custID);
 
 			if ($this->shiptoID) {
-				$filter->query->filterByShiptoid($this->shiptoID);
+				$query->filterByShiptoid($this->shiptoID);
 			}
-			return $filter->query->paginate($page, $limit);
+			return $query->paginate($page, $limit);
 		}
 
 		/**
@@ -307,8 +299,7 @@
 		 * @return string
 		 */
 		public function get_salesordersURL() {
-			$url = new Url($this->wire('pages')->get('pw_template=sales-orders')->url);
-			$url->path->add('customer');
+			$url = new Url($this->wire('pages')->get('pw_template=sales-orders-customer')->url);
 			$url->query->set('custID', $this->custID);
 
 			if ($this->shiptoID) {
@@ -322,8 +313,7 @@
 		 * @return string
 		 */
 		public function get_saleshistoryURL() {
-			$url = new Url($this->wire('pages')->get('pw_template=sales-orders-invoices')->url);
-			$url->path->add('customer');
+			$url = new Url($this->wire('pages')->get('pw_template=sales-history-orders-customer')->url);
 			$url->query->set('custID', $this->custID);
 
 			if ($this->shiptoID) {
@@ -360,14 +350,6 @@
 		 */
 		public function get_cart_customerURL() {
 			return $this->wire('modules')->get('DpagesCart')->get_cart_customerURL($this->custID, $this->shiptoID);
-		}
-
-		/**
-		 * Returns URL to set Cart Customer
-		 * @return string
-		 */
-		public function create_blank_orderURL() {
-			return $this->wire('modules')->get('DpagesCart')->create_blank_orderURL($this->custID, $this->shiptoID);
 		}
 
 	/* =============================================================

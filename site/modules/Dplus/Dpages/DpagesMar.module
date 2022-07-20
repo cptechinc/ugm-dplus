@@ -28,18 +28,6 @@ class DpagesMar extends Dpages implements Module {
 			'name'   => 'ar-code-table-trm',
 			'fields' => array()
 		),
-		'ar-code-table-crcd' => array(
-			'name'   => 'ar-code-table-crcd',
-			'fields' => array()
-		),
-		'ar-code-table-crcd-validate' => array(
-			'name'   => 'ar-code-table-crcd-validate',
-			'fields' => array()
-		),
-		'spm' => array(
-			'name'   => 'spm',
-			'fields' => array()
-		),
 	);
 
 	const PAGES = array(
@@ -159,103 +147,11 @@ class DpagesMar extends Dpages implements Module {
 			'parent'         => '/mar/armain/',
 			'dplus_function' => 'trm'
 		),
-		'ar-crcd' => array(
-			'template'       => 'dplus-function',
-			'pw_template'    => 'ar-code-table',
-			'name'           => 'crcd',
-			'title'          => 'Customer Credit Card Code',
-			'summary'        => 'View / Edit Customer Credit Card',
-			'parent'         => '/mar/armain/',
-			'dplus_function' => 'crcd'
-		),
-		'ar-crcd-validate' => array(
-			'template'       => 'dplus-json',
-			'pw_template'    => 'ar-code-table-crcd-validate',
-			'name'           => 'validate',
-			'title'          => 'Validate CRCD',
-			'summary'        => 'JSON validation for CRCD',
-			'parent'         => '/mar/armain/crcd/',
-			'dplus_function' => ''
-		),
-		'spm' => array(
-			'template'       => 'dplus-function',
-			'pw_template'    => 'spm',
-			'name'           => 'spm',
-			'title'          => 'Sales Person Maintenance',
-			'summary'        => 'View / Edit Sales People',
-			'parent'         => '/mar/armain/',
-			'dplus_function' => 'spm'
-		),
 	);
-
-/* =============================================================
-	URL Functions
-============================================================= */
-	/**
-	 * Return View Code Table URL
-	 * @param  string $table Code Table
-	 * @param  string $code  Code
-	 * @return string
-	 */
-	public function get_codetable_viewURL($table, $code = false) {
-		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
-		$url->query->set('code', $code);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return View Code Table List URL
-	 * @param  string $table Code Table
-	 * @param  string $code  Code
-	 * @return string
-	 */
-	public function get_codetable_listURL($table, $code = '') {
-		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
-		$url->query->set('focus', $code);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return Code Table Code Delete URL
-	 * @param  string $table Code Table
-	 * @param  string $code  Code
-	 * @return string
-	 */
-	public function get_codetable_code_deleteURL($table, $code) {
-		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
-		$url->query->set('action', 'remove-code');
-		$url->query->set('table', $table);
-		$url->query->set('code', $code);
-		return $url->getUrl();
-	}
-
-	/**
-	 * Return Code Table Edit Code URL
-	 * @param  string $table Code Table
-	 * @param  string $code  Code
-	 * @return string
-	 */
-	public function get_codetable_code_editURL($table, $code) {
-		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
-		$url->query->set('code', $code);
-		return $url->getUrl();
-	}
 
 /* =============================================================
 	ProcessWire Module Functions
 ============================================================= */
-	public static function getModuleInfo() {
-		return array(
-			'title' => 'Dplus AR Pages Modules',
-			'version' => 101,
-			'summary' => 'Installs and creates AR Pages',
-			'singular' => true,
-			'autoload' => true,
-			'requires' => array('DplusPwPages', 'Dpages'),
-			'installs' => array(),
-		);
-	}
-
 	public function init() {
 		$this->addHook('Page(pw_template=ar-code-table-menu|ar-code-table)::get_codetable_viewURL', function($event) {
 			$table = $event->arguments(0);
@@ -285,5 +181,51 @@ class DpagesMar extends Dpages implements Module {
 			$page = $event->object;
 			$event->return = $page->name;
 		});
+	}
+
+	public function get_codetable_viewURL($table, $code = false) {
+		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+
+	public function get_codetable_listURL($table, $code = false) {
+		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
+		$code = str_replace(' ', '-', $code);
+		$url->query->set('focus', $code);
+		return $url->getUrl();
+	}
+
+	public function get_codetable_code_deleteURL($table, $code) {
+		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
+		$url->query->set('action', 'remove-code');
+		$url->query->set('table', $table);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+	public function get_codetable_code_editURL($table, $code) {
+		$url = new Url($this->wire('pages')->get("pw_template=ar-code-table, name=$table")->url);
+		$url->query->set('code', $code);
+		return $url->getUrl();
+	}
+
+
+	/**
+	 * ProcessWire Module Info
+	 *
+	 * @return void
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus AR Pages Modules',
+			'version' => 101,
+			'summary' => 'Installs and creates AR Pages',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('DplusPwPages', 'Dpages'),
+			'installs' => array(),
+		);
 	}
 }

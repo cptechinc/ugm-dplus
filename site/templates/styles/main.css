@@ -13,33 +13,16 @@ footer {
 	padding-top: 15px;
 }
 
-.smaller {
-	font-size: 70%;
-}
-
-table.table-md td, table.table-md th {
-	padding: .5rem;
-}
-
-@media (min-width:1400px) {
-	.container {
-		max-width:1366px;
-	}
-}
-
 /**************************************
 	Bootstrap Styles
 **************************************/
-.invalid-feedback.show {
-	display: block;
-}
 .breadcrumb .breadcrumb-item::before {color: white;}
 .breadcrumb-item+.breadcrumb-item::before {
 	display: inline-block;
 	padding-right: 0.5rem;
 	color: #6c757d;
 	content: "/"
-}
+ }
 
 .breadcrumb-item.active {
 	color: #FF304F;
@@ -56,34 +39,8 @@ table.table-md td, table.table-md th {
 	background-color: #c8bfc7 !important;
 }
 
-.bg-totals {
-	background-color: #C5D86D !important;
-	font-weight: bold;
-}
-
 .form-group label {
 	font-weight: bold;
-}
-
-.modal-600 {
-	max-width: 600px;
-}
-
-.modal-700 {
-	max-width: 700px;
-}
-
-.table-smd td {
-	padding: .45rem;
-}
-
-.page-item.disabled .page-link {
-	background-color: #e9ecef;
-}
-
-.nav-pills .nav-item:hover {
-	color: #212529;
-	background-color: rgba(0, 0, 0, 0.075)
 }
 
 /*==============================================================
@@ -184,36 +141,6 @@ a.image-link:hover {
 	border-color: #8ba2b0;
 }
 
-.toolbar-sidebar .nav li {
-	width: 100%;
-}
-
-.list-group.dplus-menu .list-group-item {
-	padding: .5rem 1.25rem;
-}
-
-.list-inline.comma-list {
-	display: inline;
-}
-
-.list-inline.comma-list li.list-inline-item:not(:last-child):after {
-	content: ","
-}
-
-.modal#ajax-notes-modal {
-	z-index: 1500;
-}
-
-.paginator .dropdown-menu {
-	max-height: 200px;
-	overflow-y:auto;
-}
-
-.table-striped.blue-stripes tbody tr:nth-of-type(2n+1) {
-	background-color: rgba(176, 198, 206, .5);
-	background-color: rgba(56, 163, 162, .15);
-}
-
 
 /************************************** Navbar **************************************/
 #yt-menu {
@@ -268,122 +195,6 @@ a.image-link:hover {
 	background: #FADA5E;
 }
 
-/*==============================================================
-	FORM Styles
-==============================================================*/
-select.form-control.is-invalid, select.form-control.is-valid {
-	background-position: center right calc(.375em + .9875rem);
-}
-input.form-control.is-valid.text-right,
-input.form-control.is-invalid.text-right {
-	background-position: center left calc(.25em + .25rem);
-	padding-right: .375em;
-}
-
-/* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
-	margin: 0;
-}
-
-/* Firefox */
-input.form-control[type=number] {
-	-moz-appearance: textfield;
-}
-
 textarea.qnotes {
 	font-family: monospace;
-	word-break: keep-all;
-	overflow-y: scroll;
-}
-
-.input-group > .input-group-append.w25 {
-	flex: 0 0 25%;
-}
-
-.input-group .input-group-text {
-	width: 100%;
-}
-
-.was-validated .form-control.form-control-sm:valid,
-.was-validated .form-control.form-control-sm:invalid,
-.form-control.form-control-sm.is-valid,
-.form-control.form-control-sm.is-invalid {
-	padding-right: .5rem;
-}
-
-.screen-overlay {
-	height: 100%;
-	z-index: 30;
-	position: fixed;
-	top: 0;
-	left: 0;
-	opacity:0;
-	visibility:hidden;
-	background-color: rgba(34, 34, 34, 0.6);
-	transition:opacity .2s linear, visibility .1s, width 1s ease-in;
-}
-
-.screen-overlay.show {
-	transition:opacity .5s ease, width 0s;
-	opacity:1;
-	width:100%;
-	visibility:visible;
-}
-
-.offcanvas {
-	width:400px;
-	visibility: hidden;
-	transform:translateX(-100%);
-	transition:all .2s;
-	border-radius:0;
-	box-shadow: 0 5px 10px rgba(0,0,0, .2);
-	display:block;
-	position: fixed;
-	top: 0;
-	left: 0;
-	height: 100%;
-	z-index: 1200;
-	background-color: #fff;
-	overflow-y: scroll;
-	overflow-x: hidden;
-}
-
-.offcanvas.show {
-	visibility: visible;
-	transform: translateX(0);
-	transition: transform .2s;
-}
-
-.offcanvas .nav-actions {
-	position: fixed;
-	bottom: 1rem;
-}
-
-form label {
-	font-weight: bold;
-}
-
-/*==============================================================
-	Bootstrap Select Styles
-==============================================================*/
-.bootstrap-select .btn.dropdown-toggle {
-	color: #495057;
-	background-color: #fff;
-	background-clip: padding-box;
-	border: 1px solid #ced4da;
-	border-top-color: rgb(206, 212, 218);
-	border-right-color: rgb(206, 212, 218);
-	border-bottom-color: rgb(206, 212, 218);
-	border-left-color: rgb(206, 212, 218);
-	border-radius: .25rem;
-	transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-/*==============================================================
-	Bootstrap Card Styles
-==============================================================*/
-.card .card-toolbar {
-	background-color: rgba(56, 163, 162, .45);
 }

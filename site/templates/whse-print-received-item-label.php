@@ -3,14 +3,14 @@
 	$values = $input->$rm;
 	$whsesession = WhsesessionQuery::create()->findOneBySessionid(session_id());
 	$warehouse   = WarehouseQuery::create()->findOneByWhseid($whsesession->whseid);
-	$validate_po = new Dplus\CodeValidators\Mpo();
+	$validate_po = $modules->get('ValidatePurchaseOrderNbr');
 	$receiving = $modules->get('Receiving');
 	$m_print = $modules->get('PrintLabelItemReceiving');
 
 	if ($values->ponbr) {
 		$ponbr = PurchaseOrder::get_paddedponumber($input->get->text('ponbr'));
 
-		if ($validate_po->po($ponbr)) {
+		if ($validate_po->validate($ponbr)) {
 			if ($values->action) {
 				$m_print->process_input($input);
 			}

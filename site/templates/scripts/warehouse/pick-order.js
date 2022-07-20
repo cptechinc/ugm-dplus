@@ -3,7 +3,7 @@ $(function() {
 	var input_barcode = $('input[name=barcode]');
 	var input_qty     = $('input[name=qty]');
 	var form_barcode  = $('form[id=barcode-form]');
-	var modal_ajax = $('#ajax-modal');
+	var modalAjax     = $('#ajax-modal');
 
 	/**
 	 * The Order of Functions based on Order of Events
@@ -19,50 +19,7 @@ $(function() {
 
 /////////////////////////////////////
 // 2. Change Bin / Change Pallet
-//
 ////////////////////////////////////
-
-/* =============================================================
-	Lookup Modal Functions
-============================================================= */
-	modal_ajax.on('show.bs.modal', function (event) {
-		var button = $(event.relatedTarget); // Button that triggered the modal
-		var modal = $(this);
-		var url = button.data('lookupurl');
-
-		modal.attr('data-input', button.data('input'));
-		modal.find('.modal-title').text(button.attr('title'));
-		modal.resizeModal('xl');
-		modal.find('.modal-body').loadin(url, function() {});
-	});
-
-	$("body").on('click', '.item-link', function(e) {
-		e.preventDefault();
-		var button = $(this);
-		var itemID = button.data('itemid');
-		var modal = button.closest('.modal');
-
-		$(modal.attr('data-input')).val(itemID);
-		modal.modal('hide');
-	});
-
-	$("body").on('submit', '#ajax-modal form', function(e) {
-		e.preventDefault();
-		var form = $(this);
-		var query = form.serialize();
-		var action = form.attr('action');
-		var search = form.find('input[name=q]').val();
-		var url = action + '?' + query;
-		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
-		form.closest('.modal').find('.modal-body').loadin(url, function() {});
-	});
-
-	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
-		e.preventDefault();
-		var href = $(this).attr('href');
-		modal_ajax.find('.modal-body').load(href);
-	});
-
 	$("body").on("change", ".change-pallet", function(e) {
 		e.preventDefault();
 		var select = $(this);
@@ -137,6 +94,8 @@ $(function() {
 		button.closest('.modal').modal('hide');
 	});
 
+
+
 /////////////////////////////////////
 // 3. Finish Item / Exit Order
 ////////////////////////////////////
@@ -152,7 +111,7 @@ $(function() {
 				confirmButtonText: 'Continue'
 			});
 		} else if (pickitem.item.qty.remaining > 0) {
-			swal2.fire({
+			icon({
 				title: 'Are you sure?',
 				text: "You have not met the Quantity Requirements",
 				icon: 'warning',
@@ -168,6 +127,25 @@ $(function() {
 		}
 	});
 
+
+
+	$("body").on("click", ".finish-picking", function(e) {
+		e.preventDefault();
+		var button = $(this);
+
+		swal2.fire({
+			title: 'Finish Picking',
+			text: "Are you done Picking this Order?",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes!'
+		}).then(function (result) {
+			if (result.value) {
+				window.location.href = button.attr('href');
+			}
+		});
+	});
+
 	$("body").on("click", ".exit-order", function(e) {
 		e.preventDefault();
 		var button = $(this);
@@ -179,7 +157,7 @@ $(function() {
 			showCancelButton: true,
 			confirmButtonText: 'Yes!'
 		}).then(function (result) {
-			if (result) {
+			if (result.value) {
 				window.location.href = button.attr('href');
 			}
 		});
@@ -193,6 +171,76 @@ $(function() {
 		form.find('input[name=ordn]').focus();
 	});
 
+
+	$("body").on("click", "a:not([href^=#],.picking-link, #ajax-modal a, .retry-search)", function(e) {
+		e.preventDefault();
+		var a = $(this);
+
+		swal2.fire({
+			title: 'Exiting',
+			text: "Are you sure you want to exit Picking?",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes',
+			cancelButtonText: 'No'
+		}).then(function (result) {
+			if (result.value) {
+				var exiturl = $('.exit-order').attr('href');
+				$.get(exiturl, function() {
+					window.location.href = a.attr('href');
+				});
+			}
+		});
+	});
+
+	/* =============================================================
+	AJAX Lookup Modal Functions
+============================================================= */
+	modalAjax.on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var modal = $(this);
+		var url = button.data('lookupurl');
+
+		modal.attr('data-input', button.data('input'));
+		modal.find('.modal-title').text(button.attr('title'));
+		modal.resizeModal('xl');
+		modal.find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '.item-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var itemID = button.data('itemid');
+		var modal  = button.closest('.modal');
+		$(modal.attr('data-input')).val(itemID).change();
+		modal.modal('hide');
+	});
+
+	$("body").on('click', '.whse-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var whseID = button.data('whseid');
+		var modal  = button.closest('.modal');
+		$(modal.attr('data-input')).val(whseID).change();
+		modal.modal('hide');
+	});
+
+	$("body").on('submit', '#ajax-modal form', function(e) {
+		e.preventDefault();
+		var form = $(this);
+		var query = form.serialize();
+		var action = form.attr('action');
+		var search = form.find('input[name=q]').val();
+		var url = action + '?' + query;
+		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
+		form.closest('.modal').find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
+		e.preventDefault();
+		var href = $(this).attr('href');
+		modal_ajax.find('.modal-body').load(href);
+	});
 });
 
 function swal_changebin() {

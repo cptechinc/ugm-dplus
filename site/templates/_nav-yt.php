@@ -9,5 +9,3 @@
 		</nav>
 	</div>
 </div>
-
-<?= $config->twig->render("nav/offcanvas/$nav.twig", ['pages' => $pages, 'user' => $user]); ?>

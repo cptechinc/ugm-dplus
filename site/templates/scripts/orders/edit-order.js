@@ -8,14 +8,14 @@ $(function() {
 	var input_state      = form.find('select[name=shipto_state]');
 	var input_zip        = form.find('input[name=shipto_zip]');
 
-
-	$("body").on("change", 'select[name=shiptoid]', function () {
+	input_shiptoid.on('change', function () {
 		var select = $(this);
 		var shiptoid = select.val();
 		var shipto = false;
 
 		if (shiptos[shiptoid]) {
 			shipto = shiptos[shiptoid];
+			console.log('true');
 		} else {
 			shipto = new Shipto('', '', '', '', '', '', '');
 		}
@@ -28,7 +28,7 @@ $(function() {
 		input_zip.val(shipto.zip);
 	});
 
-	$("body").on("click", "a:not([href^=#],.sales-order-notes, #ajax-modal a, .delete_button)", function(e) {
+	$("body").on("click", "a:not([href^=#],.sales-order-notes)", function(e) {
 		e.preventDefault();
 		var a = $(this);
 

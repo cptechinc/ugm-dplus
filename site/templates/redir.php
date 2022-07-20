@@ -1,3 +1,4 @@
 <?php
+	echo $page->redir;
 	$redirect = rtrim($page->redir_file, '.php') . ".php";
-	include_once($config->paths->templates."redir/$redirect");
+	include($config->paths->templates."redir/$redirect");

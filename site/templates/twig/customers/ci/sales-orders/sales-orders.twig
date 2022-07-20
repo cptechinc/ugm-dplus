@@ -3,12 +3,11 @@
 {% endif %}
 
 {% for index, whse in json['data'] %}
-	<div class="card-body">
-		<h4>
-			<a data-toggle="collapse" href="#orders-{{ index|attrJS }}" class="link" role="button" aria-expanded="false" aria-controls="{{ index|attrJS }}">{{ whse['Whse Name'] }}</a>
-		</h4>
-	</div>
-	<table class="table table-striped table-bordered table-sm table-excel collapse show" id="orders-{{ index|attrJS }}">
+	<h4>
+		<a data-toggle="collapse" href="#{{ index|attrJS }}" class="link" role="button" aria-expanded="false" aria-controls="{{ index|attrJS }}">{{ whse['Whse Name'] }}</a>
+	</h4>
+
+	<table class="table table-striped table-bordered table-sm table-excel" id="{{ index|attrJS }}">
 		<tbody>
 			{% for order in whse['orders'] %}
 				{% for x in 1..blueprint['header']['rowcount'] %}
@@ -25,8 +24,8 @@
 									{% if column['id'] == 'Order Number' %}
 										{% set ordn = order['Ordn'] %}
 										{% set custID = json['custid'] %}
-										{% if docm.countDocuments(ordn) %}
-											<a href="{{ page.documentListUrl(custID, ordn) }}" class="text-success" title="View Documents for Order # {{ order['Order Number'] }}">
+										{% if document_management.count_salesorderdocuments(ordn) %}
+											<a href="{{ page.documentsview_salesorder(custID, ordn)}}" class="text-success" title="View Documents for Order # {{ order['Order Number'] }}">
 												<i class="fa fa-file-text" aria-hidden="true"></i> <span class="sr-only">View Documents for Order # {{ order['Order Number'] }}</span>
 											</a>
 										{% endif %}
@@ -45,7 +44,7 @@
 
 				{% include 'customers/ci/sales-orders/table/tr-details.twig' %}
 				{% include 'customers/ci/sales-orders/table/tr-totals.twig' %}
-
+				
 				{% if order['shipments']|length > 0 %}
 					{% include 'util/screen-formatter/tr-labels.twig' with {'section': 'shipments'} %}
 

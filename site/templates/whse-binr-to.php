@@ -5,7 +5,6 @@
 	$config->binr = $modules->get('ConfigsBinr');
 
 	if (!empty($tobin)) {
-		$page->headline = "To bin: $tobin";
 		include('./whse-binr.php');
 	} else {
 		$page->body =  $config->twig->render('warehouse/binr/direction/bin-form.twig', ['page' => $page, 'inputname' => 'tobin']);

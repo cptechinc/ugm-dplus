@@ -14,12 +14,12 @@ class DpagesMwm extends Dpages implements Module {
 	const TEMPLATES = array(
 		'warehouse-menu' => array(
 			'name'   => 'warehouse-menu',
-			'fields' => array('summary','dplus_function', 'dplus_permission'),
-			'paginated' => false
+			'fields' => array('title', 'dplus_function', 'summary'),
+			'paginated' => true
 		),
 		'warehouse-function' => array(
 			'name'   => 'warehouse-function',
-			'fields' => array('summary', 'dplus_function', 'dplus_permission', 'pw_template'),
+			'fields' => array('title', 'dplus_function', 'pw_template', 'summary'),
 			'paginated' => true
 		),
 		'whse-binr' => array(
@@ -33,7 +33,7 @@ class DpagesMwm extends Dpages implements Module {
 			'paginated' => false
 		),
 		'whse-binr-to' => array(
-			'name'   => 'whse-binr-to',
+			'name'   => 'whse-binr-from',
 			'fields' => array('title'),
 			'paginated' => false
 		),
@@ -80,22 +80,7 @@ class DpagesMwm extends Dpages implements Module {
 		'whse-receiving' => array(
 			'name'   => 'whse-receiving',
 			'fields' => array('title'),
-			'paginated' => false
-		),
-		'whse-stock-status' => array(
-			'name'   => 'whse-stock-status',
-			'fields' => array('title'),
-			'paginated' => false
-		),
-		'whse-sales-orders' => array(
-			'name'   => 'whse-sales-orders',
-			'fields' => array('title'),
-			'paginated' => false
-		),
-		'whse-po-amend' => array(
-			'name'   => 'whse-po-amend',
-			'fields' => array('title'),
-			'paginated' => false
+			'paginated' => true
 		),
 	);
 
@@ -143,6 +128,15 @@ class DpagesMwm extends Dpages implements Module {
 			'dplus_function' => 'pbnrt',
 			'pw_template'    => 'whse-binr-to'
 		),
+		'whse-binr-from' => array(
+			'template'       => 'warehouse-function',
+			'name'           => 'move-from',
+			'title'          => 'Move From',
+			'summary'        => 'Move Single items from the same bin',
+			'parent'         => '/warehouse/binr/',
+			'dplus_function' => 'pbnrf',
+			'pw_template'    => 'whse-binr-from'
+		),
 		'whse-binr-contents' => array(
 			'template'       => 'warehouse-function',
 			'name'           => 'binr-contents',
@@ -158,8 +152,7 @@ class DpagesMwm extends Dpages implements Module {
 			'title'          => 'Bin Inquiry',
 			'summary'        => 'Show Items in a bin',
 			'parent'         => '/warehouse/binr/',
-			'dplus_function' => '',
-			'dplus_permission' => '',
+			'dplus_function' => 'pbini',
 			'pw_template'    => 'whse-bin-inquiry'
 		),
 		'menu-inventory' => array(
@@ -169,24 +162,6 @@ class DpagesMwm extends Dpages implements Module {
 			'summary'        => 'Inventory Menu',
 			'parent'         => '/warehouse/',
 			'dplus_function' => 'mivty'
-		),
-		'whse-stock-status' => array(
-			'template'       => 'warehouse-function',
-			'name'           => 'stock-status',
-			'title'          => 'Stock Status',
-			'summary'        => 'Stock Status Report',
-			'parent'         => '/warehouse/inventory/',
-			'dplus_function' => '',
-			'pw_template'    => 'whse-stock-status'
-		),
-		'whse-sales-orders' => array(
-			'template'       => 'warehouse-function',
-			'name'           => 'sales-orders',
-			'title'          => 'Sales Orders',
-			'summary'        => 'Open Sales Orders Report',
-			'parent'         => '/warehouse/inventory/',
-			'dplus_function' => '',
-			'pw_template'    => 'whse-sales-orders'
 		),
 		'whse-find-item' => array(
 			'template'       => 'warehouse-function',
@@ -223,15 +198,6 @@ class DpagesMwm extends Dpages implements Module {
 			'parent'         => '/warehouse/inventory/',
 			'dplus_function' => 'er',
 			'pw_template'    => 'whse-receiving'
-		),
-		'whse-po-amend' => array(
-			'template'       => 'dplus-function',
-			'name'           => 'po-amend',
-			'title'          => 'Purchase Order Amend',
-			'summary'        => 'Add / Edit PO Items',
-			'parent'         => '/warehouse/inventory/',
-			'dplus_function' => '', // TODO: poa
-			'pw_template'    => 'whse-po-amend'
 		),
 		'menu-pick' => array(
 			'template'       => 'warehouse-menu',

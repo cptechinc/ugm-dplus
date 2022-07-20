@@ -1,30 +1,21 @@
 {#
-	****************************************************
-		Fields: itemtype, timefence, qtypercase, allow_backorder, taxable, require_freight
-		includes: items/itm/form/storage.twig
-	****************************************************
-
-	var                    Description / Instance of
-	-------------------------------------------------
-	page                   ProcessWire\Page
-	item                   ItemMasterItem
-	itm                    module Itm
-	recordlocker           module RecordLockerUser
+	Fields: itemtype, timefence, qtypercase, allow_backorder, taxable, require_freight
+	Includes items/itm/form/storage.twig
 #}
 <div class="form-group row">
 	<div class="col-sm-6">
 		<label for="itemtype">Item Type</label>
 	</div>
 	<div class="col-sm-6">
-		{% include 'util/select.twig' with {'name': 'itemtype', 'id': 'itemtype', 'selectedvalue': item.itemtype, 'options': item.get_itemtypedescriptions(), 'capitalize_labels': true, 'hideblankoption': true } %}
+		{% include 'util/select.twig' with {'name': 'itemtype', 'id': 'itemtype', 'selectedvalue': item.itemtype, 'options': item.get_itemtypedescriptions(), 'capitalize_labels': true } %}
 	</div>
 </div>
 <div class="form-group row">
 	<div class="col-sm-6">
-		<label for="timefence">Time Fence</label>
+		<label for="timefence">Time Fence <abbr title="Days">?</abbr></label>
 	</div>
 	<div class="col-sm-6">
-		<input type="number" name="timefence" class="form-control form-control-sm text-right" value="{{ item.timefence }}" id="timefence">
+		<input type="number" name="timefence" class="form-control text-right" value="{{ item.timefence }}" id="timefence">
 	</div>
 </div>
 <div class="form-group row">
@@ -32,7 +23,7 @@
 		<label for="qtypercase">Qty Per Case</label>
 	</div>
 	<div class="col-sm-6">
-		<input type="number" name="qtypercase" class="form-control form-control-sm text-right" value="{{ item.qtypercase }}" id="qtypercase">
+		<input type="number" name="qtypercase" class="form-control text-right" value="{{ item.qtypercase }}" id="qtypercase">
 	</div>
 </div>
 <div class="form-group row">
@@ -40,15 +31,10 @@
 		<label for="allow_backorder">Back Order</label>
 	</div>
 	<div class="col-sm-6">
-		{% include 'util/bootstrap/form/select-simple.twig' with {
-				'select': {
-					'name': 'allow_backorder',
-					'value' : item.allow_backorder() ? 'Y' : 'N',
-					'haskeys': true,
-					'options': {'Y': 'Yes', 'N': 'No'}
-				}
-			}
-		%}
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input" name="allow_backorder" id="allow_backorder" value="Y" {{ item.allow_backorder() ? 'checked' : ''}}>
+			<label class="custom-control-label" for="splitorder">&nbsp;</label>
+		</div>
 	</div>
 </div>
 <div class="form-group row">
@@ -56,32 +42,21 @@
 		<label for="taxable">Taxable</label>
 	</div>
 	<div class="col-sm-6">
-		{% include 'util/bootstrap/form/select-simple.twig' with {
-				'select': {
-					'name': 'taxable',
-					'value' : item.taxable() ? 'Y' : 'N',
-					'haskeys': true,
-					'options': {'Y': 'Yes', 'N': 'No'}
-				}
-			}
-		%}
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input" name="taxable" id="taxable" value="Y" {{ item.taxable() ? 'checked' : ''}}>
+			<label class="custom-control-label" for="taxable">&nbsp;</label>
+		</div>
 	</div>
 </div>
 <div class="form-group row">
 	<div class="col-sm-6">
-		<label for="require_freight">Require Freight</label>
+		<label for="require_freight">Require Freight?</label>
 	</div>
 	<div class="col-sm-6">
-		{% include 'util/bootstrap/form/select-simple.twig' with {
-				'select': {
-					'name': 'require_freight',
-					'value' : item.require_freight() ? 'Y' : 'N',
-					'haskeys': true,
-					'options': {'Y': 'Yes', 'N': 'No'}
-				}
-			}
-		%}
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input" name="require_freight" id="require_freight" value="Y" {{ item.require_freight() ? 'checked' : ''}}>
+			<label class="custom-control-label" for="require_freight">&nbsp;</label>
+		</div>
 	</div>
 </div>
 {% include 'items/itm/form/storage.twig' %}
-{% include 'items/itm/form/packaging.twig' %}

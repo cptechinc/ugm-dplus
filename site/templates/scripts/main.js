@@ -1,14 +1,12 @@
 // Well hello there. Looks like we don't have any Javascript.
 // Maybe you could help a friend out and put some in here?
 // Or at least, when ready, this might be a good place for it.
-moment().format();
 
 var nav = '#yt-menu';
 
 $(function() {
-	$('[data-toggle="popover"]').popover();
+	$('[data-toggle="tooltip"]').tooltip();
 	init_datepicker();
-	bsCustomFileInput.init()
 
 	$(window).scroll(function() {
 		if ($(this).scrollTop() > 50) {
@@ -23,32 +21,6 @@ $(function() {
 		$('#back-to-top').tooltip('hide');
 		$('body,html').animate({ scrollTop: 0 }, 800);
 		return false;
-	});
-
-	$(".toggle-menu").on("click", function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		var offcanvas_id =  $(this).attr('data-target');
-		$(offcanvas_id).toggleClass("show");
-		$('body').toggleClass("offcanvas-active");
-		$(".screen-overlay").toggleClass("show");
-		if ($(offcanvas_id).hasClass("show")) {
-			$(offcanvas_id).find('input[name=q]').focus();
-		}
-	});
-
-	$(".close, .screen-overlay").click(function(e){
-		$(".screen-overlay").removeClass("show");
-		$(".offcanvas").removeClass("show");
-		$("body").removeClass("offcanvas-active");
-	});
-
-	$(document).keyup(function(e) {
-		if (e.keyCode == 27) { // escape key maps to keycode `27`
-			if ($("#my_offcanvas1").hasClass("show")) {
-				$("#my_offcanvas1 .close").click();
-			}
-		}
 	});
 
 	$('.placard').on('accepted.fu.placard', function () {
@@ -109,13 +81,11 @@ $(function() {
 		e.preventDefault();
 		var button = $(this);
 		var uri = new URI(button.attr('href'));
+
 		swal2.fire({
+			icon: 'question',
 			title: 'Select Action Type',
 			input: 'select',
-			icon: 'question',
-			confirmButtonClass: 'btn btn-sm btn-success',
-			cancelButtonClass: 'btn btn-sm btn-danger',
-			inputClass: 'form-control',
 			inputOptions: {
 				task: 'Task',
 				note: 'Note',
@@ -169,7 +139,24 @@ $(function() {
 		$(this).attr('minlength', '12');
 	});
 
-	$('button.delete_button').click(function(e) {
+	$('a.delete_button').click(function(e){
+		e.preventDefault();
+		var link = $(this);
+
+		swal2.fire({
+			title: "Confirm Deletion",
+			text: "Are you sure you want to delete?",
+			icon: 'warning',
+			showCancelButton: true,
+			confirmButtonText: 'Yes'
+		}).then((result) => {
+			if (result.value) {
+				window.location.href = link.attr('href');
+			}
+		});
+	});
+
+	$('button.delete_button').click(function(e){
 		e.preventDefault();
 		var button = $(this);
 		var action = $('.modal-form').attr("action");
@@ -179,67 +166,13 @@ $(function() {
 			text: "Are you sure you want to delete?",
 			icon: 'warning',
 			showCancelButton: true,
-			confirmButtonText: 'Yes',
-			cancelButtonText: 'No',
-			focusCancel: true,
-		}).then((confirm) => {
-			if (confirm.value) {
+			confirmButtonText: 'Yes'
+		}).then((result) => {
+			if (result.value) {
 				button.closest('form').submit();
+				window.location.href = action;
 			}
 		});
-	});
-
-	$('#loading-modal').on('show.bs.modal', function (event) {
-		var modal = $(this);
-		modal.find('[role=status]').addClass('spinner-border');
-	});
-
-	$('#loading-modal').on('hide.bs.modal', function (event) {
-		var modal = $(this);
-		modal.find('[role=status]').removeClass('spinner-border');
-	});
-
-
-	$("body").on('focusin', '.qnotes', function(e) {
-		var input = $(this);
-		if (agent.browser == 'chrome') {
-			var cols = parseInt(input.attr('cols'));
-			input.attr('cols', cols - 1);
-		}
-	});
-
-	$("body").on('keydown', '.qnotes', function(e) {
-		var input = $(this);
-		var notes = input.val();
-
-		if (notes.length) {
-			var wrap = wordWrap(notes, parseInt(input.attr('data-cols')));
-			input.val(wrap);
-		}
-	});
-
-	$("body").on('click', '.toggle-collapse', function(e) {
-		var button = $(this);
-		var target = button.data('target');
-
-		$(target).toggleClass('show');
-		if ($(target).hasClass('show')) {
-			button.data('expanded', 'true');
-		} else {
-			button.data('expanded', 'false');
-		}
-	});
-
-/* =============================================================
-	Indexes
-============================================================= */
-	$("body").on('show.bs.modal', '#image-modal', function(event) {
-		var button = $(event.relatedTarget);
-		// var modal  = $(this);
-
-		var modal = ImageModal.getInstance();
-		modal.updateTitle(button.data('type'), button.data('id'));
-		modal.updateImage(button.data('folder'), button.data('file'));
 	});
 });
 
@@ -249,13 +182,13 @@ $.fn.extend({
 		parent.html('<div></div>');
 
 		var element = parent.find('div');
-		console.log('loading ' + href + " into " +  parent.returnElementDescription());
+		console.log('loading ' + href + " into " +  parent.returnelementdescription());
 		element.load(href, function() {
 			init_datepicker();
 			callback();
 		});
 	},
-	returnElementDescription: function() {
+	returnelementdescription: function() {
 		var element = $(this);
 		var tag = element[0].tagName.toLowerCase();
 		var classes = '';
@@ -323,29 +256,8 @@ $.fn.extend({
 				modal_dialog.addClass(modal_size);
 			}
 		}
-	},
-	clearValidation: function() {
-		var v = $(this).validate();
-		$('[name]',this).each(function(){
-			v.successList.push(this);
-			v.showErrors();
-		});
-		v.resetForm();
-		v.reset();
-	},
-	formValues: function() {
-		var form = $(this);
-		if (form[0].tagName != 'FORM') {
-			return false;
-		}
-		var values = form.serializeArray().reduce(function(obj, item) {
-			obj[item.name] = item.value;
-			return obj;
-		}, {});
-		return values;
 	}
 });
-
 
 function toggle_nav() {
 	$(nav).toggle();
@@ -358,44 +270,6 @@ function init_datepicker() {
 			date: $(this).find('.date-input').val(),
 			allowPastDates: true,
 		});
-	});
-}
-
-$('a.delete_button').click(function(e){
-	e.preventDefault();
-	var link = $(this);
-
-	swal2.fire({
-		title: "Confirm Deletion",
-		text: "Are you sure you want to delete?",
-		icon: 'warning',
-		showCancelButton: true,
-		confirmButtonClass: 'btn btn-success',
-		cancelButtonClass: 'btn btn-danger',
-		buttonsStyling: false,
-		confirmButtonText: 'Yes'
-	}).then((result) => {
-		if (result.value) {
-			window.location.href = link.attr('href');
-		}
-	});
-});
-
-function swal_delete_notes(callback) {
-	swal2.fire({
-		title: 'Confirm Deletion',
-		text: 'Are you sure you want to delete?',
-		icon: 'warning',
-		showCancelButton: true,
-		confirmButtonText: 'Yes',
-		cancelButtonText: 'No',
-		focusCancel: true,
-	}).then((result) => {
-		if (result.value) {
-			callback(true);
-		} else {
-			callback(false);
-		}
 	});
 }
 
@@ -428,34 +302,9 @@ function format_phone(input) {
 	return input;
 }
 
-function wordWrap(notes, w = 30) {
-	var regex = new RegExp(`(?![^\\n]{1,${w}}$)([^\\n]{1,${w}})\\s`, 'g');
-	return notes.replace(regex, '\n');
-}
-
 /*==============================================================
 	JS Prototype FUNCTIONS
 =============================================================*/
-function floatParse(num) {
-	if (typeof num != 'number' && num.indexOf(',')) {
-		num = num.replace(",", '');
-	}
-	if (num === '') {
-		num = 0;
-	}
-	return parseFloat(num);
-}
-
-function intParse(num) {
-	if (typeof num != 'number' && num.indexOf(',')) {
-		num = num.replace(",", '');
-	}
-	if (num === '') {
-		num = 0;
-	}
-	return parseInt(num);
-}
-
 Number.prototype.formatMoney = function(c, d, t) {
 	var n = this,
 		c = isNaN(c = Math.abs(c)) ? 2 : c,
@@ -465,24 +314,10 @@ Number.prototype.formatMoney = function(c, d, t) {
 		i = String(parseInt(n = Math.abs(Number(n) || 0).toFixed(c))),
 		j = (j = i.length) > 3 ? j % 3 : 0;
 		return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
-};
-
-Number.prototype.truncate = function(precision) {
-	var number = this;
-	var array = number.toString().split(".");
-	array.push(array.pop().substring(0, precision));
-	var trimmed =  array.join(".");
-	return trimmed;
-}
+ };
 
 String.prototype.capitalize = function() {
 	return this.charAt(0).toUpperCase() + this.slice(1)
-}
-
-String.prototype.urlencode = function() {
-	var string = this;
-	string = string.replace('!', '%21')
-	return encodeURIComponent(string);
 }
 
 Array.prototype.contains = function ( needle ) {
@@ -500,9 +335,5 @@ const swal2 = Swal.mixin({
 		inputClass: 'form-control',
 		selectClass: 'form-control',
 	},
-	buttonsStyling: false,
-	cancelButtonText: 'No',
-	confirmButtonText: 'Yes',
-	focusConfirm: false,
-	focusCancel: true,
+	buttonsStyling: false
 })

@@ -16,32 +16,32 @@
 			"datajustify": "l"
 		},
 		"On Hand": {
-			"type": "N",
+			"type": "C",
 			"headingjustify": "r",
 			"datajustify": "r"
 		},
 		"On Order": {
-			"type": "N",
+			"type": "C",
 			"headingjustify": "r",
 			"datajustify": "r"
 		},
 		"Committed": {
-			"type": "N",
+			"type": "C",
 			"headingjustify": "r",
 			"datajustify": "r"
 		},
 		"Available": {
-			"type": "N",
+			"type": "C",
 			"headingjustify": "r",
 			"datajustify": "r"
 		},
-		"Boxes": {
-			"type": "N",
+		"On Hand-Boxes": {
+			"type": "C",
 			"headingjustify": "r",
 			"datajustify": "r"
 		},
 		"Avail by Lb": {
-			"type": "N",
+			"type": "C",
 			"headingjustify": "r",
 			"datajustify": "r"
 		}

@@ -1,12 +1,5 @@
-{#
-	var                    Description / Instance of
-	-------------------------------------------------
-	page                   ProcessWire\Page
-	warehouse              Warehouse
-	recordlocker           module RecordLockerUser
-	m_iwhm                 module CodeTablesIwhm
-#}
-<form action="{{ page.url }}" method="POST" id="code-edit-form" data-whseid="{{ warehouse.id }}">
+{# iwhm is an instance of Warehouse #}
+<form action="{{ page.url }}" method="POST" id="code-edit-form">
 	<input type="hidden" name="table" value="update-iwhm">
 	<input type="hidden" name="table" value="{{ page.codetable }}">
 	<input type="hidden" name="code" value="{{ warehouse.id }}">
@@ -54,9 +47,7 @@
 				</a>
 			{% endif %}
 		{% endif %}
-		<a href="{{ page.get_codetable_listURL(page.codetable, warehouse.id) }}" class="btn btn-warning">
-			<i class="fa fa-times" aria-hidden="true"></i> Close
-		</a>
+		<a href="{{ page.get_codetable_listURL(page.codetable, warehouse.id) }}" class="btn btn-warning">Close</a>
 	</div>
 </form>
 <hr class="border-top border-primary">

@@ -4,50 +4,67 @@
 	page                   ProcessWire\Page
 	item                   ItemMasterItem
 	m_costing              module ItmCosting
-	itm                    module Itm
 #}
-<form action="{{ input.url() }}" class="mb-3" id="item-costing-form" method="POST">
-	<input type="hidden" name="action" value="update-itm-costing">
+<form action="{{ page.itm_costingURL(item.itemid) }}" class="mb-3" id="item-costing-form" method="post">
 	<input type="hidden" name="itemID" value="{{ item.itemid }}">
-
 	<div class="form-group row">
 		<div class="col-sm-4">
 			<label for="uom_purchase">Purchase UoM</label>
 		</div>
 		<div class="col-sm-8">
-			<select name="uom_purchase" class="custom-select custom-select-sm" id="uom_purchase">
+			<select name="uom_purchase" class="form-control" id="uom_purchase">
 				{% for uom in m_costing.get_uom_purchases() %}
-					<option value="{{ uom.code }}" data-conversion="{{ uom.conversion }}" {{ uom.code == item.unitofmpurchase.code ? 'selected' : '' }}>
-						{{ uom.code }} - {{ uom.description }}
-					</option>
+					<option value="{{ uom.code }}" {{ uom.code == item.unitofmpurchase.code ? 'selected' : '' }}>{{ uom.description }}</option>
 				{% endfor %}
 			</select>
-			<small class="form-text text-muted">
-				Conversion: &nbsp;
-				<span class="conversion-description">
-					{{ item.unitofmpurchase.conversion|number_format(m_costing.fieldAttribute('margin', 'precision')) }}
-				</span>
-			</small>
 		</div>
 	</div>
-
-	{% include 'items/itm/costing/form/cost-fields.twig' %}
-
 	<div class="form-group row">
 		<div class="col-sm-4">
-			<label for="buyer">{{ m_costing.doesItemControlBuyer() ? 'Buyer' : 'N/A'}}</label>
+			<label for="standardcost">Standard Cost</label>
 		</div>
 		<div class="col-sm-8">
-			{% if m_costing.doesItemControlBuyer() %}
-				<select name="buyer" id="buyer" class="custom-select custom-select-sm">
-					<option value=""></option>
-					{% for buyer in m_costing.getApBuyers() %}
-						<option value="{{ buyer.code }}" {{ buyer.code == item.buyer ? 'selected' : ''}}>
-							{{ buyer.code }} - {{ buyer.description }}
-						</option>
-					{% endfor %}
-				</select>
-			{% endif %}
+			<div class="row">
+				<div class="col-sm-8">
+					<div class="input-group">
+						<input type="text" class="form-control text-right" name="standardcost" id="standardcost" value="{{ item.standardcost|number_format(4) }}">
+						<div class="input-group-append">
+							<span class="input-group-text uom-purchase-display">{{ item.unitofmpurchase.code }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<p class="form-control-plaintext">{{ item.date_laststandardcost ? item.date_laststandardcost|convertdate : '' }}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group row">
+		<div class="col-sm-4">
+			<label for="standardcostbasedon">Based On</label>
+		</div>
+		<div class="col-sm-8">
+			{% include 'util/select.twig' with {'name': 'standardcostbasedon', 'id': 'standardcostbasedon', 'selectedvalue': item.standardcostbasedon, 'options': m_costing.get_standardcost_basedon_options() } %}
+		</div>
+	</div>
+	<div class="form-group row">
+		<div class="col-sm-4">
+			<label for="lastcost">Last Cost</label>
+		</div>
+		<div class="col-sm-8">
+			<div class="row">
+				<div class="col-sm-8">
+					<div class="input-group">
+						<input type="text" class="form-control text-right" name="lastcost" id="lastcost" value="{{ item.lastcost|number_format(4) }}">
+						<div class="input-group-append">
+							<span class="input-group-text uom-purchase-display">{{ item.unitofmpurchase.code }}</span>
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-4">
+					<p class="form-control-plaintext">{{ item.date_lastcost ? item.date_lastcost|convertdate : '' }}</p>
+				</div>
+			</div>
 		</div>
 	</div>
 	<div class="form-group row">
@@ -55,37 +72,12 @@
 			<label for="minmargin">Min Margin</label>
 		</div>
 		<div class="col-sm-8">
-			<div class="row">
-				<div class="col-sm-5">
-					<input type="text" class="form-control form-control-sm text-right" name="minmargin" id="minmargin" value="{{ item.minmargin|number_format(4) }}">
-				</div>
-				<div class="col-sm-7">
-					<div class="row">
-						<div class="col-sm-5">
-							<label for="minmarginbase">Based On</label>
-						</div>
-						<div class="col-sm-7">
-							<select name="minmarginbase" id="minmarginbase" class="form-control form-control-sm">
-								{% for code, label in m_costing.getMinMarginBasedOnOptions() %}
-									<option value="{{ code }}" {{ code == item.minmarginbase ? 'selected' : ''}}>
-										{{ code }} - {{ label|capitalize }}
-									</option>
-								{% endfor %}
-							</select>
-						</div>
-					</div>
+			<div class="input-group">
+				<input type="text" class="form-control text-right" name="minmargin" id="minmargin" value="{{ item.minmargin|number_format(4) }}">
+				<div class="input-group-append">
+					<span class="input-group-text uom-purchase-display">%</span>
 				</div>
 			</div>
-		</div>
-	</div>
-	<div class="form-group row">
-		<div class="col-sm-4">
-			<label for="qty_purchase_carton">{{ m_costing.appcustID == 'LINDST' ? 'Carton Qty' : 'N/A'}}</label>
-		</div>
-		<div class="col-sm-8">
-			{% if m_costing.appcustID == 'LINDST' %}
-				<input type="number" class="form-control form-control-sm text-right" name="qty_purchase_carton" id="qty_purchase_carton" value="{{ item.qty_purchase_carton }}">
-			{% endif %}
 		</div>
 	</div>
 	<div class="d-flex justify-content-between align-items-center">
@@ -93,13 +85,11 @@
 			Only show Edit Actions if the Item is
 			1. Locked for editing by the User
 		#}
-		{% if itm.recordlocker.userHasLocked(item.itemid) %}
-			<button type="submit" class="btn btn-success">
+		{% if recordlocker.function_locked_by_user(page.lockcode, item.itemid) %}
+			<button type="submit" class="btn btn-success" name="action" value="update-itm-costing">
 				<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
 			</button>
 		{% endif %}
-		<a href="{{ page.itmUrl(item.itemid) }}" class="btn btn-warning">
-			<i class="fa fa-times" aria-hidden="true"></i> Close
-		</a>
+		<a href="{{ page.itmURL(item.itemid) }}" class="btn btn-warning">Close</a>
 	</div>
 </form>

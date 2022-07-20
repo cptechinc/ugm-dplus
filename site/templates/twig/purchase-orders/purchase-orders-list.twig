@@ -1,36 +1,29 @@
-{#
-	var                    Description / Instance of
-	-------------------------------------------------
-	page                   ProcessWire\Page
-	config                 ProcessWire\Config
-	configPo               ConfigPo
-	orderpage              URL to View PurchaseOrder
-#}
 <div class="list-group-item bg-light font-weight-bold">
 	{% block header %}
 		<div class="form-row">
-			<div class="col-sm-2">PO Number</div>
+			<div class="col">PO Number</div>
 			<div class="col-sm-2">PO Ref</div>
-			<div class="col-sm-2">Vendor</div>
-			<div class="col-sm-2 text-right">Order Total</div>
-			<div class="col-sm-2 text-right">Order Date</div>
-			<div class="col-sm-1">Status</div>
+			<div class="col">Vendor</div>
+			<div class="col">ShipfromID</div>
+			<div class="col text-right">Order Total</div>
+			<div class="col text-right">Order Date</div>
+			<div class="col text-right">Expected Date</div>
+			<div class="col">Status</div>
 		</div>
 	{% endblock %}
 </div>
-{% if orders.count > 0 %}
-	{% for order in orders %}
-		<a href="{{ page.isHooked('poUrl()') ? page.poUrl(order.ponbr) : '#' }}" class="list-group-item list-group-item-action po-link" data-ponbr="{{ order.ponbr }}">
+{% if purchaseorders.count > 0 %}
+	{% for order in purchaseorders %}
+		<a href="{{ orderpage ~ '?ponbr=' ~ order.ponbr }}" class="list-group-item list-group-item-action">
 			<div class="form-row">
-				<div class="col-sm-2">{{ order.ponbr }}</div>
+				<div class="col">{{ order.ponbr }}</div>
 				<div class="col-sm-2">{{ order.poref }}</div>
-				<div class="col-sm-3">
-					{{ order.vendorid }} <br>
-					<small>{{ order.vendor.name }}</small>
-				</div>
-				<div class="col-sm-2 text-right">$ {{ order.get_total()|number_format(configPo.decimal_places_cost) }}</div>
-				<div class="col-sm-2 text-right">{{ order.date_ordered|convertdate }}</div>
-				<div class="col-sm-1">{{ order.status()|capitalize }}</div>
+				<div class="col">{{ order.vendorid }}</div>
+				<div class="col">{{ order.shipfromid }}</div>
+				<div class="col text-right">$ {{ order.get_total()|currency }}</div>
+				<div class="col text-right">{{ convertdate(order.date_ordered) }}</div>
+				<div class="col text-right">{{ convertdate(order.date_expected) }}</div>
+				<div class="col">{{ order.status()|capitalize }}</div>
 			</div>
 		</a>
 	{% endfor %}

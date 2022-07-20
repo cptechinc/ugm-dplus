@@ -14,7 +14,7 @@ class CodeTablesCnfm extends WireData implements Module {
 	const MODEL_KEY          = 'id';
 	const DESCRIPTION        = 'PO Confirmation Code';
 	const DESCRIPTION_RECORD = 'PO Confirmation Code';
-	const MODEL_TABLE        = 'po_confirm_code';
+	const MODEL_TABLE = 'po_confirm_code';
 
 	public function __construct() {
 		$this->description = self::DESCRIPTION;
@@ -28,16 +28,6 @@ class CodeTablesCnfm extends WireData implements Module {
 	public function get_codes() {
 		$q = $this->get_query();
 		return $q->find();
-	}
-
-	/**
-	 * Return the IDs for the Purchase Order Confirm Code
-	 * @return array
-	 */
-	public function get_codes_ids() {
-		$q = $this->get_query();
-		$q->select(PoConfirmCode::get_aliasproperty('id'));
-		return $q->find()->toArray();
 	}
 
 	/**

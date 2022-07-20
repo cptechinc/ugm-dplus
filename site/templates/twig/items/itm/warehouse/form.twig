@@ -4,7 +4,12 @@
 	warehouse              WarehouseInventory
 	m_whse                 module ItmWarehouse
 #}
-<form action="{{ input.url() }}" method="post" id="item-whse-form">
+<div class="mb-3">
+	<a href="{{ page.itm_warehouseURL(warehouse.itemid) }}" class="btn btn-primary">
+		<i aria-hidden="true" class="fa fa-arrow-left"></i> Back to List
+	</a>
+</div>
+<form action="{{ page.url }}" method="post" id="item-whse-form">
 	<input type="hidden" name="itemID" value="{{ warehouse.itemid }}">
 	<div class="row mb-3">
 		<div class="col-sm-8">
@@ -14,17 +19,15 @@
 				</div>
 				<div class="col-sm-8">
 					{% if warehouse.isNew() %}
-						<select name="whseID" class="custom-select custom-select-sm" id="whseID">
-							<option value=""></option>
+						<select name="whseID" class="form-control" id="whseID">
+							<option value="">-- Choose --</option>
 							{% for whse in m_whse.get_warehouses() %}
-								<option value="{{ whse.id }}" {{ whse.id == warehouse.whseid ? 'selected' : ''}}>
-									{{ whse.id }} - {{ whse.name }}
-								</option>
+								<option value="{{ whse.id }}" {{ whse.id == warehouse.warehouseid ? 'selected' : ''}}>{{ whse.id }} - {{ whse.name }}</option>
 							{% endfor %}
 						</select>
 					{% else %}
 						<p class="form-control-plaintext">
-							<input type="hidden" name="whseID" value="{{ warehouse.warehouseid }}" id="whseID">
+							<input type="hidden" name="whseID" value="{{ warehouse.warehouseid }}">
 							{{ warehouse.warehouseid }} - {{ m_whse.get_warehouse(warehouse.warehouseid).name }}
 						</p>
 					{% endif %}
@@ -50,7 +53,7 @@
 					<label for="status">Status</label>
 				</div>
 				<div class="col-sm-8">
-					{% include 'util/select.twig' with {'name': 'status', 'id': 'status', 'selectedvalue': warehouse.status, 'options': m_whse.get_itemstatus_options(), 'capitalize_labels': true, 'hideblankoption': true, 'show_value': true } %}
+					{% include 'util/select.twig' with {'name': 'status', 'id': 'status', 'selectedvalue': warehouse.status, 'options': m_whse.get_itemstatus_options(), 'capitalize_labels': true } %}
 				</div>
 			</div>
 			<div class="form-group row">
@@ -58,7 +61,7 @@
 					<label for="specialorder">Special Order</label>
 				</div>
 				<div class="col-sm-8">
-					{% include 'util/select.twig' with {'name': 'specialorder', 'id': 'specialorder', 'selectedvalue': warehouse.specialorder, 'options': m_whse.get_specialorder_options(), 'capitalize_labels': true, 'hideblankoption': true, 'show_value': true } %}
+					{% include 'util/select.twig' with {'name': 'specialorder', 'id': 'specialorder', 'selectedvalue': warehouse.specialorder, 'options': m_whse.get_specialorder_options(), 'capitalize_labels': true } %}
 				</div>
 			</div>
 			<div class="form-group row">
@@ -66,11 +69,10 @@
 					<label for="whsesupply">Supply Warehouse</label>
 				</div>
 				<div class="col-sm-8">
-					<select name="whsesupply" class="custom-select custom-select-sm" id="whsesupply">
+					<select name="whsesupply" class="form-control" id="whsesupply">
+						<option value="">-- Choose --</option>
 						{% for whse in m_whse.get_warehouses() %}
-							<option value="{{ whse.id }}" {{ whse.whseid == warehouse.whsesupply ? 'selected' : ''}}>
-								{{ whse.id }} - {{ whse.name }}
-							</option>
+							<option value="{{ whse.id }}" {{ whse.id == warehouse.whsesupply ? 'selected' : ''}}>{{ whse.id }} - {{ whse.name }}</option>
 						{% endfor %}
 					</select>
 				</div>
@@ -80,7 +82,7 @@
 					<label for="cyclecode">Cycle Code</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="text" name="cyclecode" id="cyclecode" class="form-control form-control-sm w-auto" value="{{ warehouse.cyclecode }}">
+					<input type="text" name="cyclecode" id="cyclecode" class="form-control w-auto" value="{{ warehouse.cyclecode }}">
 				</div>
 			</div>
 			<div class="form-group row">
@@ -88,7 +90,7 @@
 					<label for="codeabc">ABC Code</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="text" name="codeabc" id="codeabc" class="form-control form-control-sm w-auto" value="{{ warehouse.codeabc }}" oninput="this.value = this.value.toUpperCase()">
+					<input type="text" name="codeabc" id="codeabc" class="form-control w-auto" value="{{ warehouse.codeabc }}">
 				</div>
 			</div>
 			<div class="form-group row">
@@ -96,7 +98,7 @@
 					<label for="orderpoint">Order Point</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="number" name="orderpoint" id="orderpoint" class="form-control form-control-sm text-right w-auto" value="{{ warehouse.orderpoint|number_format(0) }}">
+					<input type="number" name="orderpoint" id="orderpoint" class="form-control text-right w-auto" value="{{ warehouse.orderpoint }}">
 				</div>
 			</div>
 			<div class="form-group row">
@@ -104,7 +106,7 @@
 					<label for="orderqty">Order Qty</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="number" name="orderqty" id="orderqty" class="form-control form-control-sm text-right w-auto" value="{{ warehouse.orderqty|number_format(0) }}">
+					<input type="number" name="orderqty" id="orderqty" class="form-control text-right w-auto" value="{{ warehouse.orderqty }}">
 				</div>
 			</div>
 			<div class="form-group row">
@@ -112,7 +114,7 @@
 					<label for="maxqty">Max Qty</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="number" name="maxqty" id="maxqty" class="form-control form-control-sm text-right w-auto" value="{{ warehouse.maxqty|number_format(0) }}">
+					<input type="number" name="maxqty" id="maxqty" class="form-control text-right w-auto" value="{{ warehouse.maxqty }}">
 				</div>
 			</div>
 			<div class="form-group row">
@@ -120,7 +122,15 @@
 					<label for="maxorderqty">Max Per Order</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="number" name="maxorderqty" id="maxorderqty" class="form-control form-control-sm text-right w-auto" value="{{ warehouse.maxorderqty|number_format(0) }}">
+					<input type="number" name="maxorderqty" id="maxorderqty" class="form-control text-right w-auto" value="{{ warehouse.maxorderqty }}">
+				</div>
+			</div>
+			<div class="form-group row">
+				<div class="col-sm-4">
+					<label for="maxorderqty">Max Per Order</label>
+				</div>
+				<div class="col-sm-8">
+					<input type="number" name="maxorderqty" id="maxorderqty" class="form-control text-right w-auto" value="{{ warehouse.maxorderqty }}">
 				</div>
 			</div>
 			<div class="form-group row">
@@ -128,7 +138,7 @@
 					<label for="freightin">Freight In</label>
 				</div>
 				<div class="col-sm-8">
-					<input type="{{ m_whse.configs.salesorder.is_freightin() ? 'number' : 'text' }}" name="freightin" id="freightin" class="form-control form-control-sm text-right w-auto" value="{{ warehouse.freightin }}" {{ m_whse.configs.salesorder.is_freightin() ? '' : 'readonly' }}>
+					<input type="number" name="freightin" id="freightin" class="{{ m_whse.configs.salesorder.is_freightin() ? 'form-control' : 'form-control-plaintext' }} text-right w-auto" value="{{ warehouse.freightin }}" {{ m_whse.configs.salesorder.is_freightin() ? '' : 'readonly' }}>
 				</div>
 			</div>
 			<div class="form-group row">
@@ -151,19 +161,17 @@
 			2. Is a new Warehouse
 			NOTE: Only show delete if warehouse already exists.
 		#}
-		{% if m_whse.recordlocker.userHasLocked(m_whse.get_warehouseitem_lockkey(warehouse)) or warehouse.isNew() %}
-			<button type="submit" class="btn btn-success form_button" name="action" value="update-whse">
+		{% if recordlocker.function_locked_by_user(page.lockcode, m_whse.get_warehouseitem_lockkey(warehouse)) or warehouse.isNew() %}
+			<button type="submit" class="btn btn-success form_button" name="action" value="update-itm-whse">
 				<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
 			</button>
 			{% if warehouse.isNew() == false %}
-				<a href="{{ page.itmUrlWhseDelete(warehouse.itemid, warehouse.warehouseid) }}" class="btn btn-danger form_button delete_button">
+				<a href="{{ page.itm_warehouse_deleteURL(warehouse.itemid, warehouse.warehouseid) }}" class="btn btn-danger form_button delete_button">
 					<i class="fa fa-trash-o" aria-hidden="true"></i> Delete
 				</a>
 			{% endif %}
 		{% endif %}
 
-		<a href="{{ page.itmUrlWhseExit(warehouse.itemid, warehouse.warehouseid) }}" class="btn btn-warning">
-			<i class="fa fa-times" aria-hidden="true"></i> Close
-		</a>
+		<a href="{{ page.itm_warehouseURL(warehouse.itemid) }}" class="btn btn-warning">Close</a>
 	</div>
 </form>

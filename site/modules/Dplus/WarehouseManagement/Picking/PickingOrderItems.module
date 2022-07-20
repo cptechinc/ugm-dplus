@@ -58,7 +58,7 @@ class PickingOrderItems extends WireData implements Module {
 		$picking_master->filterByLinenbr($linenbr);
 		return $picking_master->findOne();
 	}
-	
+
 	/**
 	 * Returns if this Picking Order has any Sublines
 	 * @return bool

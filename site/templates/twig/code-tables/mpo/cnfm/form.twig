@@ -1,30 +1,21 @@
-{#
-	var                    Description / Instance of
-	-------------------------------------------------
-	input                  ProcessWire\WireInput
-	cnfm                   Dplus\Codes\Mpo\Cnfm
-#}
-{# data-code is for verifying edit vs new #}
-
-<form action="{{ input.paginateUrl(1) }}" method="POST" id="code-form" data-code="">
-	<input type="hidden" name="action" value="edit-code">
+{# cnfm is an instance of PoConfirmCode #}
+<form action="{{ page.url }}" method="POST" id="code-edit-form">
+	<input type="hidden" name="table" value="cnfm">
 
 	<div class="form-group">
 		<label for="code">Code</label>
-		<input type="text" name="code" class="form-control" maxlength="{{ cnfm.fieldAttribute('code', 'maxlength') }}" value="" id="code">
+		<input type="text" name="code" class="form-control" maxlength="{{ max_length_code }}" value="" id="code">
 	</div>
 
 	<div class="form-group">
 		<label for="description">Description</label>
-		<input type="text" name="description" class="form-control" maxlength="{{ cnfm.fieldAttribute('description', 'maxlength') }}" id="description">
+		<input type="text" name="description" class="form-control" maxlength="20" value="" id="description">
 	</div>
 
-	<div class="d-flex justify-content-between align-items-center">
-		<button type="submit" class="btn btn-success form_button">
+	<div class="modal-footer">
+		<button type="submit" class="btn btn-success">
 			<i class="fa fa-floppy-o" aria-hidden="true"></i> Save
 		</button>
-		<button type="button" class="btn btn-warning" data-dismiss="modal">
-			<i class="fa fa-times" aria-hidden="true"></i> Close
-		</button>
+		<button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
 	</div>
 </form>

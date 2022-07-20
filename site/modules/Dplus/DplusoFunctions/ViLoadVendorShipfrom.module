@@ -59,9 +59,9 @@
 			/**
 			 * Returns VI Vendor Page URL
 			 */
-			// $this->addHook('Page::vendorURL', function($event) {
-			// 	$event->return = $this->get_vendorURL();
-			// });
+			$this->addHook('Page::vendorURL', function($event) {
+				$event->return = $this->get_vendorURL();
+			});
 
 			/**
 			 * Returns VI Vendor Shipto Page URL
@@ -117,7 +117,6 @@
 		public function set_vendorID($vendorID) {
 			$this->vendorID = $vendorID;
 			$this->wire('page')->vendorID = $vendorID;
-			return $this;
 		}
 
 		/**
@@ -266,8 +265,7 @@
 		 * @return string
 		 */
 		public function get_purchaseordersURL() {
-			$url = new Url($this->wire('pages')->get('pw_template=purchase-orders')->url);
-			$url->path->add('vendor');
+			$url = new Url($this->wire('pages')->get('pw_template=purchase-orders-vendor')->url);
 			$url->query->set('vendorID', $this->vendorID);
 
 			if ($this->shipfromID) {
@@ -282,8 +280,7 @@
 		 * @return string
 		 */
 		public function get_invoicesURL() {
-			$url = new Url($this->wire('pages')->get('pw_template=purchase-history-invoices')->url);
-			$url->path->add('vendor');
+			$url = new Url($this->wire('pages')->get('pw_template=purchase-history-orders-vendor')->url);
 			$url->query->set('vendorID', $this->vendorID);
 
 			if ($this->shipfromID) {

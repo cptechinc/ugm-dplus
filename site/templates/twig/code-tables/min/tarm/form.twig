@@ -1,5 +1,5 @@
 {# tarm is an instance of TariffCode #}
-<form action="{{ page.url }}" method="POST" id="code-edit-form" data-code="{{ tariff.code }}">
+<form action="{{ page.url }}" method="POST" id="code-edit-form">
 	<input type="hidden" name="action" value="update-tarm">
 	<input type="hidden" name="table" value="tarm">
 	<div class="row">
@@ -30,12 +30,12 @@
 				<input type="text" class="form-control-plaintext" value="{{ tariff.count_countries() }}" readonly>
 			</div>
 
-			<div class="form-group country">
+			<div class="form-group">
 				<label>Countries</label>
 				<div style="overflow-y:scroll; height: 195px">
 					{% for country in countries %}
 						<div class="custom-control custom-checkbox">
-							<input type="checkbox" class="custom-control-input country-checkbox" name="country[]" value="{{ country.code }}" id="{{ country.code }}" {{ tariff.applies_to_country(country.code) ? 'checked' : '' }} {{ tariff.code ? '' : 'disabled' }}>
+							<input type="checkbox" class="custom-control-input" name="country[]" value="{{ country.code }}" id="{{ country.code }}" {{ tariff.applies_to_country(country.code) ? 'checked' : '' }} >
 							<label class="custom-control-label" for="{{ country.code }}">{{ country.description }}</label>
 						</div>
 					{% endfor %}
@@ -60,8 +60,6 @@
 				</a>
 			{% endif %}
 		{% endif %}
-		<a href="{{ page.get_codetable_listURL(page.codetable, tariff.code) }}" class="btn btn-warning pull-right">
-			<i class="fa fa-times" aria-hidden="true"></i> Close
-		</a>
+		<a href="{{ page.get_codetable_listURL(page.codetable, tariff.code) }}" class="btn btn-warning pull-right">Close</a>
 	</div>
 </form>

@@ -1,13 +1,9 @@
-{% set iio = page.wire('modules').get('Iio') %}
-
 <nav class="toolbar-sidebar">
 	<ul class="nav">
-		{% for path, data in page.subfunctions() if iio.allowUser(user, data.permission) %}
+		{% for child in page.children_user_allowed() %}
 			<li>
-				<a href="{{ page.subfunctionURL(item.itemid, function) }}">
-					{{ title }}
-				<a href="{{ page.subfunctionURL(item.itemid, path) }}">
-					{{ data.title }}
+				<a href="{{ child.url_itemID(item.itemid) }}">
+					{{ child.title }}
 				</a>
 			</li>
 		{% endfor %}

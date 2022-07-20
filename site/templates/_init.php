@@ -12,9 +12,6 @@
 
 include_once("./_func.php"); // include our shared functions
 
-$config->maxUrlSegments = 10;
-$config->maxPageNum = 10000;
-
 // BUILD AND INSTATIATE CLASSES
 $page->fullURL = new Purl\Url($page->httpUrl);
 $page->fullURL->path = '';
@@ -22,18 +19,16 @@ if (!empty($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'] != '/') {
 	$page->fullURL->join($_SERVER['REQUEST_URI']);
 }
 
-$input->purl = new Purl\Url($input->url($withQueryString = true));
-
 // CHECK DATABASE CONNECTIONS
 if ($page->id != $config->errorpage_dplusdb) {
 	if (empty(wire('dplusdata')) || empty(wire('dpluso'))) {
-		$modules->get('DplusDatabase')->logError('At least One database is not connected');
+		//$modules->get('DplusConnectDatabase')->log_error('At least One database is not connected');
 		$session->redirect($pages->get($config->errorpage_dplusdb)->url, $http301 = false);
 	}
 
 	$db_modules = array(
 		'dplusdata' => array(
-			'module'   => 'DplusDatabase',
+			'module'   => 'DplusConnectDatabase',
 			'default'  => true
 		),
 		'dpluso' => array(
@@ -44,40 +39,40 @@ if ($page->id != $config->errorpage_dplusdb) {
 
 	foreach ($db_modules as $key => $connection) {
 		$module = $modules->get($connection['module']);
-		$module->connectPropel();
+		$module->connect_propel();
 
 		try {
-			$propel_name  = $module->dbConnectionName();
-			$$propel_name = $module->getDebugConnection();
+			$propel_name = $module->get_connection_name_db();
+			$$propel_name = $module->get_propel_write_connection();
+			$$propel_name->useDebug(true);
 		} catch (Exception $e) {
-			$module->logError($e->getMessage());
+			$module->log_error($e->getMessage());
 			$session->redirect($pages->get($config->errorpage_dplusdb)->url, $http301 = false);
 		}
 	}
 
-	$templates_nosignin = array('login', 'redir', 'quote-print');
+	$templates_nosignin = array('login', 'redir');
 
-	if ($input->get->pdf || $input->get->print || $input->lastSegment() == 'print') {
+	if ($input->get->pdf || $input->get->print) {
 
 	} elseif (!in_array($page->template, $templates_nosignin) && LogpermQuery::create()->is_loggedin(session_id()) == false) {
-		$session->returnurl = $page->fullURL->getUrl();
 		$session->redirect($pages->get('template=login')->url, $http301 = false);
 	}
-	$user->setup($input->get->sessionID ? $input->get->text('sessionID') : session_id());
 
+	$user->setup(session_id());
 	$modules->get('RecordLocker')->remove_locks_olderthan('all', 3);
 } else {
 	if (!$input->get->retry) {
 		$configimporter = $modules->get('Configs');
-		if ($configimporter->importJsonExists()) {
+		if ($configimporter->export_datafile_exists()) {
 			$configimporter->import();
 			$page->fullURL->query->set('retry', 'true');
 			$session->redirect($page->fullURL->getUrl());
 		}
 	} else {
 		try {
-			$con    = $modules->get('DplusDatabase')->propelWriteConnection();
-			$dpluso = $modules->get('DplusOnlineDatabase')->propelWriteConnection();
+			$con    = $modules->get('DplusConnectDatabase')->get_propel_write_connection();
+			$dpluso = $modules->get('DplusOnlineDatabase')->get_propel_write_connection();
 		} catch (Exception $e) {
 			$page->show_title = true;
 		}
@@ -85,36 +80,30 @@ if ($page->id != $config->errorpage_dplusdb) {
 	}
 }
 
-$rm = strtolower($input->requestMethod());
-$values = $input->$rm;
+// ADD JS AND CSS
+$config->styles->append(hash_templatefile('styles/bootstrap-grid.min.css'));
+$config->styles->append(hash_templatefile('styles/theme.css'));
+$config->styles->append('//fonts.googleapis.com/css?family=Lusitana:400,700|Quattrocento:400,700');
+$config->styles->append('https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+$config->styles->append(hash_templatefile('styles/lib/fuelux.css'));
+//$config->styles->append(hash_templatefile('styles/lib/sweetalert.css'));
+$config->styles->append(hash_templatefile('styles/lib/sweetalert2.css'));
+$config->styles->append(hash_templatefile('styles/main.css'));
 
-if (!$values->action || $page->template == 'dplus-screen-formatter') {
-	$hasher = $modules->get('FileHasher');;
 
-	// ADD JS AND CSS
-	$config->styles->append($hasher->getHashUrl('styles/bootstrap-grid.min.css'));
-	$config->styles->append($hasher->getHashUrl('styles/theme.css'));
-	$config->styles->append('//fonts.googleapis.com/css?family=Lusitana:400,700|Quattrocento:400,700');
-	$config->styles->append('https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
-	$config->styles->append('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css');
-	$config->styles->append($hasher->getHashUrl('styles/lib/fuelux.css'));
-	$config->styles->append($hasher->getHashUrl('styles/lib/sweetalert2.css'));
-	$config->styles->append($hasher->getHashUrl('styles/main.css'));
-	$config->styles->append('https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css');
+$config->scripts->append(hash_templatefile('scripts/lib/jquery.js'));
+$config->scripts->append(hash_templatefile('scripts/popper.js'));
+$config->scripts->append(hash_templatefile('scripts/bootstrap.min.js'));
+$config->scripts->append(hash_templatefile('scripts/lib/fuelux.js'));
+$config->scripts->append(hash_templatefile('scripts/lib/sweetalert.js'));
+$config->scripts->append(hash_templatefile('scripts/lib/moment.js'));
+$config->scripts->append(hash_templatefile('scripts/lib/bootstrap-notify.js'));
+$config->scripts->append(hash_templatefile('scripts/uri.js'));
+$config->scripts->append(hash_templatefile('scripts/lib/sweetalert.js'));
+$config->scripts->append(hash_templatefile('scripts/lib/sweetalert2.js'));
+$config->scripts->append(hash_templatefile('scripts/classes.js'));
+$config->scripts->append(hash_templatefile('scripts/main.js'));
 
-	$config->scripts->append($hasher->getHashUrl('scripts/lib/jquery.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/popper.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/bootstrap.min.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/lib/fuelux.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/lib/moment.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/lib/bootstrap-notify.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/lib/bs-file-input.min.js'));
-	$config->scripts->append('https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js');
-	$config->scripts->append($hasher->getHashUrl('scripts/uri.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/lib/sweetalert2.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/classes.js'));
-	$config->scripts->append($hasher->getHashUrl('scripts/main.js'));
-}
 
 // SET CONFIG PROPERTIES
 if ($input->get->modal) {
@@ -125,7 +114,7 @@ if ($input->get->json) {
 	$config->json = true;
 }
 
-if ($input->get->print || $input->lastSegment() == 'print') {
+if ($input->get->print) {
 	$page->print = true;
 }
 
@@ -133,32 +122,29 @@ if ($input->get->pdf) {
 	$page->pdf = true;
 }
 
-$page->focus = $input->get->text('focus');
-
 $appconfig = $pages->get('/config/app/');
 $siteconfig = $pages->get('/config/');
 $config->customer = $pages->get('/config/customer/');
 
 $session->sessionid = session_id();
 
-if (!$values->action || $page->template == 'dplus-screen-formatter') {
-	$mtwig = $modules->get('Twig');
-	$config->twigloader = $mtwig->getLoader();
-	$config->twig = $mtwig->getTwig();
-	$config->twig->getExtension(\Twig\Extension\CoreExtension::class)->setNumberFormat(3, '.', '');
+$config->twigloader = new Twig_Loader_Filesystem($config->paths->templates.'twig/');
+$config->twig = new Twig_Environment($config->twigloader, [
+	'cache' => $config->paths->templates.'twig/cache/',
+	'auto_reload' => true,
+	'debug' => true
+]);
 
-	if ($page->fullURL->query->__toString() != '') {
-		$page->title_previous = $page->title;
-	}
+foreach (['page', 'pages', 'config', 'user', 'languages', 'sanitizer', 'session', 'browseragent', 'input'] as $variable) {
+	$config->twig->addGlobal($variable, $page->wire($variable));
+};
+$config->twig->addGlobal('homepage', $page->get('/'));
 
-	$page->show_breadcrumbs = true;
+$config->twig->addExtension(new Twig\Extension\DebugExtension());
+include($config->paths->templates."/twig/util/functions.php");
 
-	$agent = new Jenssegers\Agent\Agent();
-	$config->js('agent', [
-		'browser' => strtolower($agent->browser())
-	]);
-
-	$page->js .= $config->twig->render('util/js/variables.js.twig', ['variables' => ['agent' => $config->js('agent')]]);
+if ($page->fullURL->query->__toString() != '') {
+	$page->title_previous = $page->title;
 }
 
-include ('./_init.js.php');
+$page->show_breadcrumbs = true;

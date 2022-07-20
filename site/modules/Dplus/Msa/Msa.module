@@ -2,7 +2,6 @@
 
 use Purl\Url;
 
-include_once(__DIR__."/vendor/autoload.php");
 include_once(__DIR__."/MsaResponse.php");
 
 class Msa extends WireData implements Module {

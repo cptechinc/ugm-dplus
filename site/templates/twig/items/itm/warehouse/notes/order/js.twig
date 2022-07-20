@@ -1,7 +1,7 @@
 {#
 	var                    Description / Instance of
 	-------------------------------------------------
-	qnotes              module QnotesItemWhseOrder
+	m_notes              module QnotesItemWhseOrder
 #}
 
 $(function() {
@@ -23,7 +23,6 @@ $(function() {
 	$("#order-notes-form").validate({
 		errorClass: "is-invalid",
 		validClass: "is-valid",
-		ignore: ".validate-ignore",
 		errorPlacement: function(error, element) {
 			error.insertAfter(element).addClass('invalid-feedback');
 		},
@@ -41,9 +40,9 @@ $(function() {
 
 			if (action == 'delete-notes') {
 				swal2.fire({
-					title: 'Confirm Deletion',
-					text: 'Are you sure you want to delete?',
-					icon: 'warning',
+					title: 'Confirm Delete',
+					text: 'Would you like to delete these notes?',
+					icon: 'question',
 					showCancelButton: true,
 					confirmButtonText: 'Yes',
 					cancelButtonText: 'No',
@@ -82,7 +81,7 @@ $(function() {
 	});
 
 	function has_document_selected() {
-		{% for form, label in qnotes.get_forms_shortlabels() %}
+		{% for form, label in m_notes.get_forms_shortlabels() %}
 			if ($("#order-notes-form").find('input[name={{ form }}]').prop('checked')) {
 				return true;
 			}
@@ -93,7 +92,7 @@ $(function() {
 	function get_notes_formscode() {
 		var formcode = '';
 
-		{% for form, label in qnotes.get_forms_shortlabels() %}
+		{% for form, label in m_notes.get_forms_shortlabels() %}
 			formcode += $("#order-notes-form").find('input[name={{ form }}]').prop('checked') ? 'Y' : 'N';
 		{% endfor %}
 		return formcode;
@@ -111,27 +110,18 @@ $(function() {
 	function populate_notes_form(button, modal) {
 		var note_row = button.closest('.qnote-order-row');
 
-
 		if (note_row.length) {
 			modal.find('.action-desc').text('Editing');
-			modal.find('.order-form').each(function() {
-				var input = $(this);
-				var name  = input.attr('name');
-				var checked = button.data(name) === 'Y';
-				input.prop('checked', checked);
-			});
+			{% for form, label in m_notes.get_forms_shortlabels() %}
+				modal.find('input[name={{ form }}]').prop('checked', button.data('{{ form }}') == 'Y');
+			{% endfor %}
 			modal.addClass('is-invalid');
 			modal.find('textarea[name=note]').val(note_row.find('textarea').text());
 		} else {
-			var defaults = {{ qnotes.getDefaultFormValues()|json_encode|raw }};
 			modal.find('.action-desc').text('Adding');
-			modal.find('.order-form').each(function() {
-				var input = $(this);
-				var name  = input.attr('name');
-				var checked = defaults[name] === 'Y';
-				input.prop('checked', checked);
-				input.removeAttr('disabled');
-			});
+			{% for form, label in m_notes.get_forms_shortlabels() %}
+				modal.find('input[name={{ form }}]').prop('checked', false);
+			{% endfor %}
 			modal.find('textarea[name=note]').val('');
 		}
 		modal.find('input[name=form]').val(button.data('form'));

@@ -18,6 +18,11 @@ class DpagesCart extends Dpages implements Module {
 			'name'   => 'cart',
 			'fields' => array('dplus_function', 'summary'),
 			'paginated' => false
+		),
+		'cart-notes' => array(
+			'name'   => 'cart-notes',
+			'fields' => array(),
+			'paginated' => false
 		)
 	);
 
@@ -31,10 +36,28 @@ class DpagesCart extends Dpages implements Module {
 			'dplus_function' => '',
 			'pw_template'    => 'cart'
 		),
+		'cart-notes' => array(
+			'template'       => 'dplus-function',
+			'name'           => 'notes',
+			'title'          => 'Cart Notes',
+			'summary'        => 'Cart Notes',
+			'parent'         => '/cart/',
+			'dplus_function' => '',
+			'pw_template'    => 'cart-notes'
+		),
 	);
 
 	public function init() {
+		$this->addHook('Page(pw_template=cart)::get_itm_lookupURL', function($event) {
+			$url = new Url($this->wire('pages')->get('pw_template=itm-json')->httpUrl);
+			$url->query->set('json', 'true');
+			$event->return = $url->getUrl();
+		});
 
+		$this->addHook('Page(pw_template=cart)::get_ii_lookupURL', function($event) {
+			$url = new Url($this->wire('pages')->get('pw_template=ii-item-lookup')->httpUrl);
+			$event->return = $url->getUrl();
+		});
 	}
 
 	/**

@@ -1,38 +1,15 @@
 {#
-	****************************************************
-		Fields: itemid, inspection, revision, stockcode, splitorder, custid
-		includes:
-				'items/itm/form/description.twig'
-				'items/itm/form/groups.twig'
-	****************************************************
-
-	var                    Description / Instance of
-	-------------------------------------------------
-	page                   ProcessWire\Page
-	item                   ItemMasterItem
-	itm                    module Itm
-	recordlocker           module RecordLockerUser
-	this.value = this.value.toUpperCase()
+	Fields: itemid, inspection, revision, stockcode, splitorder, custid
+	includes:
+			'items/itm/form/description.twig'
+			'items/itm/form/groups.twig'
 #}
 <div class="form-group row">
-	<div class="col-sm-3">
+	<div class="col-sm-4">
 		<label for="itemID">Item ID</label>
 	</div>
 	<div class="col-sm-8">
-		{% include 'util/bootstrap/form/input.twig' with {
-				'input': {
-					'name': 'itemID',
-					'value': configIn.useUppercaseItemid() ? item.itemid|upper : item.itemid,
-					'size': 'sm',
-					'attributes': {
-						'placeholder': '',
-						'aria-label':  'Item ID',
-						'readonly': item.isNew() == false,
-						'oninput': configIn.useUppercaseItemid() ? 'this.value = this.value.toUpperCase()' : ''
-					}
-				}
-			}
-		%}
+		<input type="text" class="{{ item.isNew() ? 'form-control' : 'form-control-plaintext' }}" name="itemID" id="itemID" value="{{ item.itemid }}" {{ item.isNew() ? '' : 'readonly' }}>
 	</div>
 </div>
 
@@ -40,103 +17,61 @@
 {% include 'items/itm/form/groups.twig' %}
 
 <div class="form-group row">
-	<div class="col-sm-3">
+	<div class="col-sm-6">
 		<label for="inspection">Inspection</label>
 	</div>
 	<div class="col-sm-6">
-		{% include 'util/bootstrap/form/select-simple.twig' with {
-				'select': {
-					'name': 'inspection',
-					'value' : item.is_inspection() ? 'Y' : 'N',
-					'haskeys': true,
-					'options': {'Y': 'Yes', 'N': 'No'}
-				}
-			}
-		%}
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input" name="inspection" id="inspection" value="Y" {{ item.is_inspection() ? 'checked' : ''}}>
+			<label class="custom-control-label" for="inspection">&nbsp;</label>
+		</div>
 	</div>
 </div>
 <div class="form-group row">
-	<div class="col-sm-3">
+	<div class="col-sm-4">
 		<label for="revision">Revision</label>
 	</div>
-	<div class="col-sm-6">
-		<input type="text" class="form-control form-control-sm" name="revision" id="revision" value="{{ item.revision }}" maxlength="{{ itm.fieldAttribute('revision', 'maxlength') }}">
+	<div class="col-sm-8">
+		<input type="text" class="form-control" name="revision" id="revision" value="{{ item.revision }}">
 	</div>
 </div>
 <div class="form-group row">
-	<div class="col-sm-3">
+	<div class="col-sm-6">
 		<label for="stockcode">Stock Code</label>
 	</div>
 	<div class="col-sm-6">
-		<select name="stockcode" class="custom-select custom-select-sm {{ itm.field_has_error('stockcode') ? 'is-invalid' : ''}}" id="stockcode">
-			<option value=""></option>
-			{% for stockcode in itm.get_stockcodes() %}
+		<select name="stockcode" class="form-control" id="stockcode">
+			<option value="">-- Choose --</option>
+			{% for stockcode in m_itm.get_stockcodes() %}
 				<option value="{{ stockcode.code }}" {{ stockcode.code == item.stockcode ? 'selected' : ''}}>{{ stockcode.code }} - {{ stockcode.description }}</option>
 			{% endfor %}
 		</select>
 	</div>
 </div>
 <div class="form-group row">
-	<div class="col-sm-3">
+	<div class="col-sm-6">
 		<label for="splitorder">Split Order</label>
 	</div>
 	<div class="col-sm-6">
-		{% include 'util/bootstrap/form/select-simple.twig' with {
-				'select': {
-					'name': 'splitorder',
-					'value' : item.is_splitorder() ? 'Y' : 'N',
-					'haskeys': true,
-					'options': {'Y': 'Yes', 'N': 'No'}
-				}
-			}
-		%}
+		<div class="custom-control custom-checkbox">
+			<input type="checkbox" class="custom-control-input" name="splitorder" id="splitorder" value="Y" {{ item.is_splitorder() ? 'checked' : ''}}>
+			<label class="custom-control-label" for="splitorder">&nbsp;</label>
+		</div>
 	</div>
 </div>
 <div class="form-group row">
-	<div class="col-sm-3">
-		<label for="specialitemcode">Special Item Code</label>
-	</div>
-	<div class="col-sm-6">
-		<select name="specialitemcode" class="custom-select custom-select-sm {{ itm.field_has_error('specialitemcode') ? 'is-invalid' : ''}}" id="specialitemcode">
-			<option value=""></option>
-			{% for code in itm.get_speicialitemcodes() %}
-				<option value="{{ code.code }}" {{ code.code == item.specialitemcode ? 'selected' : ''}}>{{ code.code }} - {{ code.description }}</option>
-			{% endfor %}
-		</select>
-	</div>
-</div>
-<div class="form-group row">
-	<div class="col-sm-3">
+	<div class="col-sm-4">
 		<label for="custid">For Customer</label>
 	</div>
-	<div class="col-sm-6">
-		{% include 'util/bootstrap/form/input-group.twig' with {
-				'inputgroup': {
-					'type': 'prepend',
-					'input': {
-						'name': 'custID',
-						'id': 'custID',
-						'value': item.custid,
-						'attributes': {
-							'placeholder': '',
-							'aria-label':  'Customer ID',
-							'maxlength': itm.fieldAttribute('custID', 'maxlength'),
-						}
-					},
-					'button': {
-						'colorclass': 'btn-secondary',
-						'text': 'fa fa-search'|icon,
-						'attributes': {
-							'title': 'Search Customers',
-							'data-toggle': 'modal',
-							'data-target': '#ajax-modal',
-							'data-lookupurl': page.search_lookupURL('customers'),
-							'data-input': '#custID'
-						}
-					}
-				}
-			}
-		%}
-		<small class="form-text text-muted customer-name">{{ item.customer.name }}</small>
+	<div class="col-sm-8">
+		<div class="input-group">
+			<span class="input-group-prepend">
+				<button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#ajax-modal">
+					<i class="fa fa-search" aria-hidden="true"></i> <span class="sr-only">Search Customers</span>
+				</button>
+			</span>
+			<input type="text" name="custid" class="form-control" maxlength="6" value="{{ item.custid }}" id="custid">
+		</div>
+		<input type="text" class="form-control-plaintext" value="" id="cust_name" readonly>
 	</div>
 </div>

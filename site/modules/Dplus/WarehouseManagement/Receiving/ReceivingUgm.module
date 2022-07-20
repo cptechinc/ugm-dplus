@@ -1,18 +1,12 @@
 <?php namespace ProcessWire;
 
 use Purl\Url;
-// Dplus Models
 use PurchaseOrderQuery, PurchaseOrder;
 use PurchaseOrderDetailReceivingQuery, PurchaseOrderDetailReceiving;
 use WarehouseQuery, Warehouse;
-use ConfigSalesOrderQuery, ConfigSalesOrder;
-use ItemMasterItemQuery, ItemMasterItem;
-// Dplus Online Models
+
 use WhsesessionQuery, Whsesession;
 use WhseitemphysicalcountQuery, Whseitemphysicalcount;
-
-// Dplus Validators
-use Dplus\CodeValidators\Min as MinValidator;
 
 class ReceivingUgm extends WireData implements Module {
 	/**
@@ -44,53 +38,6 @@ class ReceivingUgm extends WireData implements Module {
 		$this->ponbr = $ponbr;
 	}
 
-
-	public function validate_autosubmit(Whseitemphysicalcount $item) {
-		$validate = new MinValidator();
-
-
-		if ($validate->itemid($item->itemid) === false) {
-			return false;
-		}
-
-		$warehouse = $this->get_warehouse();
-
-		if (!$warehouse->validate_bin($item->bin)) {
-			return false;
-		}
-
-		if (empty($item->productiondate) || empty($item->lotserialref) || empty($item->qty)) {
-			return false;
-		}
-		return true;
-	}
-
-/* =============================================================
-	Dplus Cobol Request Functions
-============================================================= */
-	/**
-	 * Sends HTTP GET request to Redir to make Dplus Request to load Purchase Order Working files
-	 * @return void
-	 */
-	public function request_purchaseorder_init() {
-		$dplusdb = $this->wire('modules')->get('DplusOnlineDatabase')->db_name;
-		$data = array("DBNAME=$dplusdb", 'STARTRECEIVE', "PONBR=$this->ponbr");
-		$requestor = $this->wire('modules')->get('DplusRequest');
-		$requestor->write_dplusfile($data, $this->sessionID);
-		$requestor->cgi_request($config->cgis['warehouse'], $this->sessionID);
-	}
-
-/* =============================================================
-	Supplemental Functions
-============================================================= */
-	/**
-	 * Return the number of decimal places for qty values
-	 * @return int
-	 */
-	public function decimal_places() {
-		return ConfigSalesOrderQuery::create()->findOne()->decimal_places;
-	}
-
 	/**
 	 * Return Whsesession
 	 * @return Whsesession
@@ -107,6 +54,48 @@ class ReceivingUgm extends WireData implements Module {
 		$whsesession = $this->get_whsesession();
 		return WarehouseQuery::create()->findOneById($whsesession->whseid);
 	}
+
+	public function validate_autosubmit(Whseitemphysicalcount $item) {
+		$validate_item = $this->wire('modules')->get('LookupItem');
+		$warehouse = $this->get_warehouse();
+
+		if (!$validate_item->lookup_itm($item->itemid)) {
+			return false;
+		}
+
+		if (!$warehouse->validate_bin($item->bin)) {
+			return false;
+		}
+
+		if (empty($item->productiondate) || empty($item->lotserialref) || empty($item->qty)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function get_autosumbitURL($scan) {
+		$url = new Url($this->wire('pages')->get('template=redir, redir_file=inventory')->httpUrl);
+		$url->query->set('action', 'receiving-autosubmit');
+		$url->query->set('ponbr', $this->ponbr);
+		$url->query->set('scan', $scan);
+		return $url->getUrl();
+	}
+
+	/**
+	 * Sends HTTP GET request to Redir to make Dplus Request to load Purchase Order Working files
+	 * @return void
+	 */
+	public function request_purchaseorder_init() {
+		$http = new WireHttp();
+		$url = new Url("127.0.0.1");
+		$url->path = $this->wire('pages')->get('template=redir, redir_file=inventory')->url;
+		$url->query->set('action', 'init-receive');
+		$url->query->set('sessionID', $this->sessionID);
+		$url->query->set('ponbr', $this->ponbr);
+		$http->get($url->getUrl());
+	}
+
 	/**
 	 * Returns if Purchase Order exists in the Database
 	 * @return PurchaseOrder
@@ -174,55 +163,6 @@ class ReceivingUgm extends WireData implements Module {
 		return $js;
 	}
 
-	/**
-	 * Returns if Item is Lot Serial
-	 * @param  string $itemID Item ID
-	 * @return bool
-	 */
-	public function is_item_lotserialized($itemID) {
-		$q = ItemMasterItemQuery::create();
-		return ($q->is_item_serialized($itemID) || $q->is_item_lotted($itemID));
-	}
-
-	/**
-	 * Returns if Item is Lot Serial
-	 * @param  string $itemID Item ID
-	 * @return bool
-	 */
-	public function is_item_serialized($itemID) {
-		$q = ItemMasterItemQuery::create();
-		return $q->is_item_serialized($itemID);
-	}
-
-	/**
-	 * Returns if Item is Lot Serial
-	 * @param  string $itemID Item ID
-	 * @return bool
-	 */
-	public function is_item_lotted($itemID) {
-		$q = ItemMasterItemQuery::create();
-		return $q->is_item_lotted($itemID);
-	}
-
-	/**
-	 * Returns if Item is Lot Serial
-	 * @param  string $itemID Item ID
-	 * @return bool
-	 */
-	public function is_item_normal($itemID) {
-		$q = ItemMasterItemQuery::create();
-		return $q->is_item_normal($itemID);
-	}
-/* =============================================================
-	URL Functions
-============================================================= */
-	public function get_autosumbitURL($scan) {
-		$url = new Url($this->wire('pages')->get('template=redir, redir_file=inventory')->httpUrl);
-		$url->query->set('action', 'receiving-autosubmit');
-		$url->query->set('ponbr', $this->ponbr);
-		$url->query->set('scan', $scan);
-		return $url->getUrl();
-	}
 /* =============================================================
 	ProcessWire Module Functions
 ============================================================= */

@@ -16,8 +16,7 @@
 			$page->headline = $page->title = "Cannot Render Page";
 			$response = array(
 				'error' => true,
-				'message' => "Cannot Render Page, Template can not be found",
-				'template' => "$template"
+				'message' => "Cannot Render Page, Template can not be found"
 			);
 			$page->body = json_encode($response);
 		}
