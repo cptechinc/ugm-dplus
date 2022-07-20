@@ -23,10 +23,10 @@
 						</p>
 
 						{% if (item.is_serialized() or item.is_lotted()) %}
-							{% include 'warehouse/inventory/find-item/provalley/item-breakdown-by-' ~ config.show_inventoryresults ~ '.twig' %}
+							{% include 'warehouse/inventory/find-item/provalley/item-breakdown-by-' ~ config.inventory.show_inventoryresults ~ '.twig' %}
 						{% else %}
 							<p class="list-group-item-text bg-light">
-								<strong>Bins:</strong> {{ inventory.count_itembins(item.sessionid, item) }} <strong>Qty:</strong> {{ item.qty|number_format(config.decimal_places()) }}
+								<strong>Bins:</strong> {{ inventory.count_itembins(item.sessionid, item) }} <strong>Qty:</strong> {{ item.qty|number_format(config.inventory.decimal_places()) }}
 							</p>
 							{% if (not warehouse.validate_bin(item.bin)) %}
 								<span class="badge badge-danger pull-right">Invalid Bin</span>

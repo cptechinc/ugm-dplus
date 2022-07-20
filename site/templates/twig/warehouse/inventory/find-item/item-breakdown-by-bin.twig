@@ -23,7 +23,7 @@
 							{% endif %}
 						</div>
 						<div class="col">
-							<strong>Qty:</strong> {{ binitem.qty|number_format(config.decimal_places()) }}
+							<strong>Qty:</strong> {{ binitem.qty|number_format(config.inventory.decimal_places()) }}
 						</div>
 						<div class="col">
 							{% if (not page.is_print()) %}

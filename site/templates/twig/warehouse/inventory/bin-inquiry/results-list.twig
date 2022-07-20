@@ -9,7 +9,7 @@
 
 				{% if (item.is_serialized() or item.is_lotted()) %}
 					<div class="d-flex justify-content-between p-2 mb-1">
-						<span><strong>Qty:</strong> {{ inventory.get_qty_itemid(item.sessionid, item.itemid, item.bin)|number_format(config.decimal_places()) }}</span>
+						<span><strong>Qty:</strong> {{ inventory.get_qty_itemid(item.sessionid, item.itemid, item.bin)|number_format(config.inventory.decimal_places()) }}</span>
 						{% if (not page.is_print()) %}
 							<button type="button" class="btn btn-primary btn-sm mb-3" data-toggle="collapse" data-target="#{{ item.itemid|attrJS  }}-lotserial" aria-expanded="false" aria-controls="{{ item.itemid }}-lotserial">
 								Show / Hide {{ item.get_itemtypepropertydesc()|upper ~ "S" }}
@@ -32,7 +32,7 @@
 											<strong>Expire Date:</strong> {{ lotserial.expirationdate ? lotserial.expirationdate|convertdate : '' }}
 										</div>
 										<div class="col">
-											<strong>Qty:</strong> {{ lotserial.qty|number_format(config.decimal_places()) }}
+											<strong>Qty:</strong> {{ lotserial.qty|number_format(config.inventory.decimal_places()) }}
 										</div>
 										<div class="col">
 											{% if (not warehouse.validate_bin(lotserial.bin)) %}
@@ -48,7 +48,7 @@
 					<div class="list-group-item bg-light p-1">
 						<div class="row">
 							<div class="col">
-								<strong>Qty:</strong> {{ item.qty|number_format(config.decimal_places()) }}
+								<strong>Qty:</strong> {{ item.qty|number_format(config.inventory.decimal_places()) }}
 							</div>
 							<div class="col">
 								{% if (not warehouse.validate_bin(item.bin)) %}

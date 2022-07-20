@@ -85,7 +85,7 @@ class SalesOrder extends Base {
 		$config = self::pw('config');
 		$order = SalesOrderQuery::create()->findOneByOrdernumber($data->ordn);
 		$twig = [
-			'header' => $config->twig->render("sales-orders/sales-order/header-display.twig", ['config' => self::configSo(), 'order' => $order]),
+			'header' => $config->twig->render("sales-orders/sales-order/header-display.twig", ['configSo' => self::configSo(), 'order' => $order]),
 			'items'  => self::itemsDisplay($order, $data)
 		];
 		$twig = self::_orderDetails($order, $data, $twig);
@@ -119,9 +119,9 @@ class SalesOrder extends Base {
 		$twigloader = $config->twig->getLoader();
 
 		if ($twigloader->exists("sales-orders/sales-order/$config->company/items.twig")) {
-			return $config->twig->render("sales-orders/sales-order/$config->company/items.twig", ['config' => self::configSo(), 'order' => $order, 'soTools' => Tools::getInstance()]);
+			return $config->twig->render("sales-orders/sales-order/$config->company/items.twig", ['configSo' => self::configSo(), 'order' => $order, 'soTools' => Tools::getInstance()]);
 		}
-		return $config->twig->render("sales-orders/sales-order/items.twig", ['config' => self::configSo(), 'order' => $order, 'soTools' => Tools::getInstance()]);
+		return $config->twig->render("sales-orders/sales-order/items.twig", ['configSo' => self::configSo(), 'order' => $order, 'soTools' => Tools::getInstance()]);
 	}
 
 	protected static function documentsDisplay($data) {

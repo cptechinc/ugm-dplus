@@ -22,12 +22,12 @@
 							{{ item.desc1 }} {{ item.desc2 ? ('<br>' ~ item.desc2)|raw : '' }}
 						</p>
 						{% if (item.is_serialized() or item.is_lotted()) %}
-							{% include 'warehouse/inventory/find-item/item-breakdown-by-' ~ config.show_inventoryresults ~ '.twig' %}
+							{% include 'warehouse/inventory/find-item/item-breakdown-by-' ~ config.inventory.show_inventoryresults ~ '.twig' %}
 						{% elseif inventory.count_itembins_itemid(item.sessionid, item.itemid) > 1 %}
 						{% include 'warehouse/inventory/find-item/item-breakdown-by-bin.twig' %}
 						{% else %}
 							<p class="list-group-item-text bg-light">
-								<strong>Bin:</strong> {{ item.bin }} <strong>Qty:</strong> {{ item.qty|number_format(config.decimal_places()) }}
+								<strong>Bin:</strong> {{ item.bin }} <strong>Qty:</strong> {{ item.qty|number_format(config.inventory.decimal_places()) }}
 							</p>
 							{% if (not warehouse.validate_bin(item.bin)) %}
 								<span class="badge badge-danger pull-right">Invalid Bin</span>

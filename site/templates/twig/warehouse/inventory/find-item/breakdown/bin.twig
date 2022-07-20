@@ -14,7 +14,7 @@
 			<strong>Bins :</strong> {{ inventory.count_bins_itemid(item.itemid) }}
 		</div>
 		<div class="col-sm-2">
-			<strong>Qty:</strong> <span class="pull-right">{{ inventory.get_qty_itemid(item.itemid)|number_format(config.decimal_places()) }}</span>
+			<strong>Qty:</strong> <span class="pull-right">{{ inventory.get_qty_itemid(item.itemid)|number_format(config.inventory.decimal_places()) }}</span>
 		</div>
 		<div class="col">
 			{% if (not page.is_print()) %}

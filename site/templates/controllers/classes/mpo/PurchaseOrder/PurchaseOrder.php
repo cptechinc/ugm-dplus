@@ -76,7 +76,7 @@ class PurchaseOrder extends Base {
 
 		$html = '';
 		$html  .= $config->twig->render('purchase-orders/purchase-order/links-header.twig', ['purchaseorder' => $po, 'docm' => $docm]);
-		$html  .= $config->twig->render('purchase-orders/purchase-order/purchase-order.twig', ['config' => self::getConfigs(), 'user' => self::pw('user'), 'purchaseorder' => $po, 'qnotes' => $qnotes]);
+		$html  .= $config->twig->render('purchase-orders/purchase-order/purchase-order.twig', ['configs' => self::getConfigs(), 'user' => self::pw('user'), 'purchaseorder' => $po, 'qnotes' => $qnotes]);
 		$html  .= $config->twig->render('purchase-orders/purchase-order/documents.twig', ['ponbr' => $data->ponbr, 'documents' => $docm->getDocumentsPo($data->ponbr)]);
 		$html  .= $config->twig->render('purchase-orders/purchase-order/invoices.twig', ['purchaseorder' => $po]);
 		$html  .= $config->twig->render('purchase-orders/purchase-order/qnotes.twig', ['ponbr' => $data->ponbr, 'qnotes' => $qnotes]);

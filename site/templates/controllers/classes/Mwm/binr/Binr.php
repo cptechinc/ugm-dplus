@@ -136,9 +136,9 @@ class Binr extends AbstractController {
 		$warehouse = self::getCurrentUserWarehouse();
 
 		if ($config->twigloader->exists("warehouse/binr/$config->company/inventory-results.twig")) {
-			return $config->twig->render("warehouse/binr/$config->company/inventory-results.twig", ['config' => $config->binr, 'resultscount' => $countLotserial, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
+			return $config->twig->render("warehouse/binr/$config->company/inventory-results.twig", ['configBinr' => $config->binr, 'resultscount' => $countLotserial, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
 		}
-		return $config->twig->render('warehouse/binr/inventory-results.twig', ['config' => $config->binr, 'resultscount' => $countLotserial, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
+		return $config->twig->render('warehouse/binr/inventory-results.twig', ['configBinr' => $config->binr, 'resultscount' => $countLotserial, 'items' => $items, 'warehouse' => $warehouse, 'inventory' => $inventory]);
 	}
 
 	private static function handleItem($data) {
@@ -183,11 +183,11 @@ class Binr extends AbstractController {
 		$currentbins = BininfoQuery::create()->filterByItem(session_id(), $item)->select_bin_qty()->find();
 		// 1. Binr form
 		$page->formurl = $page->parent('template=warehouse-menu')->child('template=redir')->url;
-		$html .= $config->twig->render('warehouse/binr/binr-form.twig', ['config' => $config->binr, 'whsesession' => $whsesession, 'item' => $item, 'inventory' => $inventory]);
+		$html .= $config->twig->render('warehouse/binr/binr-form.twig', ['configBinr' => $config->binr, 'whsesession' => $whsesession, 'item' => $item, 'inventory' => $inventory]);
 		// 2. Choose From Bin Modal
-		$html .= $config->twig->render('warehouse/binr/from-bins-modal.twig', ['config' => $config->binr, 'item' => $item, 'bins' => $currentbins]);
+		$html .= $config->twig->render('warehouse/binr/from-bins-modal.twig', ['configBinr' => $config->binr, 'item' => $item, 'bins' => $currentbins]);
 		// 3. Choose To Bin Modals
-		$html .= $config->twig->render('warehouse/binr/to-bins-modal.twig', ['config' => $config->binr, 'currentbins' => $currentbins, 'warehouse' => $warehouse, 'item' => $item, 'inventory' => $inventory]);
+		$html .= $config->twig->render('warehouse/binr/to-bins-modal.twig', ['configBinr' => $config->binr, 'currentbins' => $currentbins, 'warehouse' => $warehouse, 'item' => $item, 'inventory' => $inventory]);
 		// 4. Warehouse Config JS
 		$bins = $warehouse->get_bins();
 		$availablebins = BininfoQuery::create()->filterBySessionItemid(session_id(), $item->itemID)->find()->toArray('Bin');

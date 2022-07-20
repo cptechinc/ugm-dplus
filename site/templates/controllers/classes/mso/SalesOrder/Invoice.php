@@ -35,7 +35,7 @@ class Invoice extends SalesOrder {
 		$order = SalesHistoryQuery::create()->findOneByOrdernumber($data->ordn);
 		$docm = self::docm();
 		$twig = [
-			'header' => $config->twig->render("sales-orders/sales-history/header-display.twig", ['config' => self::configSo(), 'order' => $order, 'docm' => $docm]),
+			'header' => $config->twig->render("sales-orders/sales-history/header-display.twig", ['order' => $order, 'docm' => $docm]),
 			'items'  => self::itemsDisplay($order, $data)
 		];
 		$twig = self::_orderDetails($order, $data, $twig);
@@ -48,9 +48,9 @@ class Invoice extends SalesOrder {
 		$twigloader = $config->twig->getLoader();
 
 		if ($twigloader->exists("sales-orders/sales-history/$config->company/items.twig")) {
-			return $config->twig->render("sales-orders/sales-history/$config->company/items.twig", ['config' => self::configSo(), 'order' => $order]);
+			return $config->twig->render("sales-orders/sales-history/$config->company/items.twig", ['configSo' => self::configSo(), 'order' => $order]);
 		}
-		return $config->twig->render("sales-orders/sales-history/items.twig", ['config' => self::configSo(), 'order' => $order]);
+		return $config->twig->render("sales-orders/sales-history/items.twig", ['configSo' => self::configSo(), 'order' => $order]);
 	}
 
 	protected static function qnotesDisplay($data) {

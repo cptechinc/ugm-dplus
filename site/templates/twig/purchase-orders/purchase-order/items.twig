@@ -3,8 +3,8 @@
 	-------------------------------------------------
 	page                   ProcessWire\Page
 	config                 ProcessWire\Config
-	config.so              ConfigSalesOrder
-	config.po              ConfigPo
+	configs.so              ConfigSalesOrder
+	configs.po              ConfigPo
 	user                   ProcessWire\User
 	purchaseorder          PurchaseOrder
 #}
@@ -29,9 +29,9 @@
 				</td>
 				<td>{{ item.whse }}</td>
 				<td>{{ item.specialorder }}</td>
-				<td class="text-right">{{ item.qty_ordered|number_format(config.so.decimal_places_qty) }}</td>
-				<td class="text-right">$ {{ item.cost|number_format(config.po.decimal_places_cost) }}</td>
-				<td class="text-right">$ {{ item.cost_total|number_format(config.po.decimal_places_cost) }}</td>
+				<td class="text-right">{{ item.qty_ordered|number_format(configs.so.decimal_places_qty) }}</td>
+				<td class="text-right">$ {{ item.cost|number_format(configs.po.decimal_places_cost) }}</td>
+				<td class="text-right">$ {{ item.cost_total|number_format(configs.po.decimal_places_cost) }}</td>
 				<td class="text-center">
 					<button class="btn btn-sm btn-secondary" type="button" data-toggle="collapse" data-target="#notes-line-{{ item.linenbr }}" aria-expanded="false" aria-controls="notes-line-{{ item.linenbr }}">
 						<i class="fa fa-sticky-note" aria-hidden="true"></i> Notes
@@ -49,7 +49,7 @@
 		<tfoot>
 			<tr class="bg-secondary text-white">
 				<td colspan="6" class="text-right"><b>Total</b></td>
-				<td class="text-right">$ {{ purchaseorder.get_total()|number_format(config.po.decimal_places_cost) }}</td>
+				<td class="text-right">$ {{ purchaseorder.get_total()|number_format(configs.po.decimal_places_cost) }}</td>
 			</tr>
 		</tfoot>
 	</tfoot>

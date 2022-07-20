@@ -18,9 +18,9 @@
 		$items = InvsearchQuery::create()->findDistinctItems(session_id());
 
 		if (file_exists($config->paths->templates."twig/warehouse/inventory/find-item/$config->company/results.twig")) {
-			$page->body .= $config->twig->render("warehouse/inventory/find-item/$config->company/results.twig", ['page' => $page, 'config' => $config->inventory, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
+			$page->body .= $config->twig->render("warehouse/inventory/find-item/$config->company/results.twig", ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
 		} else {
-			$page->body .= $config->twig->render('warehouse/inventory/find-item/results.twig', ['page' => $page, 'config' => $config->inventory, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
+			$page->body .= $config->twig->render('warehouse/inventory/find-item/results.twig', ['page' => $page, 'resultscount' => $resultscount, 'items' => $items, 'inventory' => $inventory, 'warehouse' => $warehouse]);
 		}
 	}
 

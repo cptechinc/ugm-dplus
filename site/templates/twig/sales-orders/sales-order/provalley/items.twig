@@ -2,7 +2,7 @@
 	var                    Description / Instance of
 	-------------------------------------------------
 	page                   ProcessWire\Page
-	config                 ConfigSalesOrder
+	configSo               ConfigSalesOrder
 	soTools                Dplus\Mso\So\Tools
 	order                  SalesOrder
 	order.items            SalesOrderDetail[]|ObjectCollection
@@ -35,9 +35,9 @@
 				<small>Avg Weight: {{ detail.item.weight }} lbs</small>
 			</td>
 			<td class="text-right">{{ detail.qty_cases }}</td>
-			<td class="text-right">{{ detail.qty_ordered|number_format(config.decimal_places_qty) }}</td>
-			<td class="text-right">$ {{ detail.price|number_format(config.decimal_places_price) }}</td>
-			<td class="text-right">$ {{ detail.total_price|number_format(config.decimal_places_price) }}</td>
+			<td class="text-right">{{ detail.qty_ordered|number_format(configSo.decimal_places_qty) }}</td>
+			<td class="text-right">$ {{ detail.price|number_format(configSo.decimal_places_price) }}</td>
+			<td class="text-right">$ {{ detail.total_price|number_format(configSo.decimal_places_price) }}</td>
 			<td class="text-right">
 				<a href="{{ page.orderNotesUrl(order.ordernumber, detail.linenbr) }}" class="h4 {{ detail.has_notes() ? 'text-success' : 'text-muted'}}">
 					<i class="fa fa-sticky-note" aria-hidden="true"></i>
@@ -64,7 +64,7 @@
 				<tr>
 					<td></td>
 					<td>{{ lot.lotserial }}</td>
-					<td class="text-right">{{ lot.shipqty|number_format(config.decimal_places_qty) }}</td>
+					<td class="text-right">{{ lot.shipqty|number_format(configSo.decimal_places_qty) }}</td>
 					<td>
 						{% if docm.hasImage(lot.lotserial) %}
 							{% set image = docm.getImage(lot.lotserial) %}
@@ -89,11 +89,11 @@
 				{{ order.count_cases() }}
 			</td>
 			<td class="text-right">
-				{{ order.total_weight()|number_format(config.decimal_places_qty) }}
+				{{ order.total_weight()|number_format(configSo.decimal_places_qty) }}
 			</td>
 			<td></td>
 			<td class="text-right">
-				$ {{ order.subtotal_nontax|number_format(config.decimal_places_price) }}
+				$ {{ order.subtotal_nontax|number_format(configSo.decimal_places_price) }}
 			</td>
 			<td></td>
 			<td></td>

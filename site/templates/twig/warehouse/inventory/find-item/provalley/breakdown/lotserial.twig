@@ -17,7 +17,7 @@
 			<strong>Boxes:</strong> <span class="pull-right">{{ inventory.count_lotserials_itemid(item.itemid) }}</span>
 		</div>
 		<div class="col-sm-2">
-			<strong>Total Weight:</strong> <span class="pull-right">{{ inventory.get_qty_itemid(item.itemid)|number_format(config.decimal_places()) }}</span>
+			<strong>Total Weight:</strong> <span class="pull-right">{{ inventory.get_qty_itemid(item.itemid)|number_format(config.inventory.decimal_places()) }}</span>
 		</div>
 		<div class="col text-center">
 			{% if (not page.is_print()) %}

@@ -6,7 +6,7 @@
 			<strong>Bin:</strong> {{ binitem.bin }}
 		</div>
 		<div class="col-sm-2">
-			<strong>Qty:</strong> <span class="pull-right">{{ inventory.get_qty_itemid(item.itemid, binitem.bin)|number_format(config.decimal_places()) }}</span>
+			<strong>Qty:</strong> <span class="pull-right">{{ inventory.get_qty_itemid(item.itemid, binitem.bin)|number_format(config.inventory.decimal_places()) }}</span>
 		</div>
 		<div class="col-sm-2">
 			{% if (not warehouse.validate_bin(binitem.bin)) %}

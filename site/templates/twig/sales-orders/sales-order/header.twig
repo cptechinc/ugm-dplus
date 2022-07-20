@@ -73,7 +73,7 @@
 					<div class="col-sm-7">Has Tracking:</div>
 					<div class="col-sm-5 text-right">{{ order.has_tracking() ? 'Yes' : 'No' }}</div>
 				</div>
-				{% if config.request_date_header() %}
+				{% if configSo.request_date_header() %}
 					<div class="row">
 						<div class="col-sm-7">Request Date:</div>
 						<div class="col-sm-5 text-right">{{ order.date_requested ? order.date_requested|convertdate : '' }}</div>

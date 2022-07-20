@@ -88,9 +88,9 @@ class PrintSo extends Base {
 		];
 
 		if ($config->twigloader->exists("sales-orders/sales-$type/print/$config->company/items.twig")) {
-			$twig['items'] = $config->twig->render("sales-orders/sales-$type/print/$config->company/items.twig", ['config' => self::configSo(), 'order' => $order]);
+			$twig['items'] = $config->twig->render("sales-orders/sales-$type/print/$config->company/items.twig", ['configSo' => self::configSo(), 'order' => $order]);
 		} else {
-			$twig['items'] = $config->twig->render("sales-orders/sales-$type/print/items.twig", ['config' => self::configSo(), 'order' => $order]);
+			$twig['items'] = $config->twig->render("sales-orders/sales-$type/print/items.twig", ['configSo' => self::configSo(), 'order' => $order]);
 		}
 
 		$html = $config->twig->render("sales-orders/sales-order/print/display.twig", ['html' => $twig, 'ordn' => $data->ordn]);

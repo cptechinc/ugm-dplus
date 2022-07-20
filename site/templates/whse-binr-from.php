@@ -8,7 +8,7 @@
 		include('./whse-binr.php');
 	} else {
 		$page->body =  $config->twig->render('warehouse/binr/direction/bin-form.twig', ['page' => $page, 'inputname' => 'frombin']);
-		$page->body .= $config->twig->render('warehouse/inventory/bins-modal.twig', ['warehouse' => $warehouse, 'config' => $config->binr]);
+		$page->body .= $config->twig->render('warehouse/inventory/bins-modal.twig', ['warehouse' => $warehouse]);
 
 		$config->scripts->append(hash_templatefile('scripts/lib/jquery-validate.js'));
 		$config->scripts->append(hash_templatefile('scripts/warehouse/shared.js'));
