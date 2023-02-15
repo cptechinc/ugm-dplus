@@ -57,19 +57,19 @@
 				<input type="hidden" name="itemID" value="{{ item.itemid }}">
 				<div class="scroll-300 form-group">
 					{% for lotserial in item.get_lotserials() %}
+						{% set lotserialbin = lotserial.lotserial ~ '-' ~ lotserial.bin %}
 						<input type="hidden" name="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin) }}-bin" value="{{ lotserial.bin }}">
-						<input type="hidden" name="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin) }}-lotserialref" value="{{ lotserial.lotserialref }}">
 						<input type="hidden" name="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin) }}-lotserial" value="{{ lotserial.lotserial }}">
 
 						<div class="list-group-item lotserial-bin-record">
 							<div class="row">
 								<div class="col-sm-2">
 									<div class="form-check">
-										<input class="form-check-input" type="checkbox" name="lotserialbins[]" value="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin) }}" id="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin)|attrJS }}">
+										<input class="form-check-input" type="checkbox" name="lotserialbins[]" value="{{ lotserialbin }}" id="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin)|attrJS }}">
 									</div>
 								</div>
 								<div class="col-sm-2">{{ lotserial.bin }}</div>
-								<div class="col-sm-2" for="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin)|attrJS }}">{{ lotserial.lotserial }}</div>
+								<div class="col-sm-2" for="{{ lotserialbin|attrJS }}">{{ lotserial.lotserial }}</div>
 								<div class="col-sm-2">{{ lotserial.lotserialref }}</div>
 								<div class="col-sm-2">
 									<input type="number" class="form-control lotserial-qty" {% if m_picking.allow_pick_more_than_available() == false  %} max="{{ lotserial.qty|number_format(m_picking.decimal_places()) }}" {% endif %} name="{{ (lotserial.lotserial ~ '-' ~ lotserial.bin) }}-qty" value="">
