@@ -170,11 +170,12 @@ class Picking extends WireData implements Module {
 	 */
 	public function add_lotserials(WireInput $input) {
 		$rm = strtolower($input->requestMethod());
+		/** @var WireInputData */
 		$values = $input->$rm;
 		$itemID = $values->text('itemID');
 		$scan = $values->text('scan');
 
-		$lotserialbins = $input->post->array('lotserialbins');
+		$lotserialbins = $values->array('lotserialbins');
 		$orderitem = $this->items->get_picksalesorderdetail_itemid($itemID);
 		$recordnumbers = array();
 
@@ -206,7 +207,7 @@ class Picking extends WireData implements Module {
 				$values->binID = $binID;
 				$values->lotserialref = $lotref;
 				$values->qty = $qty;
-
+				
 				if ($qty + 0 > 0) {
 					$pickingitem = $this->create_whseitempick_input($orderitem, $input);
 					$pickingitem->save();
